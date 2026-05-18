@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  backend-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: code-judge-backend
+    ports:
+      - "4100:4100"
+    environment:
+      # This repository currently runs on SQLite via Prisma driver adapter.
+      # The DB file is persisted via the /app/data volume.
+      - DATABASE_URL=${DATABASE_URL:-file:./data/code_judge.db}
+      - JWT_SECRET=${JWT_SECRET:-production-secret-key-change-me}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-86400}
+      - INTERNAL_API_KEY=${INTERNAL_API_KEY:-internal-judge-worker-key-change-me}
+      - PORT=${PORT:-4100}
+      # Optional: seed demo data on startup (WARNING: seed wipes existing data)
+      - SEED_DB=${SEED_DB:-false}
+    volumes:
+      - backend_data:/app/data
+    command: >
+      sh -c "npx prisma migrate deploy && if [ \"$SEED_DB\" = \"true\" ]; then npx prisma db seed; fi && npm run start:prod"
+    restart: always
+
+volumes:
+  backend_data:
