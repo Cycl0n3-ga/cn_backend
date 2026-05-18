@@ -1,0 +1,147 @@
+// Online Code Judge — Prisma Schema
+// Database: SQLite (development) / PostgreSQL (production)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ─── User ────────────────────────────────────────────────────
+model User {
+  id           String       @id @default(uuid())
+  username     String       @unique
+  email        String       @unique
+  passwordHash String
+  role         String       @default("USER") // "ADMIN" | "USER"
+  solvedCount  Int          @default(0)
+  rating       Int          @default(0)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  submissions              Submission[]
+  assignments              Assignment[]
+  interviewsCreated        Interview[]           // 作為面試官建立的面試
+  interviewCandidates      InterviewCandidate[]  // 作為被面試者的記錄
+  interviewAssignments     InterviewAssignment[] // 作為考生被指派的題目
+
+  @@map("users")
+}
+
+// ─── Problem ─────────────────────────────────────────────────
+model Problem {
+  id             Int          @id @default(autoincrement())
+  title          String
+  description    String
+  difficulty     String       @default("EASY") // "EASY" | "MEDIUM" | "HARD"
+  timeLimitMs    Int          @default(1000)
+  memoryLimitMb  Int          @default(256)
+  functionName   String?      // [NEW] 預期使用者實作的 function 名稱
+  acceptanceRate Float        @default(0)
+  isDeleted      Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  testCases             TestCase[]
+  submissions           Submission[]
+  assignments           Assignment[]
+  interviewAssignments  InterviewAssignment[]
+
+  @@map("problems")
+}
+
+// ─── TestCase ────────────────────────────────────────────────
+model TestCase {
+  id        Int     @id @default(autoincrement())
+  problemId Int
+  input     String
+  output    String
+  isHidden  Boolean @default(true)
+
+  problem   Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  @@map("test_cases")
+}
+
+// ─── Submission ──────────────────────────────────────────────
+model Submission {
+  id              String   @id @default(uuid())
+  userId          String
+  problemId       Int
+  language        String
+  sourceCode      String
+  status          String   @default("PENDING") // PENDING | COMPILING | RUNNING | ACCEPTED | WRONG_ANSWER | TLE | MLE | RUNTIME_ERROR | COMPILE_ERROR
+  score           Int      @default(0)
+  userOutput      String?  // [NEW] 使用者程式碼產生的答案
+  compileMessage  String   @default("")
+  executionTimeMs Int?
+  memoryUsageKb   Int?
+  createdAt       DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  problem Problem @relation(fields: [problemId], references: [id])
+
+  @@map("submissions")
+}
+
+// ─── Assignment (題目指派) ────────────────────────────────────
+model Assignment {
+  id        Int      @id @default(autoincrement())
+  problemId Int
+  userId    String
+  createdAt DateTime @default(now())
+
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@unique([problemId, userId])
+  @@map("assignments")
+}
+
+// ─── Interview (面試) ──────────────────────────────────────────
+model Interview {
+  id             Int      @id @default(autoincrement())
+  jobRole        String
+  examinerEmpId  String   // 參考 User.id
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  examiner              User                  @relation(fields: [examinerEmpId], references: [id])
+  candidates            InterviewCandidate[]
+  interviewAssignments  InterviewAssignment[]
+
+  @@map("interviews")
+}
+
+// ─── InterviewCandidate (面試者) ───────────────────────────────
+model InterviewCandidate {
+  id          Int      @id @default(autoincrement())
+  jobId       Int      // 對應 Interview.id
+  userId      String   // 對應 User.id
+  createdAt   DateTime @default(now())
+
+  interview   Interview @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, userId])
+  @@map("interview_candidates")
+}
+
+// ─── InterviewAssignment (面試題目指派) ────────────────────────
+// 由面試官將特定題目指派給面試中的考生（code-judge 系統）
+model InterviewAssignment {
+  id        Int      @id @default(autoincrement())
+  jobId     Int      // 對應 Interview.id
+  userId    String   // 對應 User.id（考生）
+  problemId Int      // 對應 Problem.id
+  createdAt DateTime @default(now())
+
+  interview Interview @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  problem   Problem   @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, userId, problemId])
+  @@map("interview_assignments")
+}
