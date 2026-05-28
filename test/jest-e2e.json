@@ -5,11 +5,5 @@
   "testRegex": ".e2e-spec.ts$",
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
-  },
-  "moduleNameMapper": {
-    "^(\\.\\.?/.+)\\.js$": "$1"
-  },
-  "globalSetup": "<rootDir>/jest.global-setup.js",
-  "globalTeardown": "<rootDir>/jest.global-teardown.js",
-  "testTimeout": 30000
+  }
 }

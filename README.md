@@ -1,232 +1,498 @@
-# 代碼評測後端
+# Backend Setup Guide
 
-線上代碼評測系統後端，使用 NestJS + Prisma + SQLite 建構。
+This is a NestJS backend using Prisma + PostgreSQL.
 
-**📚 完整文件:** 請查閱 [/docs](docs) 目錄
+## Prerequisites
 
-## 🚀 快速開始
+- Node.js 20.19+ (22.12+ or 24+ recommended; Prisma 7 requires this)
+- npm
+- PostgreSQL running locally (or a reachable Postgres instance)
+- Docker Desktop running locally for sandboxed code judging
+
+## 1) Install dependencies
 
 ```bash
-# 安裝依賴
 npm install
+```
 
-# 資料庫遷移 + 種子資料
-npx prisma migrate dev
-npx ts-node prisma/seed.ts
+## 2) Configure environment variables
 
-# 啟動開發伺服器
+```bash 
+docker run --name postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -p 5432:5432 \
+  -d postgres
+```
+
+Create a `.env` file in the `backend` folder:
+
+```bash
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/postgres"
+```
+
+Update credentials, host, port, and database name to match your local setup.
+
+## 3) Change database schema (recommended workflow)
+
+When you change `prisma/schema.prisma`, use migrations (instead of only `db push`) so schema history is tracked and can be applied safely in other environments.
+
+### Local development
+
+1. Edit `prisma/schema.prisma`.
+2. Create and apply a migration:
+
+```bash
+npx prisma migrate dev --name describe_change
+```
+
+This will:
+- generate SQL under `prisma/migrations/*`
+- apply the migration to your local database
+- regenerate Prisma Client
+
+### Staging / Production
+
+After committing your migration files, apply them with:
+
+```bash
+npx prisma migrate deploy
+```
+
+### Quick reset for local-only testing
+
+If you want to rebuild local tables from schema and wipe data:
+
+```bash
+npx prisma db push --force-reset
+```
+
+Use this reset flow for local testing only (not shared/prod migration workflow).
+
+## 4) Seed with mock data
+
+The seed script imports data from:
+
+- `../online_code_test/src/data/mockDb.json`
+
+Run:
+
+```bash
+npm run db:seed
+```
+
+## 5) Generate Prisma client (if needed)
+
+If schema changed and types look stale:
+
+```bash
+npx prisma generate
+```
+
+## 6) Start the backend
+
+```bash
+# development
+npm run start:dev
+
+# production build/start
+npm run build
+npm run start:prod
+```
+
+## Code judge API
+
+This backend supports a sandboxed judge flow:
+
+1. A questioner creates a problem with one `testcase` and one `testcaseAns`.
+2. An examiner/admin creates an assignment that connects an interview, candidate, and problem.
+3. A candidate can run code against the public sample input.
+4. A candidate submits code for the assignment.
+5. The backend runs the submitted code inside a Docker container and stores the judge result.
+
+The backend itself does not run inside Docker. Docker is only used to sandbox submitted code.
+
+### Run vs Submit
+
+```text
+POST /judge/run
+  Uses question.example / question.exampleAns.
+  Does not create a submission record.
+  Use this for the frontend Run button.
+
+POST /submissions
+  Uses question.testcase / question.testcaseAns.
+  Creates a submission record with PENDING status.
+  The judge queue runs it in the background and updates the result.
+  Use this for the frontend Submit button.
+```
+
+### Supported languages
+
+Currently supported:
+
+```text
+javascript
+python
+c
+cpp
+```
+
+JavaScript submissions must export a `solve(input)` function:
+
+```js
+exports.solve = function solve(input) {
+  const [a, b] = input.trim().split(/\s+/).map(Number);
+  return String(a + b);
+};
+```
+
+Python submissions must define a `solve(input)` function:
+
+```py
+def solve(input: str) -> str:
+    a, b = map(int, input.strip().split())
+    return str(a + b)
+```
+
+C submissions should be a complete program:
+
+```c
+#include <stdio.h>
+
+int main(void) {
+    int a, b;
+    scanf("%d %d", &a, &b);
+    printf("%d", a + b);
+    return 0;
+}
+```
+
+C++ submissions should be a complete program:
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    int a, b;
+    cin >> a >> b;
+    cout << a + b;
+    return 0;
+}
+```
+
+The judge compares stdout with the expected output after trimming whitespace and normalizing line endings.
+
+### Judge statuses
+
+```text
+PENDING              Submission has been stored and is waiting for the judge queue.
+RUNNING              Submission is currently being judged.
+ACCEPTED             Output matches testcaseAns.
+WRONG_ANSWER         Output does not match testcaseAns.
+RUNTIME_ERROR        Submitted code crashed.
+TIME_LIMIT_EXCEEDED  Submitted code ran longer than 5 seconds.
+INTERNAL_ERROR       Docker is unavailable or the language is unsupported.
+```
+
+### Sandbox limits
+
+The first version uses these Docker limits:
+
+```text
+Network: disabled
+CPU: 0.5 CPU
+Memory: 128 MB
+Process limit: 64
+Filesystem: read-only mounted submission files
+Timeout: 5 seconds
+Images: node:22-alpine, python:3.12-alpine, gcc:14
+```
+
+Judge jobs are processed by an in-memory queue so simultaneous submissions do not start unlimited Docker containers. The default concurrency is 2 jobs at a time. You can change it with:
+
+```env
+JUDGE_CONCURRENCY=2
+```
+
+### Frontend flow
+
+The frontend should call these APIs in this order for a complete demo:
+
+```text
+POST /users/signup       Create candidate / examiner / questioner users.
+POST /problems           Create a coding problem.
+POST /interviews         Create an interview.
+POST /assignments        Assign a problem to a candidate.
+GET  /assignments/user/:userId
+POST /judge/run          Run code against public sample input.
+GET  /judge/queue        Inspect active and queued judge jobs.
+POST /submissions        Submit code and receive a PENDING submission.
+GET  /submissions/:id    Poll one submission until it is ACCEPTED / WRONG_ANSWER / error.
+GET  /submissions/user/:userId
+```
+
+### Create a problem
+
+```http
+POST /problems
+Content-Type: application/json
+```
+
+```json
+{
+  "title": "Two Sum Input",
+  "prompt": "Read two numbers from input and return their sum.",
+  "example": "1 2",
+  "exampleAns": "3",
+  "testcase": "40 2",
+  "testcaseAns": "42",
+  "authorUserId": 1
+}
+```
+
+Response:
+
+```json
+{
+  "id": 1,
+  "title": "Two Sum Input",
+  "prompt": "Read two numbers from input and return their sum.",
+  "example": "1 2",
+  "exampleAns": "3",
+  "testcase": "40 2",
+  "testcaseAns": "42",
+  "authorUserId": 1
+}
+```
+
+### Create an interview
+
+```http
+POST /interviews
+Content-Type: application/json
+```
+
+```json
+{
+  "jobRole": "Backend Engineer",
+  "examinerEmpId": "123456"
+}
+```
+
+`examinerEmpId` must belong to an existing examiner/admin-style user with an `empId`.
+
+### Create an assignment
+
+```http
+POST /assignments
+Content-Type: application/json
+```
+
+```json
+{
+  "jobId": 1,
+  "userId": 2,
+  "questionId": 1
+}
+```
+
+`userId` is the candidate user id.
+
+### Get candidate assignments
+
+```http
+GET /assignments/user/2
+```
+
+Response:
+
+```json
+[
+  {
+    "id": 1,
+    "jobId": 1,
+    "userId": 2,
+    "questionId": 1,
+    "question": {
+      "id": 1,
+      "title": "Two Sum Input",
+      "prompt": "Read two numbers from input and return their sum.",
+      "example": "1 2",
+      "exampleAns": "3",
+      "testcase": "40 2",
+      "testcaseAns": "42",
+      "authorUserId": 1
+    }
+  }
+]
+```
+
+### Run code against the public sample
+
+```http
+POST /judge/run
+Content-Type: application/json
+```
+
+`questionId` is the problem id. This endpoint runs against `example` and `exampleAns`, and does not store a submission.
+
+```json
+{
+  "questionId": 1,
+  "language": "python",
+  "code": "def solve(input: str) -> str:\n    a, b = map(int, input.strip().split())\n    return str(a + b)"
+}
+```
+
+Response:
+
+```json
+{
+  "status": "ACCEPTED",
+  "stdout": "3",
+  "stderr": "",
+  "expectedOutput": "3",
+  "score": 100,
+  "executionTimeMs": 300
+}
+```
+
+### Submit code
+
+```http
+POST /submissions
+Content-Type: application/json
+```
+
+```json
+{
+  "assignmentId": 1,
+  "userId": 2,
+  "language": "cpp",
+  "code": "#include <bits/stdc++.h>\nusing namespace std;\nint main() { int a, b; cin >> a >> b; cout << a + b; return 0; }"
+}
+```
+
+Immediate response:
+
+```json
+{
+  "id": 1,
+  "assignmentId": 1,
+  "userId": 2,
+  "questionId": 1,
+  "language": "cpp",
+  "code": "#include <bits/stdc++.h>\nusing namespace std;\nint main() { int a, b; cin >> a >> b; cout << a + b; return 0; }",
+  "status": "PENDING",
+  "stdout": "",
+  "stderr": "",
+  "expectedOutput": "42",
+  "score": 0,
+  "executionTimeMs": null
+}
+```
+
+Poll the submission result:
+
+```http
+GET /submissions/1
+```
+
+Finished response:
+
+```json
+{
+  "id": 1,
+  "status": "ACCEPTED",
+  "stdout": "42",
+  "stderr": "",
+  "expectedOutput": "42",
+  "score": 100,
+  "executionTimeMs": 800
+}
+```
+
+Wrong answer response:
+
+```json
+{
+  "status": "WRONG_ANSWER",
+  "stdout": "41",
+  "expectedOutput": "42",
+  "score": 0
+}
+```
+
+### Local smoke test with curl
+
+Start Docker Desktop first, then run:
+
+```bash
+docker ps
+```
+
+If Docker is running, the command should print a table instead of a daemon connection error.
+
+Start the backend:
+
+```bash
 npm run start:dev
 ```
 
-啟動後：
-- 🚀 API: http://localhost:4100/api/v1
-- 📚 Swagger UI: http://localhost:4100/api/docs
-
-## 📖 文件導覽
-
-| 類型 | 文件 | 說明 |
-|------|------|------|
-| **快速開始** | [SETUP_GUIDE.md](docs/SETUP_GUIDE.md) | 開發環境完整配置 |
-| **架構設計** | [BACKEND_ARCHITECTURE.md](docs/BACKEND_ARCHITECTURE.md) | 系統架構和設計模式 |
-| **API 文件** | [API_SPECIFICATION.md](docs/API_SPECIFICATION.md) | 所有 API 端點詳解 |
-| **資料庫** | [DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) | 資料庫模式和關係 |
-| **模組說明** | [MODULE_GUIDE.md](docs/MODULE_GUIDE.md) | 各功能模組詳細說明 |
-| **測試指南** | [TESTING_GUIDE.md](docs/TESTING_GUIDE.md) | 測試執行方法 |
-| **部署指南** | [DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) | 生產部署和優化 |
-| **安全文件** | [SECURITY.md](docs/SECURITY.md) | 安全性和最佳實踐 |
-| **故障排除** | [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | 常見問題和解決方案 |
-| **貢獻指南** | [CONTRIBUTING.md](docs/CONTRIBUTING.md) | 開發者貢獻流程 |
-| **版本日誌** | [CHANGELOG.md](docs/CHANGELOG.md) | 版本變更記錄 |
-| **全部文件** | [PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md) | 完整的文件結構導覽 |
-
-## 🧪 測試帳號
-
-> `/auth/login` 與 `/auth/signup` 的 `passwordSha256` 欄位為 **SHA-256 hex**（前端送 sha256 後的值），後端再以 bcrypt 儲存/比對。
-
-| 帳號 | 明文密碼（僅供人類閱讀） | passwordSha256 (sha256 hex) | 角色 |
-|------|--------------------------|------------------------|------|
-| admin | admin123 | 240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9 | ADMIN |
-| alice | user123 | e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446 | USER |
-| bob | user123 | e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446 | USER |
-
-## 🧬 測試
+Use these sample calls after creating `.env`, running migrations, and ensuring the referenced ids exist:
 
 ```bash
-# 單元測試 (Unit Tests)
-npm run test
-
-# 單元測試涵蓋率
-npm run test:cov
-
-# 整合測試 (Integration Tests, Jest + 真實 SQLite Test DB)
-# 會自動建立 `test/.tmp/` 下的獨立 DB、跑 migrations、灌 seed，結束後自動清理
-npm run test:integration
-
-# E2E 測試 (E2E Tests, Jest + Supertest)
-# 同上：自動建立獨立 DB + migrations + seed
-npm run test:e2e
-
-# Shell 整合測試（需先啟動伺服器）
-bash test/api-test.sh
-
-# 壓力/負載/效能測試 (Load/Stress/Performance Tests)
-# 請先啟動伺服器與資料庫（建議已灌 seed data）
-npm run test:load
-npm run test:stress
-
-# CI-friendly 的效能門檻測試（會依 P99/error/timeout 決定 exit code）
-npm run test:perf
+curl -X POST http://localhost:4100/judge/run \
+  -H "Content-Type: application/json" \
+  -d '{
+    "questionId": 1,
+    "language": "python",
+    "code": "def solve(input: str) -> str:\n    a, b = map(int, input.strip().split())\n    return str(a + b)"
+  }'
 ```
-
-詳細的測試方法請參考 [TESTING_GUIDE.md](docs/TESTING_GUIDE.md)
-
-## 🐳 容器化與部署 (Docker)
-
-本專案支援使用 Docker 進行快速部署。
-
-> 目前程式碼（Prisma Adapter + migrations + seed）以 **SQLite** 為可直接運行的預設設定。
-> `docker-compose.yml` 會在容器啟動時自動執行 `prisma migrate deploy`，並將 DB 檔案持久化在 volume。
 
 ```bash
-# 建立並啟動 Backend API（SQLite）
-docker compose up -d --build
-
-# （可選）啟動時灌入 demo seed data（⚠️ seed 會清空既有資料）
-SEED_DB=true docker compose up -d --build
-
-# 檢視日誌
-docker compose logs -f backend-api
-
-# 停止服務（若要連同 DB 一起刪除，可加 -v）
-docker compose down
+curl -X POST http://localhost:4100/submissions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "assignmentId": 1,
+    "userId": 2,
+    "language": "c",
+    "code": "#include <stdio.h>\nint main(void) { int a, b; scanf(\"%d %d\", &a, &b); printf(\"%d\", a + b); return 0; }"
+  }'
 ```
 
-詳細的部署指南請參考 [DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md)
+If Docker is not running, the submission will return `INTERNAL_ERROR`.
 
-## 🔌 API 端點
+## Database inspection
 
-| Method | Path | 說明 |
-|--------|------|------|
-| POST | `/api/v1/auth/login` | 使用者登入 |
-| POST | `/api/v1/auth/signup` | 使用者註冊 |
-| GET | `/api/v1/problems` | 題目列表 |
-| GET | `/api/v1/problems/:id` | 題目詳情 |
-| POST | `/api/v1/problems` | 新增題目 (Admin) |
-| DELETE | `/api/v1/problems/:id` | 刪除題目 (Admin) |
-| POST | `/api/v1/problems/:id/assign` | 指派題目 (Admin) |
-| POST | `/api/v1/submissions` | 提交程式碼 |
-| GET | `/api/v1/submissions/:id` | 查詢評測結果 |
-| GET | `/api/v1/users` | 使用者列表 |
-| GET | `/api/v1/users/:username/submissions` | 提交歷史 |
-| GET | `/api/v1/leaderboard` | 排行榜 |
-| GET | `/api/v1/health` | 健康檢查 |
-| GET | `/api/v1/internal/testcases/:id` | 評測機測資 |
-
-完整的 API 文件請參考 [API_SPECIFICATION.md](docs/API_SPECIFICATION.md)
-
-## 🏗️ 核心模組
-
-- **Auth** - JWT 認證、登入、註冊、角色管理
-- **Problems** - 題目管理（CRUD、難度、測試用例）
-- **Submissions** - 代碼提交、評測結果  
-- **Users** - 使用者管理、排名統計
-- **Leaderboard** - 排行榜功能
-- **Interviews** - 面試系統管理
-- **Interview-Candidates** - 面試候選人管理
-- **Internal** - 內部 API 介面（評測機通信）
-- **Health** - 健康檢查
-
-詳細的模組說明請參考 [MODULE_GUIDE.md](docs/MODULE_GUIDE.md)
-
-## ⚙️ 技術棧
-
-- **框架:** NestJS 11.x
-- **ORM:** Prisma 7.x
-- **認證:** Passport.js + JWT
-- **測試:** Jest
-- **資料庫:** SQLite (開發) / PostgreSQL (生產)
-- **容器:** Docker + Docker Compose
-- **API 文件:** Swagger/OpenAPI
-
-## 📋 命令列表
+### Option A: Prisma Studio (UI)
 
 ```bash
-# 開發
-npm run start          # 啟動應用
-npm run start:dev      # 啟動開發模式（自動重載）
-npm run start:debug    # 啟動調試模式
-npm run start:prod     # 啟動生產模式
-
-# 構建
-npm run build          # 構建應用
-npm run format         # 格式化代碼
-npm run lint           # 代碼檢查
-
-# 測試
-npm run test           # 運行所有測試
-npm run test:watch     # 觀察模式
-npm run test:cov       # 生成涵蓋率報告
-npm run test:e2e       # E2E 測試
-npm run test:integration # 整合測試
-
-# 資料庫
-npm run db:migrate     # 執行遷移
-npm run db:seed        # 灌入種子資料
+npx prisma studio
 ```
 
-## 🔐 安全性
+### Option B: SQL via psql
 
-本專案遵循安全最佳實踐：
-- JWT 認證和授權
-- 密碼加密 (bcrypt)
-- SQL 注入防護 (Prisma)
-- CORS 配置
-- 速率限制建議
+```bash
+psql "$DATABASE_URL"
+```
 
-詳細的安全文件請參考 [SECURITY.md](docs/SECURITY.md)
+Then run:
 
-## 🐛 故障排除
+```sql
+\dt
+SELECT * FROM users;
+SELECT * FROM interviews;
+SELECT * FROM "interviewCandidates";
+SELECT * FROM questions;
+SELECT * FROM assignments;
+```
 
-遇到問題？請查閱 [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
+## Useful scripts
 
-常見問題包括：
-- 連接埠已被佔用
-- 資料庫連接失敗
-- JWT 驗證失敗
-- CORS 問題
-
-## 📞 需要幫助？
-
-- **開發環境:** [SETUP_GUIDE.md](docs/SETUP_GUIDE.md)
-- **測試方法:** [TESTING_GUIDE.md](docs/TESTING_GUIDE.md)
-- **部署步驟:** [DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md)
-- **所有文件:** [docs 目錄](docs)
-
-## 📝 版本資訊
-
-- **當前版本:** 1.0.0
-- **發布日期:** 2025-05-13
-- **狀態:** ✅ 穩定版
-
-詳細的版本資訊和變更日誌請參考 [CHANGELOG.md](docs/CHANGELOG.md)
-| POST | `/api/v1/interviews` | 建立面試 |
-| GET | `/api/v1/interviews` | 取得面試列表 |
-| PATCH | `/api/v1/interviews/:id` | 更改面試名稱 |
-| DELETE | `/api/v1/interviews/:id` | 刪除面試 |
-| POST | `/api/v1/interview-candidates` | 新增面試者 |
-| DELETE | `/api/v1/interview-candidates/:id` | 移除面試者 |
-
-## 文件
-
-- [API 規格書](docs/API_SPECIFICATION.md) — 前端使用的完整 API 文件
-- [後端架構](docs/BACKEND_ARCHITECTURE.md) — 系統架構與開發指南
-- [Swagger UI](http://localhost:4100/api/docs) — 互動式 API 文件
-
-## 技術棧
-
-- **NestJS 11** — Node.js 後端框架
-- **Prisma 7** — ORM
-- **SQLite** — 開發資料庫
-- **JWT + Passport** — 認證授權
-- **Swagger** — API 文件
-- **Jest** — 測試框架
+- `npm run db:migrate` - run Prisma migration in dev mode
+- `npm run db:seed` - seed database from mock JSON
+- `npm run test` - unit tests
+- `npm run test:e2e` - e2e tests

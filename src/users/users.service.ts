@@ -1,82 +1,119 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import * as bcrypt from 'bcryptjs';
+import { PrismaService } from 'src/prisma/prisma.service';
+
+type SignupRole = 'candidate' | 'examiner' | 'questioner' | 'admin';
+
+type SignupInput = {
+  email: string;
+  password: string;
+  role: SignupRole;
+  name?: string;
+};
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll() {
-    const users = await this.prisma.user.findMany({
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        role: true,
-        solvedCount: true,
-        rating: true,
-        createdAt: true,
-      },
-      orderBy: { createdAt: 'asc' },
-    });
-
+  private mapRoleFlags(role: SignupRole) {
     return {
-      data: users.map((u) => ({
-        id: u.id,
-        username: u.username,
-        email: u.email,
-        role: u.role,
-        solvedCount: u.solvedCount.toString(),
-        rating: u.rating.toString(),
-        createdAt: u.createdAt,
-      })),
+      isCandidate: role === 'candidate',
+      isExaminer: role === 'examiner',
+      isQuestioner: role === 'questioner',
+      isAdmin: role === 'admin',
     };
   }
 
-  async getSubmissionHistory(
-    username: string,
-    page = 1,
-    limit = 20,
-  ) {
-    const user = await this.prisma.user.findUnique({
-      where: { username },
-    });
-    if (!user) {
-      throw new NotFoundException(`User "${username}" not found.`);
+  private buildEmpId(role: SignupRole) {
+    if (role === 'candidate') return null;
+    return Math.floor(Math.random() * 1_000_000)
+      .toString()
+      .padStart(6, '0');
+  }
+
+  async create(input: SignupInput) {
+    const email = input.email.trim().toLowerCase();
+    const password = input.password.trim();
+    const name = input.name?.trim() || email.split('@')[0];
+
+    if (!email || !password || !input.role) {
+      throw new BadRequestException('email, password, and role are required.');
     }
 
-    const [total, submissions] = await Promise.all([
-      this.prisma.submission.count({ where: { userId: user.id } }),
-      this.prisma.submission.findMany({
-        where: { userId: user.id },
-        select: {
-          id: true,
-          problemId: true,
-          language: true,
-          status: true,
-          score: true,
-          sourceCode: true,
-          userOutput: true,
-          createdAt: true,
-        },
-        skip: (page - 1) * limit,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-      }),
-    ]);
+    const existed = await this.prisma.user.findUnique({ where: { email } });
+    if (existed) {
+      throw new ConflictException('Email is already registered.');
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const user = await this.prisma.user.create({
+      data: {
+        email,
+        name,
+        passwordHash,
+        empId: this.buildEmpId(input.role),
+        ...this.mapRoleFlags(input.role),
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        empId: true,
+        isAdmin: true,
+        isCandidate: true,
+        isExaminer: true,
+        isQuestioner: true,
+      },
+    });
+
+    return user;
+  }
+
+  async login(email: string, password: string) {
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await this.prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid email or password.');
+    }
+
+    const isValidPassword = await bcrypt.compare(password, user.passwordHash);
+    if (!isValidPassword) {
+      throw new UnauthorizedException('Invalid email or password.');
+    }
 
     return {
-      total: total.toString(),
-      page: page.toString(),
-      data: submissions.map((s) => ({
-        submission_id: s.id,
-        problem_id: s.problemId.toString(),
-        language: s.language,
-        status: s.status,
-        score: s.score.toString(),
-        source_code: s.sourceCode,
-        execution_result: s.userOutput || '',
-        submitted_at: s.createdAt,
-      })),
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      empId: user.empId,
+      isAdmin: user.isAdmin,
+      isCandidate: user.isCandidate,
+      isExaminer: user.isExaminer,
+      isQuestioner: user.isQuestioner,
     };
+  }
+
+  findAll() {
+    return this.prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        empId: true,
+        isAdmin: true,
+        isCandidate: true,
+        isExaminer: true,
+        isQuestioner: true,
+      },
+      orderBy: { id: 'asc' },
+    });
   }
 }

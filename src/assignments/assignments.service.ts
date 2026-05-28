@@ -1,136 +1,58 @@
-import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
-} from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
-import { CreateInterviewAssignmentDto } from './dto/assignment.dto.js';
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
+
+export type CreateAssignmentInput = {
+  jobId: number;
+  userId: number;
+  questionId: number;
+};
 
 @Injectable()
 export class AssignmentsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateInterviewAssignmentDto) {
-    const { jobId, userId, problemId } = dto;
-
-    // Verify interview exists
-    const interview = await this.prisma.interview.findUnique({
-      where: { id: jobId },
+  create(input: CreateAssignmentInput) {
+    return this.prisma.assignment.create({
+      data: input,
+      include: this.includeRelations(),
     });
-    if (!interview) {
-      throw new NotFoundException(`Interview #${jobId} not found.`);
-    }
-
-    // Verify user exists
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) {
-      throw new NotFoundException(`User #${userId} not found.`);
-    }
-
-    // Verify problem exists
-    const problem = await this.prisma.problem.findFirst({
-      where: { id: problemId, isDeleted: false },
-    });
-    if (!problem) {
-      throw new NotFoundException(`Problem #${problemId} not found.`);
-    }
-
-    try {
-      const assignment = await this.prisma.interviewAssignment.create({
-        data: { jobId, userId, problemId },
-        include: this.includeRelations(),
-      });
-
-      return this.formatAssignment(assignment);
-    } catch (error: any) {
-      if (error.code === 'P2002') {
-        throw new ConflictException(
-          'This problem is already assigned to the user in this interview.',
-        );
-      }
-      throw error;
-    }
   }
 
-  async findAll() {
-    const assignments = await this.prisma.interviewAssignment.findMany({
+  findAll() {
+    return this.prisma.assignment.findMany({
       include: this.includeRelations(),
       orderBy: { id: 'asc' },
     });
-
-    return assignments.map((a) => this.formatAssignment(a));
   }
 
-  async findOne(id: number) {
-    const assignment = await this.prisma.interviewAssignment.findUnique({
+  findOne(id: number) {
+    return this.prisma.assignment.findUnique({
       where: { id },
       include: this.includeRelations(),
     });
-
-    if (!assignment) {
-      throw new NotFoundException(`Assignment #${id} not found.`);
-    }
-
-    return this.formatAssignment(assignment);
   }
 
-  async findByUser(userId: string) {
-    const assignments = await this.prisma.interviewAssignment.findMany({
+  findByUser(userId: number) {
+    return this.prisma.assignment.findMany({
       where: { userId },
       include: this.includeRelations(),
       orderBy: { id: 'asc' },
     });
-
-    return assignments.map((a) => this.formatAssignment(a));
-  }
-
-  async remove(id: number) {
-    const assignment = await this.prisma.interviewAssignment.findUnique({
-      where: { id },
-    });
-    if (!assignment) {
-      throw new NotFoundException(`Assignment #${id} not found.`);
-    }
-
-    await this.prisma.interviewAssignment.delete({ where: { id } });
   }
 
   private includeRelations() {
     return {
       interview: true,
-      problem: {
-        select: {
-          id: true,
-          title: true,
-          difficulty: true,
-        },
-      },
+      question: true,
       user: {
         select: {
           id: true,
-          username: true,
           email: true,
+          name: true,
+          empId: true,
+          isCandidate: true,
         },
       },
-    };
-  }
-
-  private formatAssignment(a: any) {
-    return {
-      id: a.id.toString(),
-      jobId: a.jobId.toString(),
-      userId: a.userId,
-      problemId: a.problemId.toString(),
-      createdAt: a.createdAt,
-      interview: a.interview
-        ? {
-            id: a.interview.id.toString(),
-            jobRole: a.interview.jobRole,
-            examinerEmpId: a.interview.examinerEmpId,
-          }
-        : undefined,
-      problem: a.problem,
-      user: a.user,
     };
   }
 }

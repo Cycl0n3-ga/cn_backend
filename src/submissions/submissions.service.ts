@@ -1,219 +1,145 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
-import { JudgeService, type JudgeResult } from '../judge/judge.service.js';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { JudgeQueueService } from 'src/judge/judge-queue.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
-// Status enum values
-const STATUS = {
-  PENDING: 'PENDING',
-  COMPILING: 'COMPILING',
-  RUNNING: 'RUNNING',
-  ACCEPTED: 'ACCEPTED',
-  WRONG_ANSWER: 'WRONG_ANSWER',
-  TLE: 'TLE',
-  MLE: 'MLE',
-  RUNTIME_ERROR: 'RUNTIME_ERROR',
-  COMPILE_ERROR: 'COMPILE_ERROR',
-} as const;
+export type CreateSubmissionInput = {
+  assignmentId: number;
+  userId: number;
+  language: string;
+  code: string;
+};
 
 @Injectable()
 export class SubmissionsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly judgeService: JudgeService,
+    private readonly judgeQueueService: JudgeQueueService,
   ) {}
 
-  async create(userId: string, data: { problemId: number; language: string; sourceCode: string }) {
-    const normalizedLanguage = data.language.trim().toLowerCase();
-    // Verify problem exists
-    const problem = await this.prisma.problem.findFirst({
-      where: { id: data.problemId, isDeleted: false },
+  async create(input: CreateSubmissionInput) {
+    const assignment = await this.prisma.assignment.findUnique({
+      where: { id: input.assignmentId },
+      include: { question: true },
     });
-    if (!problem) {
-      throw new NotFoundException(`Problem #${data.problemId} not found.`);
+
+    if (!assignment) {
+      throw new NotFoundException('Assignment was not found.');
     }
 
-    // Create submission with PENDING status
+    if (assignment.userId !== input.userId) {
+      throw new BadRequestException('This assignment does not belong to userId.');
+    }
+
     const submission = await this.prisma.submission.create({
       data: {
-        userId,
-        problemId: data.problemId,
-        language: normalizedLanguage,
-        sourceCode: data.sourceCode,
-        status: STATUS.PENDING,
+        assignmentId: assignment.id,
+        userId: input.userId,
+        questionId: assignment.questionId,
+        language: input.language,
+        code: input.code,
+        status: 'PENDING',
+        expectedOutput: assignment.question.testcaseAns,
       },
+      include: this.includeRelations(),
     });
 
-    // Run judge asynchronously (in production, this would push to a message queue)
-    void this.runJudgeForSubmission({
-      submissionId: submission.id,
-      problemId: data.problemId,
-      userId,
-      language: normalizedLanguage,
-      sourceCode: data.sourceCode,
+    void this.processSubmission(submission.id, {
+      language: input.language,
+      code: input.code,
+      testcase: assignment.question.testcase,
+      testcaseAns: assignment.question.testcaseAns,
     });
 
-    return {
-      submission_id: submission.id,
-      status: STATUS.PENDING,
-    };
+    return submission;
   }
 
-  async findOne(id: string) {
-    const submission = await this.prisma.submission.findUnique({
-      where: { id },
-    });
-
-    if (!submission) {
-      throw new NotFoundException(`Submission "${id}" not found.`);
-    }
-
-    return {
-      submission_id: submission.id,
-      problem_id: submission.problemId.toString(),
-      language: submission.language,
-      status: submission.status,
-      score: submission.score.toString(),
-      user_answer: submission.userOutput || '',
-      compile_message: submission.compileMessage,
-      metrics: {
-        execution_time_ms: submission.executionTimeMs?.toString() || '0',
-        memory_usage_kb: submission.memoryUsageKb?.toString() || '0',
-      },
-      submitted_at: submission.createdAt,
-    };
-  }
-
-  private async runJudgeForSubmission(input: {
-    submissionId: string;
-    problemId: number;
-    userId: string;
-    language: string;
-    sourceCode: string;
-  }) {
+  private async processSubmission(
+    submissionId: number,
+    input: {
+      language: string;
+      code: string;
+      testcase: string;
+      testcaseAns: string;
+    },
+  ) {
     try {
-      await this.prisma.submission.update({
-        where: { id: input.submissionId },
-        data: { status: STATUS.COMPILING },
-      });
-
-      const testCases = await this.prisma.testCase.findMany({
-        where: { problemId: input.problemId },
-        orderBy: { id: 'asc' },
-      });
-
-      await this.prisma.submission.update({
-        where: { id: input.submissionId },
-        data: { status: STATUS.RUNNING },
-      });
-
-      if (testCases.length === 0) {
-        await this.prisma.submission.update({
-          where: { id: input.submissionId },
-          data: {
-            status: STATUS.RUNTIME_ERROR,
-            score: 0,
-            compileMessage: 'No test cases found for this problem.',
-            executionTimeMs: 0,
-          },
-        });
-        return;
-      }
-
-      let finalStatus: string = STATUS.ACCEPTED;
-      let totalTimeMs = 0;
-      let lastStdout = '';
-      let lastStderr = '';
-
-      for (const testCase of testCases) {
-        const result = await this.judgeService.run({
+      const result = await this.judgeQueueService.enqueue(
+        {
           language: input.language,
-          code: input.sourceCode,
-          input: testCase.input,
-          expectedOutput: testCase.output,
-        });
-
-        totalTimeMs += result.executionTimeMs;
-        lastStdout = result.stdout;
-        lastStderr = result.stderr;
-
-        const mappedStatus = this.mapJudgeStatus(result.status);
-        if (mappedStatus !== STATUS.ACCEPTED) {
-          finalStatus = mappedStatus;
-          break;
-        }
-      }
-
-      const score = finalStatus === STATUS.ACCEPTED ? 100 : 0;
+          code: input.code,
+          input: input.testcase,
+          expectedOutput: input.testcaseAns,
+        },
+        async () => {
+          await this.prisma.submission.update({
+            where: { id: submissionId },
+            data: { status: 'RUNNING' },
+          });
+        },
+      );
 
       await this.prisma.submission.update({
-        where: { id: input.submissionId },
+        where: { id: submissionId },
         data: {
-          status: finalStatus,
-          score,
-          userOutput: lastStdout,
-          compileMessage: lastStderr,
-          executionTimeMs: totalTimeMs,
+          status: result.status,
+          stdout: result.stdout,
+          stderr: result.stderr,
+          expectedOutput: result.expectedOutput,
+          score: result.score,
+          executionTimeMs: result.executionTimeMs,
         },
       });
-
-      if (finalStatus === STATUS.ACCEPTED) {
-        await this.updateUserStatsIfFirstAccepted(input.submissionId, input.userId);
-      }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown judge error.';
       await this.prisma.submission.update({
-        where: { id: input.submissionId },
+        where: { id: submissionId },
         data: {
-          status: STATUS.RUNTIME_ERROR,
+          status: 'INTERNAL_ERROR',
+          stderr: error instanceof Error ? error.message : String(error),
           score: 0,
-          compileMessage: message,
         },
       });
     }
   }
 
-  private async updateUserStatsIfFirstAccepted(submissionId: string, userId: string) {
-    const submission = await this.prisma.submission.findUnique({
-      where: { id: submissionId },
+  findAll() {
+    return this.prisma.submission.findMany({
+      include: this.includeRelations(),
+      orderBy: { id: 'desc' },
     });
-    if (!submission) {
-      return;
-    }
+  }
 
-    const previousAccepted = await this.prisma.submission.count({
-      where: {
-        userId,
-        problemId: submission.problemId,
-        status: STATUS.ACCEPTED,
-        id: { not: submissionId },
+  findOne(id: number) {
+    return this.prisma.submission.findUnique({
+      where: { id },
+      include: this.includeRelations(),
+    });
+  }
+
+  findByUser(userId: number) {
+    return this.prisma.submission.findMany({
+      where: { userId },
+      include: this.includeRelations(),
+      orderBy: { id: 'desc' },
+    });
+  }
+
+  private includeRelations() {
+    return {
+      assignment: true,
+      question: true,
+      user: {
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          empId: true,
+          isCandidate: true,
+        },
       },
-    });
-
-    if (previousAccepted === 0) {
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: {
-          solvedCount: { increment: 1 },
-          rating: { increment: 10 },
-        },
-      });
-    }
-  }
-
-  private mapJudgeStatus(status: JudgeResult['status']) {
-    switch (status) {
-      case 'ACCEPTED':
-        return STATUS.ACCEPTED;
-      case 'WRONG_ANSWER':
-        return STATUS.WRONG_ANSWER;
-      case 'TIME_LIMIT_EXCEEDED':
-        return STATUS.TLE;
-      case 'RUNTIME_ERROR':
-        return STATUS.RUNTIME_ERROR;
-      case 'INTERNAL_ERROR':
-        return STATUS.RUNTIME_ERROR;
-      default:
-        return STATUS.RUNTIME_ERROR;
-    }
+    };
   }
 }
