@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { JudgeService, type JudgeResult } from '../judge/judge.service.js';
+import { JudgeQueueService } from '../judge/judge-queue.service.js';
+import { type JudgeResult } from '../judge/judge.service.js';
 
 // Status enum values
 const STATUS = {
@@ -19,7 +20,7 @@ const STATUS = {
 export class SubmissionsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly judgeService: JudgeService,
+    private readonly judgeQueueService: JudgeQueueService,
   ) {}
 
   async create(userId: string, data: { problemId: number; language: string; sourceCode: string }) {
@@ -91,19 +92,9 @@ export class SubmissionsService {
     sourceCode: string;
   }) {
     try {
-      await this.prisma.submission.update({
-        where: { id: input.submissionId },
-        data: { status: STATUS.COMPILING },
-      });
-
       const testCases = await this.prisma.testCase.findMany({
         where: { problemId: input.problemId },
         orderBy: { id: 'asc' },
-      });
-
-      await this.prisma.submission.update({
-        where: { id: input.submissionId },
-        data: { status: STATUS.RUNNING },
       });
 
       if (testCases.length === 0) {
@@ -125,12 +116,19 @@ export class SubmissionsService {
       let lastStderr = '';
 
       for (const testCase of testCases) {
-        const result = await this.judgeService.run({
-          language: input.language,
-          code: input.sourceCode,
-          input: testCase.input,
-          expectedOutput: testCase.output,
-        });
+        const result = await this.judgeQueueService.enqueue(
+          {
+            language: input.language,
+            code: input.sourceCode,
+            input: testCase.input,
+            expectedOutput: testCase.output,
+          },
+          () =>
+            this.prisma.submission.update({
+              where: { id: input.submissionId },
+              data: { status: STATUS.RUNNING },
+            }),
+        );
 
         totalTimeMs += result.executionTimeMs;
         lastStdout = result.stdout;
