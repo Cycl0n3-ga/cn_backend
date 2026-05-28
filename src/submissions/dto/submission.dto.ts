@@ -6,7 +6,7 @@ export class CreateSubmissionDto {
   @IsInt()
   problem_id: number;
 
-  @ApiProperty({ example: 'python3', enum: ['python3', 'cpp', 'java', 'golang'] })
+  @ApiProperty({ example: 'python', enum: ['javascript', 'python', 'c', 'cpp'] })
   @IsString()
   @IsNotEmpty()
   language: string;

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SubmissionsService } from './submissions.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { JudgeService } from '../judge/judge.service';
+import { JudgeQueueService } from '../judge/judge-queue.service';
 import { NotFoundException } from '@nestjs/common';
 
 describe('SubmissionsService', () => {
@@ -48,7 +48,7 @@ describe('SubmissionsService', () => {
       providers: [
         SubmissionsService,
         { provide: PrismaService, useValue: prisma },
-        { provide: JudgeService, useValue: { run: jest.fn() } },
+        { provide: JudgeQueueService, useValue: { enqueue: jest.fn() } },
       ],
     }).compile();
 
@@ -127,7 +127,7 @@ describe('SubmissionsService', () => {
     });
 
     it('should support all declared languages', async () => {
-      const languages = ['python3', 'cpp', 'java', 'golang'];
+      const languages = ['javascript', 'python', 'c', 'cpp'];
 
       for (const lang of languages) {
         jest.clearAllMocks();
@@ -274,7 +274,7 @@ describe('SubmissionsService', () => {
 
     beforeEach(() => {
       // Get the mocked JudgeService instance from the testing module
-      judgeService = service['judgeService'];
+      judgeService = service['judgeQueueService'];
 
       prisma.submission.update.mockResolvedValue({});
       prisma.testCase.findMany.mockResolvedValue([
@@ -295,7 +295,7 @@ describe('SubmissionsService', () => {
     });
 
     it('should process statuses and finalize as ACCEPTED, then update user stats on first AC', async () => {
-      judgeService.run.mockResolvedValue({
+      judgeService.enqueue.mockResolvedValue({
         status: 'ACCEPTED',
         executionTimeMs: 10,
         stdout: 'OK',
@@ -305,6 +305,7 @@ describe('SubmissionsService', () => {
 
       await (service as any).runJudgeForSubmission({
         submissionId: 'sub-uuid-1',
+        problemId: 1,
         userId: 'user-uuid-1',
         language: 'javascript',
         sourceCode: 'console.log("OK")',
@@ -339,18 +340,18 @@ describe('SubmissionsService', () => {
     });
 
     it('should not update user stats if there was a previous ACCEPTED submission', async () => {
-      judgeService.run.mockResolvedValue({ status: 'ACCEPTED', executionTimeMs: 10, stdout: 'OK' });
+      judgeService.enqueue.mockResolvedValue({ status: 'ACCEPTED', executionTimeMs: 10, stdout: 'OK' });
       prisma.submission.count.mockResolvedValue(2);
 
-      await (service as any).runJudgeForSubmission({ submissionId: 'sub-uuid-1', userId: 'user-uuid-1', language: 'javascript', sourceCode: '' });
+      await (service as any).runJudgeForSubmission({ submissionId: 'sub-uuid-1', problemId: 1, userId: 'user-uuid-1', language: 'javascript', sourceCode: '' });
 
       expect(prisma.user.update).not.toHaveBeenCalled();
     });
 
     it('should not update user stats for non-ACCEPTED outcomes', async () => {
-      judgeService.run.mockResolvedValue({ status: 'WRONG_ANSWER', executionTimeMs: 10, stdout: 'wrong' });
+      judgeService.enqueue.mockResolvedValue({ status: 'WRONG_ANSWER', executionTimeMs: 10, stdout: 'wrong' });
 
-      await (service as any).runJudgeForSubmission({ submissionId: 'sub-uuid-1', userId: 'user-uuid-1', language: 'javascript', sourceCode: '' });
+      await (service as any).runJudgeForSubmission({ submissionId: 'sub-uuid-1', problemId: 1, userId: 'user-uuid-1', language: 'javascript', sourceCode: '' });
 
       expect(prisma.submission.update).toHaveBeenLastCalledWith({
         where: { id: 'sub-uuid-1' },
@@ -362,9 +363,9 @@ describe('SubmissionsService', () => {
     });
 
     it('should map INTERNAL_ERROR to RUNTIME_ERROR', async () => {
-      judgeService.run.mockResolvedValue({ status: 'INTERNAL_ERROR', executionTimeMs: 0, stdout: '' });
+      judgeService.enqueue.mockResolvedValue({ status: 'INTERNAL_ERROR', executionTimeMs: 0, stdout: '' });
 
-      await (service as any).runJudgeForSubmission({ submissionId: 'sub-uuid-1', userId: 'user-uuid-1', language: 'javascript', sourceCode: '' });
+      await (service as any).runJudgeForSubmission({ submissionId: 'sub-uuid-1', problemId: 1, userId: 'user-uuid-1', language: 'javascript', sourceCode: '' });
 
       expect(prisma.submission.update).toHaveBeenLastCalledWith({
         where: { id: 'sub-uuid-1' },
@@ -375,10 +376,10 @@ describe('SubmissionsService', () => {
     });
 
     it('should skip stats update when submission cannot be reloaded', async () => {
-      judgeService.run.mockResolvedValue({ status: 'ACCEPTED', executionTimeMs: 10, stdout: 'OK' });
+      judgeService.enqueue.mockResolvedValue({ status: 'ACCEPTED', executionTimeMs: 10, stdout: 'OK' });
       prisma.submission.findUnique.mockResolvedValue(null);
 
-      await (service as any).runJudgeForSubmission({ submissionId: 'sub-uuid-1', userId: 'user-uuid-1', language: 'javascript', sourceCode: '' });
+      await (service as any).runJudgeForSubmission({ submissionId: 'sub-uuid-1', problemId: 1, userId: 'user-uuid-1', language: 'javascript', sourceCode: '' });
 
       expect(prisma.submission.count).not.toHaveBeenCalled();
       expect(prisma.user.update).not.toHaveBeenCalled();

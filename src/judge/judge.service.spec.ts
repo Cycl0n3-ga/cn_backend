@@ -74,33 +74,6 @@ describe('JudgeService', () => {
 
   // ── run() — unsupported language ───────────────────────────────────────
   describe('run() with unsupported language', () => {
-    it('should return INTERNAL_ERROR for python3', async () => {
-      const input: JudgeInput = {
-        language: 'python3',
-        code: 'print("hello")',
-        input: '',
-        expectedOutput: 'hello',
-      };
-
-      const result = await service.run(input);
-
-      expect(result.status).toBe('INTERNAL_ERROR');
-      expect(result.score).toBe(0);
-      expect(result.stderr).toContain('python3');
-    });
-
-    it('should return INTERNAL_ERROR for cpp', async () => {
-      const result = await service.run({
-        language: 'cpp',
-        code: '',
-        input: '',
-        expectedOutput: '',
-      });
-
-      expect(result.status).toBe('INTERNAL_ERROR');
-      expect(result.score).toBe(0);
-    });
-
     it('should return INTERNAL_ERROR for java', async () => {
       const result = await service.run({
         language: 'java',
@@ -133,6 +106,51 @@ describe('JudgeService', () => {
 
       expect(result.stdout).toBe('');
       expect(result.executionTimeMs).toBe(0);
+    });
+  });
+
+  describe('run() with supported languages', () => {
+    it('should run python3 with the python image', async () => {
+      mockSpawn.mockReturnValue(makeChildStub(0, 'hello\n', '') as any);
+
+      const result = await service.run({
+        language: 'python3',
+        code: 'def solve(input): return "hello"',
+        input: '',
+        expectedOutput: 'hello',
+      });
+
+      expect(result.status).toBe('ACCEPTED');
+      expect(mockSpawn.mock.calls[0][1]).toContain('python:3.12-alpine');
+    });
+
+    it('should compile and run C++ with gcc image', async () => {
+      mockSpawn.mockReturnValue(makeChildStub(0, '42', '') as any);
+
+      const result = await service.run({
+        language: 'cpp',
+        code: 'int main() { return 0; }',
+        input: '40 2',
+        expectedOutput: '42',
+      });
+
+      expect(result.status).toBe('ACCEPTED');
+      expect(mockSpawn.mock.calls[0][1]).toContain('gcc:14');
+      expect(mockSpawn.mock.calls[0][1]).toContain('g++ main.cpp -O2 -pipe -std=c++17 -o /tmp/main && /tmp/main');
+    });
+
+    it('should compile and run C with gcc image', async () => {
+      mockSpawn.mockReturnValue(makeChildStub(0, '42', '') as any);
+
+      const result = await service.run({
+        language: 'c',
+        code: 'int main() { return 0; }',
+        input: '40 2',
+        expectedOutput: '42',
+      });
+
+      expect(result.status).toBe('ACCEPTED');
+      expect(mockSpawn.mock.calls[0][1]).toContain('gcc main.c -O2 -pipe -o /tmp/main && /tmp/main');
     });
   });
 

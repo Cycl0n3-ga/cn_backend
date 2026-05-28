@@ -114,6 +114,8 @@ docker compose down
 | POST | `/api/v1/problems` | 新增題目 (Admin) |
 | DELETE | `/api/v1/problems/:id` | 刪除題目 (Admin) |
 | POST | `/api/v1/problems/:id/assign` | 指派題目 (Admin) |
+| POST | `/api/v1/judge/run` | 使用公開 sample 測資執行程式碼 |
+| GET | `/api/v1/judge/queue` | 查詢評測佇列狀態 |
 | POST | `/api/v1/submissions` | 提交程式碼 |
 | GET | `/api/v1/submissions/:id` | 查詢評測結果 |
 | GET | `/api/v1/users` | 使用者列表 |
@@ -123,6 +125,39 @@ docker compose down
 | GET | `/api/v1/internal/testcases/:id` | 評測機測資 |
 
 完整的 API 文件請參考 [API_SPECIFICATION.md](docs/API_SPECIFICATION.md)
+
+## ⚖️ Code Judge v2
+
+### Run vs Submit
+
+- `POST /api/v1/judge/run`：前端 Run button 使用，只跑公開 sample test case，不建立 submission。
+- `POST /api/v1/submissions`：正式提交，使用所有 test cases，建立 submission 後回傳 `PENDING`，前端輪詢結果。
+
+### 支援語言
+
+- `javascript` / `js`：需 export `solve(input)` function
+- `python` / `python3` / `py`：需定義 `solve(input)` function
+- `c`：完整 C 程式，會先 compile 再執行
+- `cpp` / `c++`：完整 C++17 程式，會先 compile 再執行
+
+### Sandbox 與佇列
+
+- 使用 Docker container 執行不可信任程式碼，不直接在 backend process 執行。
+- 關閉 network，限制 CPU、memory、process 數量、timeout 與 stdout/stderr 大小。
+- `JUDGE_CONCURRENCY` 可控制同時執行的 container 數量，預設為 `2`。
+- `GET /api/v1/judge/queue` 可查看目前 active / queued / concurrency。
+
+### Run 範例
+
+```bash
+curl -X POST http://localhost:4100/api/v1/judge/run \
+  -H "Content-Type: application/json" \
+  -d '{
+    "problem_id": 1,
+    "language": "python",
+    "source_code": "def solve(input: str) -> str:\n    a, b = map(int, input.strip().split())\n    return str(a + b)"
+  }'
+```
 
 ## 🏗️ 核心模組
 

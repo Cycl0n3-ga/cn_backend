@@ -4,6 +4,11 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+const MAX_OUTPUT_BYTES = 1024 * 1024;
+const TIMEOUT_MS = 5000;
+
+type SupportedLanguage = 'javascript' | 'python' | 'c' | 'cpp';
+
 export type JudgeInput = {
   language: string;
   code: string;
@@ -25,10 +30,18 @@ export type JudgeResult = {
   executionTimeMs: number;
 };
 
+type DockerRunOptions = {
+  image: string;
+  command: string[];
+  input: string;
+  workdir: string;
+};
+
 @Injectable()
 export class JudgeService {
   async run(input: JudgeInput): Promise<JudgeResult> {
-    if (input.language !== 'javascript') {
+    const language = this.normalizeLanguage(input.language);
+    if (!language) {
       return {
         status: 'INTERNAL_ERROR',
         stdout: '',
@@ -39,47 +52,20 @@ export class JudgeService {
       };
     }
 
-    return this.runJavaScript(input);
+    return this.runInSandbox({ ...input, language });
   }
 
-  private async runJavaScript(input: JudgeInput): Promise<JudgeResult> {
+  private async runInSandbox(
+    input: JudgeInput & { language: SupportedLanguage },
+  ): Promise<JudgeResult> {
     const startedAt = Date.now();
     const workdir = await mkdtemp(join(tmpdir(), 'code-judge-'));
 
     try {
-      await writeFile(join(workdir, 'submission.js'), input.code, 'utf-8');
-      await writeFile(join(workdir, 'runner.js'), this.buildJavaScriptRunner(), 'utf-8');
-
-      const { stdout, stderr } = await this.runDocker(
-        'docker',
-        [
-          'run',
-          '--rm',
-          '-i',
-          '--network',
-          'none',
-          '--cpus',
-          '0.5',
-          '--memory',
-          '128m',
-          '--pids-limit',
-          '64',
-          '--read-only',
-          '--tmpfs',
-          '/tmp:rw,noexec,nosuid,size=16m',
-          '-v',
-          `${workdir}:/workspace:ro`,
-          '-w',
-          '/workspace',
-          'node:22-alpine',
-          'node',
-          'runner.js',
-        ],
-        input.input,
-      );
-
+      const options = await this.prepareRunOptions(input, workdir);
+      const { stdout, stderr } = await this.runDocker(options);
       const executionTimeMs = Date.now() - startedAt;
-      const accepted = this.normalize(stdout) === this.normalize(input.expectedOutput);
+      const accepted = this.normalizeOutput(stdout) === this.normalizeOutput(input.expectedOutput);
 
       return {
         status: accepted ? 'ACCEPTED' : 'WRONG_ANSWER',
@@ -111,6 +97,55 @@ export class JudgeService {
     }
   }
 
+  private async prepareRunOptions(
+    input: JudgeInput & { language: SupportedLanguage },
+    workdir: string,
+  ): Promise<DockerRunOptions> {
+    if (input.language === 'javascript') {
+      await writeFile(join(workdir, 'submission.js'), input.code, 'utf-8');
+      await writeFile(join(workdir, 'runner.js'), this.buildJavaScriptRunner(), 'utf-8');
+      return {
+        image: 'node:22-alpine',
+        command: ['node', 'runner.js'],
+        input: input.input,
+        workdir,
+      };
+    }
+
+    if (input.language === 'python') {
+      await writeFile(join(workdir, 'submission.py'), input.code, 'utf-8');
+      await writeFile(join(workdir, 'runner.py'), this.buildPythonRunner(), 'utf-8');
+      return {
+        image: 'python:3.12-alpine',
+        command: ['python', 'runner.py'],
+        input: input.input,
+        workdir,
+      };
+    }
+
+    if (input.language === 'c') {
+      await writeFile(join(workdir, 'main.c'), input.code, 'utf-8');
+      return {
+        image: 'gcc:14',
+        command: ['sh', '-lc', 'gcc main.c -O2 -pipe -o /tmp/main && /tmp/main'],
+        input: input.input,
+        workdir,
+      };
+    }
+
+    await writeFile(join(workdir, 'main.cpp'), input.code, 'utf-8');
+    return {
+      image: 'gcc:14',
+      command: [
+        'sh',
+        '-lc',
+        'g++ main.cpp -O2 -pipe -std=c++17 -o /tmp/main && /tmp/main',
+      ],
+      input: input.input,
+      workdir,
+    };
+  }
+
   private buildJavaScriptRunner() {
     return `
 const fs = require('node:fs');
@@ -137,7 +172,37 @@ main().catch((error) => {
 `.trimStart();
   }
 
-  private normalize(value: string) {
+  private buildPythonRunner() {
+    return `
+import importlib.util
+import sys
+
+spec = importlib.util.spec_from_file_location("submission", "/workspace/submission.py")
+submission = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(submission)
+
+if not hasattr(submission, "solve"):
+    raise RuntimeError("Python submissions must define solve(input: str).")
+
+input_text = sys.stdin.read()
+output = submission.solve(input_text)
+if output is not None:
+    sys.stdout.write(str(output))
+`.trimStart();
+  }
+
+  private normalizeLanguage(language: string): SupportedLanguage | null {
+    const normalized = language.trim().toLowerCase();
+    if (normalized === 'js' || normalized === 'javascript') return 'javascript';
+    if (normalized === 'py' || normalized === 'python' || normalized === 'python3') {
+      return 'python';
+    }
+    if (normalized === 'c') return 'c';
+    if (normalized === 'cpp' || normalized === 'c++') return 'cpp';
+    return null;
+  }
+
+  private normalizeOutput(value: string) {
     return value.trim().replace(/\r\n/g, '\n');
   }
 
@@ -156,7 +221,8 @@ main().catch((error) => {
     if (
       error.code === 'ENOENT' ||
       message.includes('Cannot connect to the Docker daemon') ||
-      message.includes('docker: command not found')
+      message.includes('docker: command not found') ||
+      message.includes('Cannot find image')
     ) {
       return 'INTERNAL_ERROR';
     }
@@ -164,25 +230,63 @@ main().catch((error) => {
     return 'RUNTIME_ERROR';
   }
 
-  private runDocker(command: string, args: string[], input: string) {
+  private runDocker(options: DockerRunOptions) {
     return new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
-      const child = spawn(command, args, {
-        stdio: ['pipe', 'pipe', 'pipe'],
-      });
+      const child = spawn(
+        'docker',
+        [
+          'run',
+          '--rm',
+          '-i',
+          '--network',
+          'none',
+          '--cpus',
+          '0.5',
+          '--memory',
+          '128m',
+          '--pids-limit',
+          '64',
+          '--security-opt',
+          'no-new-privileges',
+          '--read-only',
+          '--tmpfs',
+          '/tmp:rw,nosuid,size=64m',
+          '-e',
+          'TMPDIR=/tmp',
+          '-v',
+          `${options.workdir}:/workspace:ro`,
+          '-w',
+          '/workspace',
+          options.image,
+          ...options.command,
+        ],
+        {
+          stdio: ['pipe', 'pipe', 'pipe'],
+        },
+      );
 
       let stdout = '';
       let stderr = '';
+      let outputTooLarge = false;
       const timeout = setTimeout(() => {
         child.kill('SIGTERM');
-      }, 5000);
+      }, TIMEOUT_MS);
 
       child.stdout.setEncoding('utf-8');
       child.stderr.setEncoding('utf-8');
       child.stdout.on('data', (chunk: string) => {
         stdout += chunk;
+        if (Buffer.byteLength(stdout) > MAX_OUTPUT_BYTES) {
+          outputTooLarge = true;
+          child.kill('SIGTERM');
+        }
       });
       child.stderr.on('data', (chunk: string) => {
         stderr += chunk;
+        if (Buffer.byteLength(stderr) > MAX_OUTPUT_BYTES) {
+          outputTooLarge = true;
+          child.kill('SIGTERM');
+        }
       });
 
       child.on('error', (error) => {
@@ -198,16 +302,23 @@ main().catch((error) => {
         }
 
         reject(
-          Object.assign(new Error(stderr || `Judge process exited with ${code}`), {
-            stdout,
-            stderr,
-            signal,
-            killed: signal === 'SIGTERM',
-          }),
+          Object.assign(
+            new Error(
+              outputTooLarge
+                ? 'Judge output exceeded 1 MB.'
+                : stderr || `Judge process exited with ${code}`,
+            ),
+            {
+              stdout,
+              stderr,
+              signal,
+              killed: signal === 'SIGTERM',
+            },
+          ),
         );
       });
 
-      child.stdin.end(input);
+      child.stdin.end(options.input);
     });
   }
 }
