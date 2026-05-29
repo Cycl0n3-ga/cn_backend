@@ -31,10 +31,7 @@ describe('AuthService (integration)', () => {
   });
 
   it('should login with seeded admin user', async () => {
-    const result = await authService.login(
-      'admin',
-      sha256Hex('admin123'),
-    );
+    const result = await authService.login('admin', sha256Hex('admin123'));
 
     expect(result.token).toEqual(expect.any(String));
     expect(result.user_role).toBe('ADMIN');
@@ -81,7 +78,9 @@ describe('AuthService (integration)', () => {
   });
 
   it('validateUserById should return non-sensitive fields only', async () => {
-    const admin = await prisma.user.findUnique({ where: { username: 'admin' } });
+    const admin = await prisma.user.findUnique({
+      where: { username: 'admin' },
+    });
     expect(admin).toBeTruthy();
 
     const result = await authService.validateUserById(admin!.id);

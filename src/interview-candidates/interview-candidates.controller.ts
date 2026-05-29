@@ -1,5 +1,21 @@
-import { Controller, Get, Post, Body, Param, Delete, HttpCode, HttpStatus, ParseIntPipe, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  HttpCode,
+  HttpStatus,
+  ParseIntPipe,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { InterviewCandidatesService } from './interview-candidates.service.js';
 import { CreateInterviewCandidateDto } from './dto/interview-candidate.dto.js';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
@@ -7,13 +23,21 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
 @ApiTags('Interview Candidates')
 @Controller('interview-candidates')
 export class InterviewCandidatesController {
-  constructor(private readonly interviewCandidatesService: InterviewCandidatesService) {}
+  constructor(
+    private readonly interviewCandidatesService: InterviewCandidatesService,
+  ) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: '新增面試者到面試', description: '將使用者加入指定的面試中' })
-  @ApiResponse({ status: 201, description: '新增成功，回傳包含 id、jobId、userId 的資料' })
+  @ApiOperation({
+    summary: '新增面試者到面試',
+    description: '將使用者加入指定的面試中',
+  })
+  @ApiResponse({
+    status: 201,
+    description: '新增成功，回傳包含 id、jobId、userId 的資料',
+  })
   @ApiResponse({ status: 404, description: '面試或使用者不存在' })
   @ApiResponse({ status: 409, description: '使用者已在此面試中' })
   create(@Body() createInterviewCandidateDto: CreateInterviewCandidateDto) {
@@ -35,8 +59,16 @@ export class InterviewCandidatesController {
           jobId: '1',
           userId: 'uuid-string',
           createdAt: '2026-05-18T00:00:00Z',
-          interview: { id: '1', jobRole: 'Backend Developer', examinerEmpId: 'uuid' },
-          user: { id: 'uuid-string', username: 'alice', email: 'alice@example.com' },
+          interview: {
+            id: '1',
+            jobRole: 'Backend Developer',
+            examinerEmpId: 'uuid',
+          },
+          user: {
+            id: 'uuid-string',
+            username: 'alice',
+            email: 'alice@example.com',
+          },
         },
       ],
     },
@@ -49,7 +81,10 @@ export class InterviewCandidatesController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: '從面試中移除考生', description: '將考生從面試中移除' })
+  @ApiOperation({
+    summary: '從面試中移除考生',
+    description: '將考生從面試中移除',
+  })
   @ApiResponse({ status: 204, description: '移除成功' })
   @ApiResponse({ status: 404, description: '記錄不存在' })
   remove(@Param('id', ParseIntPipe) id: number) {

@@ -63,7 +63,7 @@ describe('UsersController', () => {
   // ── findAll ───────────────────────────────────────────────────────────
   describe('findAll', () => {
     it('should return all users', async () => {
-      service.findAll.mockResolvedValue(mockFindAllResult as any);
+      service.findAll.mockResolvedValue(mockFindAllResult);
 
       const result = await controller.findAll();
 
@@ -72,7 +72,7 @@ describe('UsersController', () => {
     });
 
     it('should return empty data array when no users', async () => {
-      service.findAll.mockResolvedValue({ data: [] } as any);
+      service.findAll.mockResolvedValue({ data: [] });
 
       const result = await controller.findAll();
 
@@ -83,7 +83,7 @@ describe('UsersController', () => {
   // ── getSubmissions ────────────────────────────────────────────────────
   describe('getSubmissions', () => {
     it('should return submission history with default pagination', async () => {
-      service.getSubmissionHistory.mockResolvedValue(mockHistoryResult as any);
+      service.getSubmissionHistory.mockResolvedValue(mockHistoryResult);
 
       const result = await controller.getSubmissions('alice');
 
@@ -92,7 +92,7 @@ describe('UsersController', () => {
     });
 
     it('should pass custom page and limit to service', async () => {
-      service.getSubmissionHistory.mockResolvedValue(mockHistoryResult as any);
+      service.getSubmissionHistory.mockResolvedValue(mockHistoryResult);
 
       await controller.getSubmissions('alice', '2', '10');
 
@@ -100,7 +100,7 @@ describe('UsersController', () => {
     });
 
     it('should convert string page/limit to numbers', async () => {
-      service.getSubmissionHistory.mockResolvedValue(mockHistoryResult as any);
+      service.getSubmissionHistory.mockResolvedValue(mockHistoryResult);
 
       await controller.getSubmissions('alice', '3', '5');
 
@@ -116,11 +116,13 @@ describe('UsersController', () => {
         new NotFoundException('User "ghost" not found.'),
       );
 
-      await expect(controller.getSubmissions('ghost')).rejects.toThrow(NotFoundException);
+      await expect(controller.getSubmissions('ghost')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should use page=1 when page query param is not provided', async () => {
-      service.getSubmissionHistory.mockResolvedValue(mockHistoryResult as any);
+      service.getSubmissionHistory.mockResolvedValue(mockHistoryResult);
 
       await controller.getSubmissions('alice', undefined, undefined);
 

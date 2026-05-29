@@ -65,7 +65,9 @@ export class JudgeService {
       const options = await this.prepareRunOptions(input, workdir);
       const { stdout, stderr } = await this.runDocker(options);
       const executionTimeMs = Date.now() - startedAt;
-      const accepted = this.normalizeOutput(stdout) === this.normalizeOutput(input.expectedOutput);
+      const accepted =
+        this.normalizeOutput(stdout) ===
+        this.normalizeOutput(input.expectedOutput);
 
       return {
         status: accepted ? 'ACCEPTED' : 'WRONG_ANSWER',
@@ -103,7 +105,11 @@ export class JudgeService {
   ): Promise<DockerRunOptions> {
     if (input.language === 'javascript') {
       await writeFile(join(workdir, 'submission.js'), input.code, 'utf-8');
-      await writeFile(join(workdir, 'runner.js'), this.buildJavaScriptRunner(), 'utf-8');
+      await writeFile(
+        join(workdir, 'runner.js'),
+        this.buildJavaScriptRunner(),
+        'utf-8',
+      );
       return {
         image: 'node:22-alpine',
         command: ['node', 'runner.js'],
@@ -114,7 +120,11 @@ export class JudgeService {
 
     if (input.language === 'python') {
       await writeFile(join(workdir, 'submission.py'), input.code, 'utf-8');
-      await writeFile(join(workdir, 'runner.py'), this.buildPythonRunner(), 'utf-8');
+      await writeFile(
+        join(workdir, 'runner.py'),
+        this.buildPythonRunner(),
+        'utf-8',
+      );
       return {
         image: 'python:3.12-alpine',
         command: ['python', 'runner.py'],
@@ -127,7 +137,11 @@ export class JudgeService {
       await writeFile(join(workdir, 'main.c'), input.code, 'utf-8');
       return {
         image: 'gcc:14',
-        command: ['sh', '-lc', 'gcc main.c -O2 -pipe -o /tmp/main && /tmp/main'],
+        command: [
+          'sh',
+          '-lc',
+          'gcc main.c -O2 -pipe -o /tmp/main && /tmp/main',
+        ],
         input: input.input,
         workdir,
       };
@@ -194,7 +208,11 @@ if output is not None:
   private normalizeLanguage(language: string): SupportedLanguage | null {
     const normalized = language.trim().toLowerCase();
     if (normalized === 'js' || normalized === 'javascript') return 'javascript';
-    if (normalized === 'py' || normalized === 'python' || normalized === 'python3') {
+    if (
+      normalized === 'py' ||
+      normalized === 'python' ||
+      normalized === 'python3'
+    ) {
       return 'python';
     }
     if (normalized === 'c') return 'c';
@@ -231,94 +249,96 @@ if output is not None:
   }
 
   private runDocker(options: DockerRunOptions) {
-    return new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
-      const child = spawn(
-        'docker',
-        [
-          'run',
-          '--rm',
-          '-i',
-          '--network',
-          'none',
-          '--cpus',
-          '0.5',
-          '--memory',
-          '128m',
-          '--pids-limit',
-          '64',
-          '--security-opt',
-          'no-new-privileges',
-          '--read-only',
-          '--tmpfs',
-          '/tmp:rw,nosuid,size=64m',
-          '-e',
-          'TMPDIR=/tmp',
-          '-v',
-          `${options.workdir}:/workspace:ro`,
-          '-w',
-          '/workspace',
-          options.image,
-          ...options.command,
-        ],
-        {
-          stdio: ['pipe', 'pipe', 'pipe'],
-        },
-      );
-
-      let stdout = '';
-      let stderr = '';
-      let outputTooLarge = false;
-      const timeout = setTimeout(() => {
-        child.kill('SIGTERM');
-      }, TIMEOUT_MS);
-
-      child.stdout.setEncoding('utf-8');
-      child.stderr.setEncoding('utf-8');
-      child.stdout.on('data', (chunk: string) => {
-        stdout += chunk;
-        if (Buffer.byteLength(stdout) > MAX_OUTPUT_BYTES) {
-          outputTooLarge = true;
-          child.kill('SIGTERM');
-        }
-      });
-      child.stderr.on('data', (chunk: string) => {
-        stderr += chunk;
-        if (Buffer.byteLength(stderr) > MAX_OUTPUT_BYTES) {
-          outputTooLarge = true;
-          child.kill('SIGTERM');
-        }
-      });
-
-      child.on('error', (error) => {
-        clearTimeout(timeout);
-        reject(Object.assign(error, { stdout, stderr }));
-      });
-
-      child.on('close', (code, signal) => {
-        clearTimeout(timeout);
-        if (code === 0) {
-          resolve({ stdout, stderr });
-          return;
-        }
-
-        reject(
-          Object.assign(
-            new Error(
-              outputTooLarge
-                ? 'Judge output exceeded 1 MB.'
-                : stderr || `Judge process exited with ${code}`,
-            ),
-            {
-              stdout,
-              stderr,
-              signal,
-              killed: signal === 'SIGTERM',
-            },
-          ),
+    return new Promise<{ stdout: string; stderr: string }>(
+      (resolve, reject) => {
+        const child = spawn(
+          'docker',
+          [
+            'run',
+            '--rm',
+            '-i',
+            '--network',
+            'none',
+            '--cpus',
+            '0.5',
+            '--memory',
+            '128m',
+            '--pids-limit',
+            '64',
+            '--security-opt',
+            'no-new-privileges',
+            '--read-only',
+            '--tmpfs',
+            '/tmp:rw,nosuid,size=64m',
+            '-e',
+            'TMPDIR=/tmp',
+            '-v',
+            `${options.workdir}:/workspace:ro`,
+            '-w',
+            '/workspace',
+            options.image,
+            ...options.command,
+          ],
+          {
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
         );
-      });
 
-      child.stdin.end(options.input);
-    });
+        let stdout = '';
+        let stderr = '';
+        let outputTooLarge = false;
+        const timeout = setTimeout(() => {
+          child.kill('SIGTERM');
+        }, TIMEOUT_MS);
+
+        child.stdout.setEncoding('utf-8');
+        child.stderr.setEncoding('utf-8');
+        child.stdout.on('data', (chunk: string) => {
+          stdout += chunk;
+          if (Buffer.byteLength(stdout) > MAX_OUTPUT_BYTES) {
+            outputTooLarge = true;
+            child.kill('SIGTERM');
+          }
+        });
+        child.stderr.on('data', (chunk: string) => {
+          stderr += chunk;
+          if (Buffer.byteLength(stderr) > MAX_OUTPUT_BYTES) {
+            outputTooLarge = true;
+            child.kill('SIGTERM');
+          }
+        });
+
+        child.on('error', (error) => {
+          clearTimeout(timeout);
+          reject(Object.assign(error, { stdout, stderr }));
+        });
+
+        child.on('close', (code, signal) => {
+          clearTimeout(timeout);
+          if (code === 0) {
+            resolve({ stdout, stderr });
+            return;
+          }
+
+          reject(
+            Object.assign(
+              new Error(
+                outputTooLarge
+                  ? 'Judge output exceeded 1 MB.'
+                  : stderr || `Judge process exited with ${code}`,
+              ),
+              {
+                stdout,
+                stderr,
+                signal,
+                killed: signal === 'SIGTERM',
+              },
+            ),
+          );
+        });
+
+        child.stdin.end(options.input);
+      },
+    );
   }
 }

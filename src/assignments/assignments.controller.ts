@@ -30,7 +30,8 @@ export class AssignmentsController {
   @ApiBearerAuth()
   @ApiOperation({
     summary: '指派題目給面試考生',
-    description: '在特定面試 (jobId) 中，將題目 (problemId) 指派給考生 (userId)',
+    description:
+      '在特定面試 (jobId) 中，將題目 (problemId) 指派給考生 (userId)',
   })
   @ApiResponse({
     status: 201,

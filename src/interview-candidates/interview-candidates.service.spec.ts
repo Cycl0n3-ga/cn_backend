@@ -7,9 +7,18 @@ describe('InterviewCandidatesService', () => {
   let service: InterviewCandidatesService;
   let prisma: any;
 
-  const mockInterview = { id: 1, jobRole: 'Backend Developer', examinerEmpId: 'examiner-uuid' };
+  const mockInterview = {
+    id: 1,
+    jobRole: 'Backend Developer',
+    examinerEmpId: 'examiner-uuid',
+  };
   const mockUser = { id: 'user-uuid-1', username: 'alice' };
-  const mockCandidate = { id: 1, jobId: 1, userId: 'user-uuid-1', createdAt: new Date() };
+  const mockCandidate = {
+    id: 1,
+    jobId: 1,
+    userId: 'user-uuid-1',
+    createdAt: new Date(),
+  };
 
   beforeEach(async () => {
     prisma = {
@@ -30,7 +39,9 @@ describe('InterviewCandidatesService', () => {
       ],
     }).compile();
 
-    service = module.get<InterviewCandidatesService>(InterviewCandidatesService);
+    service = module.get<InterviewCandidatesService>(
+      InterviewCandidatesService,
+    );
   });
 
   // ── create ────────────────────────────────────────────────────────────
@@ -61,18 +72,18 @@ describe('InterviewCandidatesService', () => {
     it('should throw NotFoundException when interview does not exist', async () => {
       prisma.interview.findUnique.mockResolvedValue(null);
 
-      await expect(service.create({ jobId: 999, userId: 'user-uuid-1' })).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.create({ jobId: 999, userId: 'user-uuid-1' }),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw NotFoundException when user does not exist', async () => {
       prisma.interview.findUnique.mockResolvedValue(mockInterview);
       prisma.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.create({ jobId: 1, userId: 'nonexistent-uuid' })).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.create({ jobId: 1, userId: 'nonexistent-uuid' }),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw ConflictException when candidate already added (P2002)', async () => {
@@ -82,9 +93,9 @@ describe('InterviewCandidatesService', () => {
       (uniqueError as any).code = 'P2002';
       prisma.interviewCandidate.create.mockRejectedValue(uniqueError);
 
-      await expect(service.create({ jobId: 1, userId: 'user-uuid-1' })).rejects.toThrow(
-        ConflictException,
-      );
+      await expect(
+        service.create({ jobId: 1, userId: 'user-uuid-1' }),
+      ).rejects.toThrow(ConflictException);
     });
 
     it('should re-throw unknown errors', async () => {
@@ -93,9 +104,9 @@ describe('InterviewCandidatesService', () => {
       const unknownError = new Error('Unknown DB error');
       prisma.interviewCandidate.create.mockRejectedValue(unknownError);
 
-      await expect(service.create({ jobId: 1, userId: 'user-uuid-1' })).rejects.toThrow(
-        'Unknown DB error',
-      );
+      await expect(
+        service.create({ jobId: 1, userId: 'user-uuid-1' }),
+      ).rejects.toThrow('Unknown DB error');
     });
   });
 
@@ -107,8 +118,16 @@ describe('InterviewCandidatesService', () => {
         jobId: 1,
         userId: 'user-uuid-1',
         createdAt: new Date('2026-01-01T00:00:00Z'),
-        interview: { id: 1, jobRole: 'Backend Developer', examinerEmpId: 'examiner-uuid' },
-        user: { id: 'user-uuid-1', username: 'alice', email: 'alice@example.com' },
+        interview: {
+          id: 1,
+          jobRole: 'Backend Developer',
+          examinerEmpId: 'examiner-uuid',
+        },
+        user: {
+          id: 'user-uuid-1',
+          username: 'alice',
+          email: 'alice@example.com',
+        },
       };
 
       prisma.interviewCandidate.findMany.mockResolvedValue([mockDbCandidate]);
@@ -139,7 +158,9 @@ describe('InterviewCandidatesService', () => {
       prisma.interviewCandidate.delete.mockResolvedValue(mockCandidate);
 
       await expect(service.remove(1)).resolves.not.toThrow();
-      expect(prisma.interviewCandidate.delete).toHaveBeenCalledWith({ where: { id: 1 } });
+      expect(prisma.interviewCandidate.delete).toHaveBeenCalledWith({
+        where: { id: 1 },
+      });
     });
 
     it('should throw NotFoundException for non-existent candidate', async () => {
@@ -151,7 +172,9 @@ describe('InterviewCandidatesService', () => {
     it('should throw NotFoundException with correct message', async () => {
       prisma.interviewCandidate.findUnique.mockResolvedValue(null);
 
-      await expect(service.remove(42)).rejects.toThrow('InterviewCandidate #42 not found.');
+      await expect(service.remove(42)).rejects.toThrow(
+        'InterviewCandidate #42 not found.',
+      );
     });
   });
 });

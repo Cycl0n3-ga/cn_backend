@@ -19,8 +19,16 @@ describe('InterviewCandidatesController', () => {
       jobId: '1',
       userId: 'user-uuid-1',
       createdAt: new Date('2026-01-01T00:00:00Z'),
-      interview: { id: '1', jobRole: 'Backend Developer', examinerEmpId: 'examiner-uuid' },
-      user: { id: 'user-uuid-1', username: 'alice', email: 'alice@example.com' },
+      interview: {
+        id: '1',
+        jobRole: 'Backend Developer',
+        examinerEmpId: 'examiner-uuid',
+      },
+      user: {
+        id: 'user-uuid-1',
+        username: 'alice',
+        email: 'alice@example.com',
+      },
     },
   ];
 
@@ -39,7 +47,9 @@ describe('InterviewCandidatesController', () => {
       ],
     }).compile();
 
-    controller = module.get<InterviewCandidatesController>(InterviewCandidatesController);
+    controller = module.get<InterviewCandidatesController>(
+      InterviewCandidatesController,
+    );
     service = module.get(InterviewCandidatesService);
   });
 
@@ -50,15 +60,18 @@ describe('InterviewCandidatesController', () => {
   // ── create ────────────────────────────────────────────────────────────
   describe('create', () => {
     it('should create candidate and return result', async () => {
-      service.create.mockResolvedValue(mockCreateResult as any);
+      service.create.mockResolvedValue(mockCreateResult);
 
-      const result = await controller.create({ jobId: 1, userId: 'user-uuid-1' });
+      const result = await controller.create({
+        jobId: 1,
+        userId: 'user-uuid-1',
+      });
 
       expect(result).toEqual(mockCreateResult);
     });
 
     it('should pass DTO directly to service', async () => {
-      service.create.mockResolvedValue(mockCreateResult as any);
+      service.create.mockResolvedValue(mockCreateResult);
       const dto = { jobId: 5, userId: 'user-uuid-42' };
 
       await controller.create(dto);
@@ -67,7 +80,7 @@ describe('InterviewCandidatesController', () => {
     });
 
     it('should return id and jobId as strings', async () => {
-      service.create.mockResolvedValue(mockCreateResult as any);
+      service.create.mockResolvedValue(mockCreateResult);
 
       const result = await controller.create({ jobId: 1, userId: 'uid' });
 
@@ -97,7 +110,9 @@ describe('InterviewCandidatesController', () => {
 
     it('should propagate ConflictException for duplicate candidate', async () => {
       service.create.mockRejectedValue(
-        new ConflictException('User is already a candidate for this interview.'),
+        new ConflictException(
+          'User is already a candidate for this interview.',
+        ),
       );
 
       await expect(
@@ -107,7 +122,9 @@ describe('InterviewCandidatesController', () => {
 
     it('should propagate ConflictException with correct message', async () => {
       service.create.mockRejectedValue(
-        new ConflictException('User is already a candidate for this interview.'),
+        new ConflictException(
+          'User is already a candidate for this interview.',
+        ),
       );
 
       await expect(
@@ -140,7 +157,7 @@ describe('InterviewCandidatesController', () => {
   // ── remove ────────────────────────────────────────────────────────────
   describe('remove', () => {
     it('should call service.remove with correct id', async () => {
-      service.remove.mockResolvedValue(undefined as any);
+      service.remove.mockResolvedValue(undefined);
 
       await controller.remove(1);
 
@@ -156,7 +173,7 @@ describe('InterviewCandidatesController', () => {
     });
 
     it('should not throw for existing candidate', async () => {
-      service.remove.mockResolvedValue(undefined as any);
+      service.remove.mockResolvedValue(undefined);
 
       await expect(controller.remove(1)).resolves.not.toThrow();
     });

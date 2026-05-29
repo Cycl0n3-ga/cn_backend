@@ -58,7 +58,9 @@ export class JudgeController {
 
     const sample = problem.testCases[0];
     if (!sample) {
-      throw new NotFoundException(`Problem #${problemId} has no public sample test case.`);
+      throw new NotFoundException(
+        `Problem #${problemId} has no public sample test case.`,
+      );
     }
 
     return this.judgeQueueService.enqueue({

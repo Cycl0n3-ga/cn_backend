@@ -115,17 +115,17 @@ describe('AuthService', () => {
       prisma.user.findUnique.mockResolvedValue(mockUser);
 
       // Plain text password should fail because stored hash is bcrypt(sha256(password))
-      await expect(
-        service.login('testuser', 'password123'),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(service.login('testuser', 'password123')).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('should throw UnauthorizedException with generic message (no info leak)', async () => {
       prisma.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.login('nonexistent', sha256Hex('any'))).rejects.toThrow(
-        'Invalid username or password.',
-      );
+      await expect(
+        service.login('nonexistent', sha256Hex('any')),
+      ).rejects.toThrow('Invalid username or password.');
     });
 
     it('should handle ADMIN role correctly', async () => {

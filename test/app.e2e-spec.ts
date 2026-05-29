@@ -57,13 +57,17 @@ describe('Code Judge API (e2e)', () => {
   // ═══════════════════════════════════════════════════════════════════════
   describe('Health Check', () => {
     it('GET /api/v1/health should return system status', async () => {
-      const res = await request(app.getHttpServer()).get('/api/v1/health').expect(200);
+      const res = await request(app.getHttpServer())
+        .get('/api/v1/health')
+        .expect(200);
       expect(res.body).toHaveProperty('status');
       expect(['UP', 'DOWN']).toContain(res.body.status);
     });
 
     it('should return all required health fields', async () => {
-      const res = await request(app.getHttpServer()).get('/api/v1/health').expect(200);
+      const res = await request(app.getHttpServer())
+        .get('/api/v1/health')
+        .expect(200);
       expect(res.body).toHaveProperty('status');
       expect(res.body).toHaveProperty('services');
       expect(res.body).toHaveProperty('queue_depth');
@@ -72,18 +76,24 @@ describe('Code Judge API (e2e)', () => {
     });
 
     it('should return services.database status', async () => {
-      const res = await request(app.getHttpServer()).get('/api/v1/health').expect(200);
+      const res = await request(app.getHttpServer())
+        .get('/api/v1/health')
+        .expect(200);
       expect(res.body.services).toHaveProperty('database');
       expect(res.body.services).toHaveProperty('judge_queue');
     });
 
     it('should return queue_depth as string', async () => {
-      const res = await request(app.getHttpServer()).get('/api/v1/health').expect(200);
+      const res = await request(app.getHttpServer())
+        .get('/api/v1/health')
+        .expect(200);
       expect(typeof res.body.queue_depth).toBe('string');
     });
 
     it('should return timestamp as ISO 8601', async () => {
-      const res = await request(app.getHttpServer()).get('/api/v1/health').expect(200);
+      const res = await request(app.getHttpServer())
+        .get('/api/v1/health')
+        .expect(200);
       expect(res.body.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     });
   });
@@ -98,7 +108,11 @@ describe('Code Judge API (e2e)', () => {
       it('should return 401 for invalid credentials', async () => {
         const res = await request(app.getHttpServer())
           .post('/api/v1/auth/login')
-          .send({ username: 'admin', passwordSha256: 'wrong_password_hash_64chars_0000000000000000000000000000000000' })
+          .send({
+            username: 'admin',
+            passwordSha256:
+              'wrong_password_hash_64chars_0000000000000000000000000000000000',
+          })
           .expect(400); // will fail validation because it's not a valid sha256
       });
 
@@ -511,7 +525,9 @@ describe('Code Judge API (e2e)', () => {
           }
 
           if (Date.now() - start > 10000) {
-            throw new Error(`Timed out waiting for terminal status, last=${status}`);
+            throw new Error(
+              `Timed out waiting for terminal status, last=${status}`,
+            );
           }
 
           await new Promise((r) => setTimeout(r, 200));
@@ -910,9 +926,7 @@ describe('Code Judge API (e2e)', () => {
   // ═══════════════════════════════════════════════════════════════════════
   describe('Global Routing', () => {
     it('should return 404 for paths without /api/v1 prefix', async () => {
-      await request(app.getHttpServer())
-        .get('/health')
-        .expect(404);
+      await request(app.getHttpServer()).get('/health').expect(404);
     });
 
     it('should return 404 for unknown routes', async () => {

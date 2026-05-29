@@ -14,7 +14,10 @@ export class CreateInterviewDto {
 }
 
 export class UpdateInterviewDto {
-  @ApiPropertyOptional({ example: 'Senior Backend Developer', description: '面試職位名稱' })
+  @ApiPropertyOptional({
+    example: 'Senior Backend Developer',
+    description: '面試職位名稱',
+  })
   @IsOptional()
   @IsString()
   jobRole?: string;

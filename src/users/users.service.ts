@@ -32,11 +32,7 @@ export class UsersService {
     };
   }
 
-  async getSubmissionHistory(
-    username: string,
-    page = 1,
-    limit = 20,
-  ) {
+  async getSubmissionHistory(username: string, page = 1, limit = 20) {
     const user = await this.prisma.user.findUnique({
       where: { username },
     });

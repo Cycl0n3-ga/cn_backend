@@ -8,7 +8,10 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  @ApiOperation({ summary: '取得所有使用者', description: '列出系統中所有使用者（不含密碼）' })
+  @ApiOperation({
+    summary: '取得所有使用者',
+    description: '列出系統中所有使用者（不含密碼）',
+  })
   @ApiResponse({ status: 200, description: '成功取得使用者列表' })
   findAll() {
     return this.usersService.findAll();

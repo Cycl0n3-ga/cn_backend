@@ -64,10 +64,7 @@ describe('UsersService', () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        UsersService,
-        { provide: PrismaService, useValue: prisma },
-      ],
+      providers: [UsersService, { provide: PrismaService, useValue: prisma }],
     }).compile();
 
     service = module.get<UsersService>(UsersService);
@@ -137,7 +134,10 @@ describe('UsersService', () => {
   // ── getSubmissionHistory ──────────────────────────────────────────────
   describe('getSubmissionHistory', () => {
     beforeEach(() => {
-      prisma.user.findUnique.mockResolvedValue({ id: 'uuid-1', username: 'alice' });
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'uuid-1',
+        username: 'alice',
+      });
       prisma.submission.count.mockResolvedValue(2);
       prisma.submission.findMany.mockResolvedValue(mockSubmissions);
     });
@@ -187,7 +187,9 @@ describe('UsersService', () => {
     it('should look up user by username', async () => {
       await service.getSubmissionHistory('alice', 1, 20);
 
-      expect(prisma.user.findUnique).toHaveBeenCalledWith({ where: { username: 'alice' } });
+      expect(prisma.user.findUnique).toHaveBeenCalledWith({
+        where: { username: 'alice' },
+      });
     });
 
     it('should use correct pagination (page, limit)', async () => {

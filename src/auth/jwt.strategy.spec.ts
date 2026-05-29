@@ -55,7 +55,11 @@ describe('JwtStrategy', () => {
       authService.validateUserById.mockResolvedValue(null);
 
       await expect(
-        strategy.validate({ sub: 'invalid-uuid', username: 'ghost', role: 'USER' }),
+        strategy.validate({
+          sub: 'invalid-uuid',
+          username: 'ghost',
+          role: 'USER',
+        }),
       ).rejects.toThrow(UnauthorizedException);
     });
 
@@ -63,7 +67,11 @@ describe('JwtStrategy', () => {
       authService.validateUserById.mockResolvedValue(undefined);
 
       await expect(
-        strategy.validate({ sub: 'invalid-uuid', username: 'ghost', role: 'USER' }),
+        strategy.validate({
+          sub: 'invalid-uuid',
+          username: 'ghost',
+          role: 'USER',
+        }),
       ).rejects.toThrow(UnauthorizedException);
     });
 

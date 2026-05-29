@@ -56,7 +56,11 @@ describe('SubmissionsController', () => {
 
       const result = await controller.create(
         { user: { id: 'user-uuid-1' } } as any,
-        { problem_id: 1, language: 'python3', source_code: 'def solve(): pass' },
+        {
+          problem_id: 1,
+          language: 'python3',
+          source_code: 'def solve(): pass',
+        },
       );
 
       expect(result).toEqual(mockCreateResult);
@@ -65,10 +69,11 @@ describe('SubmissionsController', () => {
     it('should pass req.user.id to service as userId', async () => {
       service.create.mockResolvedValue(mockCreateResult as any);
 
-      await controller.create(
-        { user: { id: 'user-uuid-42' } } as any,
-        { problem_id: 1, language: 'cpp', source_code: '#include' },
-      );
+      await controller.create({ user: { id: 'user-uuid-42' } } as any, {
+        problem_id: 1,
+        language: 'cpp',
+        source_code: '#include',
+      });
 
       expect(service.create).toHaveBeenCalledWith('user-uuid-42', {
         problemId: 1,
@@ -80,10 +85,11 @@ describe('SubmissionsController', () => {
     it('should map DTO fields to service parameter names', async () => {
       service.create.mockResolvedValue(mockCreateResult as any);
 
-      await controller.create(
-        { user: { id: 'uid' } } as any,
-        { problem_id: 5, language: 'java', source_code: 'class Solution {}' },
-      );
+      await controller.create({ user: { id: 'uid' } } as any, {
+        problem_id: 5,
+        language: 'java',
+        source_code: 'class Solution {}',
+      });
 
       const call = service.create.mock.calls[0];
       expect(call[0]).toBe('uid');
@@ -100,10 +106,11 @@ describe('SubmissionsController', () => {
       );
 
       await expect(
-        controller.create(
-          { user: { id: 'uid' } } as any,
-          { problem_id: 999, language: 'python3', source_code: 'code' },
-        ),
+        controller.create({ user: { id: 'uid' } } as any, {
+          problem_id: 999,
+          language: 'python3',
+          source_code: 'code',
+        }),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -113,10 +120,11 @@ describe('SubmissionsController', () => {
       );
 
       await expect(
-        controller.create(
-          { user: { id: 'uid' } } as any,
-          { problem_id: 42, language: 'python3', source_code: 'code' },
-        ),
+        controller.create({ user: { id: 'uid' } } as any, {
+          problem_id: 42,
+          language: 'python3',
+          source_code: 'code',
+        }),
       ).rejects.toThrow('Problem #42 not found.');
     });
   });
@@ -124,7 +132,7 @@ describe('SubmissionsController', () => {
   // ── findOne ───────────────────────────────────────────────────────────
   describe('findOne', () => {
     it('should return submission details', async () => {
-      service.findOne.mockResolvedValue(mockFindOneResult as any);
+      service.findOne.mockResolvedValue(mockFindOneResult);
 
       const result = await controller.findOne('sub-uuid-1');
 
@@ -132,7 +140,7 @@ describe('SubmissionsController', () => {
     });
 
     it('should pass submission ID directly to service', async () => {
-      service.findOne.mockResolvedValue(mockFindOneResult as any);
+      service.findOne.mockResolvedValue(mockFindOneResult);
 
       await controller.findOne('my-submission-id');
 
@@ -144,11 +152,13 @@ describe('SubmissionsController', () => {
         new NotFoundException('Submission "bad-id" not found.'),
       );
 
-      await expect(controller.findOne('bad-id')).rejects.toThrow(NotFoundException);
+      await expect(controller.findOne('bad-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should return all expected fields', async () => {
-      service.findOne.mockResolvedValue(mockFindOneResult as any);
+      service.findOne.mockResolvedValue(mockFindOneResult);
 
       const result = await controller.findOne('sub-uuid-1');
 

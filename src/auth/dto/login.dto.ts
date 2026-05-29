@@ -8,8 +8,7 @@ export class LoginDto {
   username: string;
 
   @ApiProperty({
-    example:
-      '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9',
+    example: '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9',
     description: '使用者密碼的 SHA-256 hex（前端送 sha256 後的值）',
   })
   @IsString()

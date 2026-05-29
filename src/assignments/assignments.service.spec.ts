@@ -12,8 +12,17 @@ describe('AssignmentsService', () => {
     jobRole: 'Backend Developer',
     examinerEmpId: 'examiner-uuid',
   };
-  const mockUser = { id: 'user-uuid-1', username: 'alice', email: 'alice@example.com' };
-  const mockProblem = { id: 1, title: 'Two Sum', difficulty: 'EASY', isDeleted: false };
+  const mockUser = {
+    id: 'user-uuid-1',
+    username: 'alice',
+    email: 'alice@example.com',
+  };
+  const mockProblem = {
+    id: 1,
+    title: 'Two Sum',
+    difficulty: 'EASY',
+    isDeleted: false,
+  };
 
   const mockAssignment = {
     id: 1,
@@ -82,7 +91,11 @@ describe('AssignmentsService', () => {
       prisma.problem.findFirst.mockResolvedValue(mockProblem);
       prisma.interviewAssignment.create.mockResolvedValue(mockAssignment);
 
-      const result = await service.create({ jobId: 1, userId: 'user-uuid-1', problemId: 1 });
+      const result = await service.create({
+        jobId: 1,
+        userId: 'user-uuid-1',
+        problemId: 1,
+      });
 
       expect(typeof result.id).toBe('string');
       expect(typeof result.jobId).toBe('string');
@@ -152,7 +165,9 @@ describe('AssignmentsService', () => {
       prisma.interview.findUnique.mockResolvedValue(mockInterview);
       prisma.user.findUnique.mockResolvedValue(mockUser);
       prisma.problem.findFirst.mockResolvedValue(mockProblem);
-      prisma.interviewAssignment.create.mockRejectedValue(new Error('DB connection lost'));
+      prisma.interviewAssignment.create.mockRejectedValue(
+        new Error('DB connection lost'),
+      );
 
       await expect(
         service.create({ jobId: 1, userId: 'user-uuid-1', problemId: 1 }),
@@ -181,7 +196,10 @@ describe('AssignmentsService', () => {
     });
 
     it('should return all assignments with correct fields', async () => {
-      prisma.interviewAssignment.findMany.mockResolvedValue([mockAssignment, mockAssignment]);
+      prisma.interviewAssignment.findMany.mockResolvedValue([
+        mockAssignment,
+        mockAssignment,
+      ]);
 
       const result = await service.findAll();
 
@@ -216,7 +234,9 @@ describe('AssignmentsService', () => {
     it('should throw NotFoundException with assignment ID in message', async () => {
       prisma.interviewAssignment.findUnique.mockResolvedValue(null);
 
-      await expect(service.findOne(42)).rejects.toThrow('Assignment #42 not found.');
+      await expect(service.findOne(42)).rejects.toThrow(
+        'Assignment #42 not found.',
+      );
     });
   });
 
@@ -259,7 +279,9 @@ describe('AssignmentsService', () => {
       prisma.interviewAssignment.delete.mockResolvedValue(mockAssignment);
 
       await expect(service.remove(1)).resolves.not.toThrow();
-      expect(prisma.interviewAssignment.delete).toHaveBeenCalledWith({ where: { id: 1 } });
+      expect(prisma.interviewAssignment.delete).toHaveBeenCalledWith({
+        where: { id: 1 },
+      });
     });
 
     it('should throw NotFoundException when assignment does not exist', async () => {
@@ -271,7 +293,9 @@ describe('AssignmentsService', () => {
     it('should throw NotFoundException with correct message', async () => {
       prisma.interviewAssignment.findUnique.mockResolvedValue(null);
 
-      await expect(service.remove(55)).rejects.toThrow('Assignment #55 not found.');
+      await expect(service.remove(55)).rejects.toThrow(
+        'Assignment #55 not found.',
+      );
     });
 
     it('should not call delete when assignment not found', async () => {
