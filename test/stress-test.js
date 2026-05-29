@@ -9,6 +9,24 @@
 const autocannon = require('autocannon');
 
 const BASE_URL = 'http://localhost:4100';
+const API_BASE = `${BASE_URL}/api/v1`;
+
+async function saveReport(reportData) {
+  try {
+    const response = await fetch(`${API_BASE}/stress-test-reports`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(reportData),
+    });
+    if (!response.ok) {
+      console.warn(`⚠️ 無法保存報告: ${response.statusText}`);
+    } else {
+      console.log(`✅ 報告已保存到系統`);
+    }
+  } catch (err) {
+    console.warn(`⚠️ 保存報告時出錯: ${err.message}`);
+  }
+}
 
 async function runStressTest() {
   console.log('╔══════════════════════════════════════════════════════╗');
@@ -84,6 +102,37 @@ async function runStressTest() {
     const result = await autocannon(opts);
     console.log(autocannon.printResult(result));
 
+    const endpoint = new URL(scenario.url).pathname;
+    const totalRequests = result.requests.total;
+    const successfulReqs = result['2xx'] || 0;
+    const failedReqs = totalRequests - successfulReqs;
+
+    const reportData = {
+      testName: scenario.name,
+      endpoint,
+      method: scenario.method || 'GET',
+      connections: scenario.connections,
+      duration: scenario.duration,
+      totalRequests,
+      successfulReqs,
+      failedReqs,
+      errors: result.errors || 0,
+      timeouts: result.timeouts || 0,
+      avgLatencyMs: result.latency?.mean || 0,
+      p50LatencyMs: result.latency?.p50 || 0,
+      p99LatencyMs: result.latency?.p99 || 0,
+      maxLatencyMs: result.latency?.max || 0,
+      avgThroughput: result.requests?.average || 0,
+      statusCodes: JSON.stringify({
+        '2xx': result['2xx'] || 0,
+        '4xx': result['4xx'] || 0,
+        '5xx': result['5xx'] || 0,
+      }),
+    };
+
+    // Save report
+    await saveReport(reportData);
+
     results.push({
       name: scenario.name,
       connections: scenario.connections,
@@ -134,7 +183,8 @@ async function runStressTest() {
   }
 
   console.log('\n╚══════════════════════════════════════════════════════════════════════════════════════════╝\n');
-  console.log('Stress testing completed.');
+  console.log('✅ Stress testing completed.');
+  console.log(`📊 查看 Dashboard: ${BASE_URL}/api/v1/stress-test-reports/dashboard`);
 }
 
 runStressTest().catch(console.error);
