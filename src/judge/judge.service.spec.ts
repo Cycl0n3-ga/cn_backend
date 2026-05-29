@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { JudgeService, JudgeInput } from './judge.service';
-import * as childProcess from 'node:child_process';
+import { JudgeService } from './judge.service';
 import * as fs from 'node:fs/promises';
 import { EventEmitter } from 'node:events';
 

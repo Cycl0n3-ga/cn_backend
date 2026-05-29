@@ -106,7 +106,7 @@ describe('Code Judge API (e2e)', () => {
 
     describe('POST /api/v1/auth/login', () => {
       it('should return 401 for invalid credentials', async () => {
-        const res = await request(app.getHttpServer())
+        await request(app.getHttpServer())
           .post('/api/v1/auth/login')
           .send({
             username: 'admin',
