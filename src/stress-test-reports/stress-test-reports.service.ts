@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { StressTestReport } from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service';
-import { CreateStressTestReportDto, StressTestReportDto, StressTestSummaryDto } from './dto/create-stress-test-report.dto';
+import { PrismaService } from '../prisma/prisma.service.js';
+import {
+  CreateStressTestReportDto,
+  StressTestReportDto,
+  StressTestSummaryDto,
+} from './dto/create-stress-test-report.dto.js';
 
 @Injectable()
 export class StressTestReportsService {
@@ -58,42 +62,58 @@ export class StressTestReportsService {
   async getSummary(endpoint?: string): Promise<StressTestSummaryDto[]> {
     const where = endpoint ? { endpoint } : {};
 
-    // Group by endpoint and calculate aggregates
-    const reports = await this.prisma.stressTestReport.findMany({
+    const reports = await this.prisma.stressTestReport.groupBy({
+      by: ['endpoint'],
       where,
-      orderBy: { createdAt: 'desc' },
+      _count: { _all: true },
+      _avg: {
+        p99LatencyMs: true,
+      },
+      _sum: {
+        successfulReqs: true,
+        totalRequests: true,
+      },
+      _max: {
+        createdAt: true,
+      },
     });
-
-    const grouped = new Map<string, StressTestReport[]>();
-    reports.forEach(r => {
-      if (!grouped.has(r.endpoint)) {
-        grouped.set(r.endpoint, []);
+    const assessments = await this.prisma.stressTestReport.groupBy({
+      by: ['endpoint', 'assessment'],
+      where,
+      _count: { _all: true },
+    });
+    const assessmentMap = new Map<
+      string,
+      {
+        total: number;
+        passed: number;
       }
-      grouped.get(r.endpoint)!.push(r);
+    >();
+
+    assessments.forEach((item) => {
+      const current = assessmentMap.get(item.endpoint) ?? { total: 0, passed: 0 };
+      current.total += item._count._all;
+      if (item.assessment === 'PASSED') {
+        current.passed += item._count._all;
+      }
+      assessmentMap.set(item.endpoint, current);
     });
 
-    const summaries: StressTestSummaryDto[] = [];
+    return reports.map((report) => {
+      const successfulReqs = report._sum.successfulReqs ?? 0;
+      const totalRequests = report._sum.totalRequests ?? 0;
+      const avgSuccessRate = totalRequests > 0 ? (successfulReqs / totalRequests) * 100 : 0;
+      const assessment = assessmentMap.get(report.endpoint) ?? { total: 0, passed: 0 };
 
-    for (const [ep, epReports] of grouped) {
-      const latestReport = epReports[0];
-      const avgSuccessRate = epReports.length > 0
-        ? (epReports.reduce((sum, r) => sum + (r.totalRequests > 0 ? (r.successfulReqs / r.totalRequests) * 100 : 0), 0) / epReports.length)
-        : 0;
-      const avgP99Latency = epReports.length > 0
-        ? epReports.reduce((sum, r) => sum + r.p99LatencyMs, 0) / epReports.length
-        : 0;
-
-      summaries.push({
-        endpoint: ep,
-        latestReportAt: latestReport.createdAt,
-        reportsCount: epReports.length,
+      return {
+        endpoint: report.endpoint,
+        latestReportAt: report._max.createdAt ?? new Date(0),
+        reportsCount: report._count._all,
         avgSuccessRate,
-        avgP99Latency,
-        overallAssessment: this.determineOverallAssessment(epReports),
-      });
-    }
-
-    return summaries;
+        avgP99Latency: report._avg.p99LatencyMs ?? 0,
+        overallAssessment: this.determineOverallAssessment(assessment.passed, assessment.total),
+      };
+    });
   }
 
   private calculateAssessment(dto: CreateStressTestReportDto): string {
@@ -137,20 +157,17 @@ export class StressTestReportsService {
     return issues.join(' | ');
   }
 
-  private determineOverallAssessment(reportList: StressTestReport[]): string {
-    if (reportList.length === 0) return 'NO_DATA';
+  private determineOverallAssessment(passCount: number, totalCount: number): string {
+    if (totalCount === 0) return 'NO_DATA';
 
-    const passCount = reportList.filter(r => r.assessment === 'PASSED').length;
-    const failedCount = reportList.filter(r => r.assessment === 'FAILED').length;
-
-    const passRate = (passCount / reportList.length) * 100;
+    const passRate = (passCount / totalCount) * 100;
 
     if (passRate >= 80) return 'HEALTHY';
     if (passRate >= 50) return 'DEGRADED';
     return 'CRITICAL';
   }
 
-  private mapToDto(report: any): StressTestReportDto {
+  private mapToDto(report: StressTestReport): StressTestReportDto {
     return {
       id: report.id,
       testName: report.testName,

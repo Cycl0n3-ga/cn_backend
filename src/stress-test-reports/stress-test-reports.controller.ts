@@ -18,7 +18,10 @@ export class StressTestReportsController {
     @Query('limit') limit = '50',
   ): Promise<StressTestReportDto[]> {
     const parsedLimit = Number.parseInt(limit, 10);
-    const safeLimit = Number.isFinite(parsedLimit) && parsedLimit > 0 ? parsedLimit : 50;
+    const safeLimit =
+      Number.isFinite(parsedLimit) && parsedLimit > 0
+        ? Math.min(parsedLimit, 100)
+        : 50;
     return this.service.getReports(endpoint, safeLimit);
   }
 
@@ -46,6 +49,14 @@ export class StressTestReportsController {
   }
 
   private generateDashboardHTML(summaries: StressTestSummaryDto[], reports: StressTestReportDto[]): string {
+    const escapeHtml = (unsafe: string) =>
+      unsafe
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+
     const healthStatus = (status: string) => {
       const colors = {
         HEALTHY: '#22c55e',
@@ -70,7 +81,7 @@ export class StressTestReportsController {
         s => `
       <div class="card">
         <div class="card-header">
-          <h3>${s.endpoint}</h3>
+          <h3>${escapeHtml(s.endpoint)}</h3>
           <span class="badge" style="background-color: ${healthStatus(s.overallAssessment)}">
             ${s.overallAssessment}
           </span>
@@ -91,8 +102,8 @@ export class StressTestReportsController {
       .map(
         r => `
       <tr>
-        <td>${r.testName}</td>
-        <td>${r.endpoint}</td>
+        <td>${escapeHtml(r.testName)}</td>
+        <td>${escapeHtml(r.endpoint)}</td>
         <td>${r.connections}</td>
         <td>${r.totalRequests}</td>
         <td>${r.successfulReqs}</td>
@@ -101,7 +112,7 @@ export class StressTestReportsController {
         <td>${r.avgThroughput.toFixed(2)}</td>
         <td>${r.errors}</td>
         <td>${r.timeouts}</td>
-        <td>${assessmentIcon(r.assessment)} ${r.assessment}</td>
+        <td>${assessmentIcon(r.assessment)} ${escapeHtml(r.assessment)}</td>
         <td>${new Date(r.createdAt).toLocaleString('zh-TW')}</td>
       </tr>
     `,
