@@ -15,9 +15,11 @@ export class StressTestReportsController {
   @Get()
   async getReports(
     @Query('endpoint') endpoint?: string,
-    @Query('limit') limit: string = '50',
+    @Query('limit') limit = '50',
   ): Promise<StressTestReportDto[]> {
-    return this.service.getReports(endpoint, parseInt(limit, 10));
+    const parsedLimit = Number.parseInt(limit, 10);
+    const safeLimit = Number.isFinite(parsedLimit) && parsedLimit > 0 ? parsedLimit : 50;
+    return this.service.getReports(endpoint, safeLimit);
   }
 
   @Get('latest')
