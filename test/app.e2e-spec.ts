@@ -518,7 +518,7 @@ describe('Code Judge API (e2e)', () => {
             .get(`/api/v1/submissions/${id}`)
             .expect(200);
 
-          const status = poll.body.status;
+          const status = poll.body.status as string;
           if (terminal.includes(status)) {
             expect(poll.body).toHaveProperty('metrics');
             break;

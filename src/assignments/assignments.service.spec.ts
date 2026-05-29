@@ -5,7 +5,17 @@ import { NotFoundException, ConflictException } from '@nestjs/common';
 
 describe('AssignmentsService', () => {
   let service: AssignmentsService;
-  let prisma: any;
+  let prisma: {
+    interview: { findUnique: jest.Mock };
+    user: { findUnique: jest.Mock };
+    problem: { findFirst: jest.Mock };
+    interviewAssignment: {
+      create: jest.Mock;
+      findMany: jest.Mock;
+      findUnique: jest.Mock;
+      delete: jest.Mock;
+    };
+  };
 
   const mockInterview = {
     id: 1,
@@ -24,7 +34,7 @@ describe('AssignmentsService', () => {
     isDeleted: false,
   };
 
-  const mockAssignment = {
+  const mockAssignment: any = {
     id: 1,
     jobId: 1,
     userId: 'user-uuid-1',

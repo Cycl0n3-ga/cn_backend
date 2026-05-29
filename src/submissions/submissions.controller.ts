@@ -44,7 +44,10 @@ export class SubmissionsController {
   })
   @ApiResponse({ status: 401, description: '未認證' })
   @ApiResponse({ status: 404, description: '題目不存在' })
-  create(@Request() req: any, @Body() dto: CreateSubmissionDto) {
+  create(
+    @Request() req: { user: { id: string } },
+    @Body() dto: CreateSubmissionDto,
+  ) {
     return this.submissionsService.create(req.user.id, {
       problemId: dto.problem_id,
       language: dto.language,

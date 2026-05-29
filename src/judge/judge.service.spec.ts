@@ -12,7 +12,7 @@ jest.mock('node:fs/promises', () => ({
 
 const mockSpawn = jest.fn();
 jest.mock('node:child_process', () => ({
-  spawn: (...args: any[]) => mockSpawn(...args),
+  spawn: (...args: unknown[]) => mockSpawn(...args),
 }));
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -57,6 +57,7 @@ describe('JudgeService', () => {
   let service: JudgeService;
 
   beforeEach(async () => {
+    mockSpawn.mockClear();
     const module: TestingModule = await Test.createTestingModule({
       providers: [JudgeService],
     }).compile();
@@ -203,7 +204,7 @@ describe('JudgeService', () => {
     });
 
     it('should return TIME_LIMIT_EXCEEDED when process is killed via SIGTERM', async () => {
-      const child = makeChildStub(null as any, '', '', 'SIGTERM');
+      const child = makeChildStub(null as unknown as number, '', '', 'SIGTERM');
       child.kill = jest.fn();
       mockSpawn.mockReturnValue(child);
 
