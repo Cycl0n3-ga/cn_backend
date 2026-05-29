@@ -4,7 +4,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { Prisma } from '@prisma/client';
+import { hasPrismaErrorCode } from '../prisma/prisma-errors.js';
 import { CreateInterviewCandidateDto } from './dto/interview-candidate.dto.js';
 
 @Injectable()
@@ -42,10 +42,7 @@ export class InterviewCandidatesService {
         userId: candidate.userId,
       };
     } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2002'
-      ) {
+      if (hasPrismaErrorCode(error, 'P2002')) {
         throw new ConflictException(
           'User is already a candidate for this interview.',
         );

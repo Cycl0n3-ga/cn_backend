@@ -48,6 +48,8 @@ module.exports = async () => {
 
   const childEnv = { ...process.env, DATABASE_URL: dbUrl };
 
+  fs.closeSync(fs.openSync(dbFile, 'a'));
+
   // Apply migrations and seed sample data.
   execSync('npx prisma migrate deploy', {
     cwd: repoRoot,

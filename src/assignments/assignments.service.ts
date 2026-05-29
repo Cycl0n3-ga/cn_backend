@@ -4,8 +4,37 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { Prisma } from '@prisma/client';
+import { hasPrismaErrorCode } from '../prisma/prisma-errors.js';
 import { CreateInterviewAssignmentDto } from './dto/assignment.dto.js';
+
+type AssignmentInterview = {
+  id: number;
+  jobRole: string;
+  examinerEmpId: string;
+};
+
+type AssignmentProblem = {
+  id: number;
+  title: string;
+  difficulty: string;
+};
+
+type AssignmentUser = {
+  id: string;
+  username: string;
+  email: string;
+};
+
+type AssignmentWithRelations = {
+  id: number;
+  jobId: number;
+  userId: string;
+  problemId: number;
+  createdAt: Date;
+  interview?: AssignmentInterview | null;
+  problem: AssignmentProblem;
+  user: AssignmentUser;
+};
 
 @Injectable()
 export class AssignmentsService {
@@ -44,10 +73,7 @@ export class AssignmentsService {
 
       return this.formatAssignment(assignment);
     } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2002'
-      ) {
+      if (hasPrismaErrorCode(error, 'P2002')) {
         throw new ConflictException(
           'This problem is already assigned to the user in this interview.',
         );
@@ -119,8 +145,7 @@ export class AssignmentsService {
     };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-  private formatAssignment(a: any) {
+  private formatAssignment(a: AssignmentWithRelations) {
     return {
       id: a.id.toString(),
       jobId: a.jobId.toString(),
