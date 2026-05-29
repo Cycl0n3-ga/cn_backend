@@ -70,3 +70,5 @@ diff_output.txt
 
 # Reference / integrated folders
 /backend-with-code-judge/
+!eslint.config.mjs
+!package-lock.json
