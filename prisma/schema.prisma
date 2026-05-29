@@ -145,3 +145,48 @@ model InterviewAssignment {
   @@unique([jobId, userId, problemId])
   @@map("interview_assignments")
 }
+
+// ─── StressTestReport (壓力測試報告) ────────────────────────────
+model StressTestReport {
+  id              String   @id @default(uuid())
+  testName        String   // 測試名稱，如 "Spike Test — Health (200 connections)"
+  endpoint        String   // 被測試的端點，如 "/api/v1/health"
+  method          String   @default("GET") // HTTP 方法
+  connections     Int      // 並發連接數
+  duration        Int      // 持續時間（秒）
+  totalRequests   Int      // 總請求數
+  successfulReqs  Int      // 成功的請求數 (2xx)
+  failedReqs      Int      // 失敗的請求數
+  errors          Int      // 連接錯誤數
+  timeouts        Int      // 超時數
+  avgLatencyMs    Float    // 平均延遲（毫秒）
+  p50LatencyMs    Float    // 50 百分位數延遲
+  p99LatencyMs    Float    // 99 百分位數延遲
+  maxLatencyMs    Float    // 最大延遲
+  avgThroughput   Float    // 平均吞吐量（req/sec）
+  statusCodes     String   // JSON 字符串存儲狀態碼分佈 { "2xx": 0, "4xx": 0, "5xx": 1712 }
+  assessment      String   // 評估結果，如 "PASSED" | "WARNING" | "FAILED"
+  assessmentMsg   String   // 詳細的評估信息
+  createdAt       DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([endpoint])
+  @@map("stress_test_reports")
+}
+
+// ─── HealthMetric (系統健康指標) ─────────────────────────────
+model HealthMetric {
+  id              String   @id @default(uuid())
+  timestamp       DateTime @default(now())
+  cpuUsagePercent Float?   // CPU 使用率百分比
+  memoryUsageMb   Float?   // 內存使用量（MB）
+  activeConnections Int?   // 活躍連接數
+  queuedRequests  Int?     // 排隊中的請求數
+  responseTime50  Float?   // 50 百分位數響應時間
+  responseTime99  Float?   // 99 百分位數響應時間
+  errorRate       Float?   // 錯誤率百分比
+  description     String?  // 可選的描述
+
+  @@index([timestamp])
+  @@map("health_metrics")
+}

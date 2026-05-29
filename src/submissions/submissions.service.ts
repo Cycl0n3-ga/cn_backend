@@ -123,11 +123,12 @@ export class SubmissionsService {
             input: testCase.input,
             expectedOutput: testCase.output,
           },
-          () =>
-            this.prisma.submission.update({
+          async () => {
+            await this.prisma.submission.update({
               where: { id: input.submissionId },
               data: { status: STATUS.RUNNING },
-            }),
+            });
+          },
         );
 
         totalTimeMs += result.executionTimeMs;

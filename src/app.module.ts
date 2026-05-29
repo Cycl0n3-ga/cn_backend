@@ -10,6 +10,7 @@ import { InternalModule } from './internal/internal.module.js';
 import { InterviewsModule } from './interviews/interviews.module.js';
 import { InterviewCandidatesModule } from './interview-candidates/interview-candidates.module.js';
 import { AssignmentsModule } from './assignments/assignments.module.js';
+import { StressTestReportsModule } from './stress-test-reports/stress-test-reports.module.js';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { AssignmentsModule } from './assignments/assignments.module.js';
     InterviewsModule,
     InterviewCandidatesModule,
     AssignmentsModule,
+    StressTestReportsModule,
   ],
 })
 export class AppModule {}
