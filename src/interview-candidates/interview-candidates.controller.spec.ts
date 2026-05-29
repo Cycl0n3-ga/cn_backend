@@ -136,7 +136,7 @@ describe('InterviewCandidatesController', () => {
   // ── findAll ───────────────────────────────────────────────────────────
   describe('findAll', () => {
     it('should return all candidates', async () => {
-      service.findAll.mockResolvedValue(mockFindAllResult as any);
+      service.findAll.mockResolvedValue(mockFindAllResult);
 
       const result = await controller.findAll();
 

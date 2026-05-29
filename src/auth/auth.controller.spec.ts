@@ -112,7 +112,7 @@ describe('AuthController', () => {
     };
 
     it('should create user and return user info (without password)', async () => {
-      authService.signup.mockResolvedValue(signupResult as any);
+      authService.signup.mockResolvedValue(signupResult);
 
       const result = await controller.signup({
         username: 'newuser',
@@ -127,7 +127,7 @@ describe('AuthController', () => {
     });
 
     it('should pass all fields to service including passwordSha256', async () => {
-      authService.signup.mockResolvedValue(signupResult as any);
+      authService.signup.mockResolvedValue(signupResult);
 
       await controller.signup({
         username: 'newuser',
@@ -145,7 +145,7 @@ describe('AuthController', () => {
     });
 
     it('should signup without optional role field', async () => {
-      authService.signup.mockResolvedValue(signupResult as any);
+      authService.signup.mockResolvedValue(signupResult);
 
       await controller.signup({
         username: 'newuser',

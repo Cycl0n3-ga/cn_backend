@@ -85,7 +85,7 @@ describe('InterviewsController', () => {
   // ── findAll ───────────────────────────────────────────────────────────
   describe('findAll', () => {
     it('should return all interviews', async () => {
-      service.findAll.mockResolvedValue(mockFindAllResult as any);
+      service.findAll.mockResolvedValue(mockFindAllResult);
 
       const result = await controller.findAll();
 
@@ -94,7 +94,7 @@ describe('InterviewsController', () => {
     });
 
     it('should call service.findAll once', async () => {
-      service.findAll.mockResolvedValue([] as any);
+      service.findAll.mockResolvedValue([]);
 
       await controller.findAll();
 
@@ -102,7 +102,7 @@ describe('InterviewsController', () => {
     });
 
     it('should return empty array when no interviews', async () => {
-      service.findAll.mockResolvedValue([] as any);
+      service.findAll.mockResolvedValue([]);
 
       const result = await controller.findAll();
 

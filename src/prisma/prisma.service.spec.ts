@@ -20,7 +20,7 @@ describe('PrismaService', () => {
 
     const connectSpy = jest
       .spyOn(service, '$connect')
-      .mockResolvedValue(undefined as any);
+      .mockResolvedValue(undefined);
 
     await service.onModuleInit();
 
@@ -33,7 +33,7 @@ describe('PrismaService', () => {
 
     const disconnectSpy = jest
       .spyOn(service, '$disconnect')
-      .mockResolvedValue(undefined as any);
+      .mockResolvedValue(undefined);
 
     await service.onModuleDestroy();
 

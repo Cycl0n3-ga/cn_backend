@@ -116,7 +116,7 @@ describe('AssignmentsController', () => {
   // ── findAll ────────────────────────────────────────────────────────────
   describe('findAll', () => {
     it('should return all assignments', async () => {
-      service.findAll.mockResolvedValue([mockAssignment] as any);
+      service.findAll.mockResolvedValue([mockAssignment]);
 
       const result = await controller.findAll();
 
@@ -171,7 +171,7 @@ describe('AssignmentsController', () => {
   // ── findByUser ─────────────────────────────────────────────────────────
   describe('findByUser', () => {
     it('should return assignments for a user', async () => {
-      service.findByUser.mockResolvedValue([mockAssignment] as any);
+      service.findByUser.mockResolvedValue([mockAssignment]);
 
       const result = await controller.findByUser('user-uuid-1');
 
