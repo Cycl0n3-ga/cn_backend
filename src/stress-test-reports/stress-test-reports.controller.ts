@@ -1,9 +1,9 @@
 import { Controller, Get, Post, Body, Query, Res } from '@nestjs/common';
 import type { Response } from 'express';
-import { StressTestReportsService } from './stress-test-reports.service';
-import { CreateStressTestReportDto, StressTestReportDto, StressTestSummaryDto } from './dto/create-stress-test-report.dto';
+import { StressTestReportsService } from './stress-test-reports.service.js';
+import { CreateStressTestReportDto, StressTestReportDto, StressTestSummaryDto } from './dto/create-stress-test-report.dto.js';
 
-@Controller('api/v1/stress-test-reports')
+@Controller('stress-test-reports')
 export class StressTestReportsController {
   constructor(private readonly service: StressTestReportsService) {}
 
