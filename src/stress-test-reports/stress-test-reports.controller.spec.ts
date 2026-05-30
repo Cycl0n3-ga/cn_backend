@@ -22,7 +22,9 @@ describe('StressTestReportsController', () => {
       ],
     }).compile();
 
-    controller = module.get<StressTestReportsController>(StressTestReportsController);
+    controller = module.get<StressTestReportsController>(
+      StressTestReportsController,
+    );
     service = module.get(StressTestReportsService);
   });
 

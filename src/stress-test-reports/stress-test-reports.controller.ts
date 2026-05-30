@@ -1,14 +1,20 @@
 import { Controller, Get, Post, Body, Query, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { StressTestReportsService } from './stress-test-reports.service.js';
-import { CreateStressTestReportDto, StressTestReportDto, StressTestSummaryDto } from './dto/create-stress-test-report.dto.js';
+import {
+  CreateStressTestReportDto,
+  StressTestReportDto,
+  StressTestSummaryDto,
+} from './dto/create-stress-test-report.dto.js';
 
 @Controller('stress-test-reports')
 export class StressTestReportsController {
   constructor(private readonly service: StressTestReportsService) {}
 
   @Post()
-  async createReport(@Body() dto: CreateStressTestReportDto): Promise<StressTestReportDto> {
+  async createReport(
+    @Body() dto: CreateStressTestReportDto,
+  ): Promise<StressTestReportDto> {
     return this.service.createReport(dto);
   }
 
@@ -26,7 +32,9 @@ export class StressTestReportsController {
   }
 
   @Get('latest')
-  async getLatestReport(@Query('endpoint') endpoint: string): Promise<StressTestReportDto | null> {
+  async getLatestReport(
+    @Query('endpoint') endpoint: string,
+  ): Promise<StressTestReportDto | null> {
     if (!endpoint) {
       return null;
     }
@@ -34,7 +42,9 @@ export class StressTestReportsController {
   }
 
   @Get('summary')
-  async getSummary(@Query('endpoint') endpoint?: string): Promise<StressTestSummaryDto[]> {
+  async getSummary(
+    @Query('endpoint') endpoint?: string,
+  ): Promise<StressTestSummaryDto[]> {
     return this.service.getSummary(endpoint);
   }
 
@@ -48,7 +58,10 @@ export class StressTestReportsController {
     res.send(html);
   }
 
-  private generateDashboardHTML(summaries: StressTestSummaryDto[], reports: StressTestReportDto[]): string {
+  private generateDashboardHTML(
+    summaries: StressTestSummaryDto[],
+    reports: StressTestReportDto[],
+  ): string {
     const escapeHtml = (unsafe: string) =>
       unsafe
         .replace(/&/g, '&amp;')
@@ -58,27 +71,27 @@ export class StressTestReportsController {
         .replace(/'/g, '&#039;');
 
     const healthStatus = (status: string) => {
-      const colors = {
+      const colors: Record<string, string> = {
         HEALTHY: '#22c55e',
         DEGRADED: '#f59e0b',
         CRITICAL: '#ef4444',
         NO_DATA: '#9ca3af',
       };
-      return colors[status] || '#9ca3af';
+      return colors[status] ?? '#9ca3af';
     };
 
     const assessmentIcon = (assessment: string) => {
-      const icons = {
+      const icons: Record<string, string> = {
         PASSED: '✅',
         WARNING: '⚠️',
         FAILED: '🔴',
       };
-      return icons[assessment] || '❓';
+      return icons[assessment] ?? '❓';
     };
 
     const summaryCards = summaries
       .map(
-        s => `
+        (s) => `
       <div class="card">
         <div class="card-header">
           <h3>${escapeHtml(s.endpoint)}</h3>
@@ -100,7 +113,7 @@ export class StressTestReportsController {
     const reportTable = reports
       .slice(0, 50)
       .map(
-        r => `
+        (r) => `
       <tr>
         <td>${escapeHtml(r.testName)}</td>
         <td>${escapeHtml(r.endpoint)}</td>

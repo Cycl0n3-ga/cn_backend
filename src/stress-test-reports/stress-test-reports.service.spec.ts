@@ -49,8 +49,16 @@ describe('StressTestReportsService', () => {
         },
       ])
       .mockResolvedValueOnce([
-        { endpoint: '/api/problems', assessment: 'PASSED', _count: { _all: 4 } },
-        { endpoint: '/api/problems', assessment: 'WARNING', _count: { _all: 1 } },
+        {
+          endpoint: '/api/problems',
+          assessment: 'PASSED',
+          _count: { _all: 4 },
+        },
+        {
+          endpoint: '/api/problems',
+          assessment: 'WARNING',
+          _count: { _all: 1 },
+        },
       ]);
 
     const result = await service.getSummary();

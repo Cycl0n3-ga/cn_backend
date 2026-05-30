@@ -11,7 +11,9 @@ import {
 export class StressTestReportsService {
   constructor(private prisma: PrismaService) {}
 
-  async createReport(dto: CreateStressTestReportDto): Promise<StressTestReportDto> {
+  async createReport(
+    dto: CreateStressTestReportDto,
+  ): Promise<StressTestReportDto> {
     const report = await this.prisma.stressTestReport.create({
       data: {
         testName: dto.testName,
@@ -38,7 +40,10 @@ export class StressTestReportsService {
     return this.mapToDto(report);
   }
 
-  async getReports(endpoint?: string, limit: number = 50): Promise<StressTestReportDto[]> {
+  async getReports(
+    endpoint?: string,
+    limit: number = 50,
+  ): Promise<StressTestReportDto[]> {
     const where = endpoint ? { endpoint } : {};
 
     const reports = await this.prisma.stressTestReport.findMany({
@@ -47,7 +52,7 @@ export class StressTestReportsService {
       take: limit,
     });
 
-    return reports.map(r => this.mapToDto(r));
+    return reports.map((r) => this.mapToDto(r));
   }
 
   async getLatestReport(endpoint: string): Promise<StressTestReportDto | null> {
@@ -91,7 +96,10 @@ export class StressTestReportsService {
     >();
 
     assessments.forEach((item) => {
-      const current = assessmentMap.get(item.endpoint) ?? { total: 0, passed: 0 };
+      const current = assessmentMap.get(item.endpoint) ?? {
+        total: 0,
+        passed: 0,
+      };
       current.total += item._count._all;
       if (item.assessment === 'PASSED') {
         current.passed += item._count._all;
@@ -102,8 +110,12 @@ export class StressTestReportsService {
     return reports.map((report) => {
       const successfulReqs = report._sum.successfulReqs ?? 0;
       const totalRequests = report._sum.totalRequests ?? 0;
-      const avgSuccessRate = totalRequests > 0 ? (successfulReqs / totalRequests) * 100 : 0;
-      const assessment = assessmentMap.get(report.endpoint) ?? { total: 0, passed: 0 };
+      const avgSuccessRate =
+        totalRequests > 0 ? (successfulReqs / totalRequests) * 100 : 0;
+      const assessment = assessmentMap.get(report.endpoint) ?? {
+        total: 0,
+        passed: 0,
+      };
 
       return {
         endpoint: report.endpoint,
@@ -111,13 +123,19 @@ export class StressTestReportsService {
         reportsCount: report._count._all,
         avgSuccessRate,
         avgP99Latency: report._avg.p99LatencyMs ?? 0,
-        overallAssessment: this.determineOverallAssessment(assessment.passed, assessment.total),
+        overallAssessment: this.determineOverallAssessment(
+          assessment.passed,
+          assessment.total,
+        ),
       };
     });
   }
 
   private calculateAssessment(dto: CreateStressTestReportDto): string {
-    const successRate = dto.totalRequests > 0 ? (dto.successfulReqs / dto.totalRequests) * 100 : 0;
+    const successRate =
+      dto.totalRequests > 0
+        ? (dto.successfulReqs / dto.totalRequests) * 100
+        : 0;
 
     if (successRate >= 95 && dto.p99LatencyMs <= 1000 && dto.timeouts === 0) {
       return 'PASSED';
@@ -145,7 +163,10 @@ export class StressTestReportsService {
       issues.push(`超時: ${dto.timeouts} 個`);
     }
 
-    const successRate = dto.totalRequests > 0 ? (dto.successfulReqs / dto.totalRequests) * 100 : 0;
+    const successRate =
+      dto.totalRequests > 0
+        ? (dto.successfulReqs / dto.totalRequests) * 100
+        : 0;
     if (successRate < 80) {
       issues.push(`成功率過低: ${successRate.toFixed(2)}% < 80%`);
     }
@@ -157,7 +178,10 @@ export class StressTestReportsService {
     return issues.join(' | ');
   }
 
-  private determineOverallAssessment(passCount: number, totalCount: number): string {
+  private determineOverallAssessment(
+    passCount: number,
+    totalCount: number,
+  ): string {
     if (totalCount === 0) return 'NO_DATA';
 
     const passRate = (passCount / totalCount) * 100;
