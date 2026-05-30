@@ -11,7 +11,10 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: '使用者登入', description: '驗證帳號密碼並核發 JWT Token' })
+  @ApiOperation({
+    summary: '使用者登入',
+    description: '驗證帳號密碼並核發 JWT Token',
+  })
   @ApiResponse({
     status: 200,
     description: '登入成功',

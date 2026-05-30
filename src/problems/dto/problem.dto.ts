@@ -51,7 +51,10 @@ export class CreateProblemDto {
   @IsInt()
   memory_limit_mb?: number;
 
-  @ApiPropertyOptional({ example: 'twoSum', description: '進入點 function 名稱' })
+  @ApiPropertyOptional({
+    example: 'twoSum',
+    description: '進入點 function 名稱',
+  })
   @IsOptional()
   @IsString()
   function_name?: string;

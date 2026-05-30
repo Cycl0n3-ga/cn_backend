@@ -50,7 +50,7 @@ describe('AssignmentsController', () => {
   // ── create ─────────────────────────────────────────────────────────────
   describe('create', () => {
     it('should create an assignment and return result', async () => {
-      service.create.mockResolvedValue(mockAssignment as any);
+      service.create.mockResolvedValue(mockAssignment);
 
       const result = await controller.create({
         jobId: 1,
@@ -62,7 +62,7 @@ describe('AssignmentsController', () => {
     });
 
     it('should pass DTO directly to service', async () => {
-      service.create.mockResolvedValue(mockAssignment as any);
+      service.create.mockResolvedValue(mockAssignment);
       const dto = { jobId: 2, userId: 'user-uuid-2', problemId: 3 };
 
       await controller.create(dto);
@@ -116,7 +116,7 @@ describe('AssignmentsController', () => {
   // ── findAll ────────────────────────────────────────────────────────────
   describe('findAll', () => {
     it('should return all assignments', async () => {
-      service.findAll.mockResolvedValue([mockAssignment] as any);
+      service.findAll.mockResolvedValue([mockAssignment]);
 
       const result = await controller.findAll();
 
@@ -144,7 +144,7 @@ describe('AssignmentsController', () => {
   // ── findOne ────────────────────────────────────────────────────────────
   describe('findOne', () => {
     it('should return a single assignment', async () => {
-      service.findOne.mockResolvedValue(mockAssignment as any);
+      service.findOne.mockResolvedValue(mockAssignment);
 
       const result = await controller.findOne(1);
 
@@ -152,7 +152,7 @@ describe('AssignmentsController', () => {
     });
 
     it('should pass ID to service', async () => {
-      service.findOne.mockResolvedValue(mockAssignment as any);
+      service.findOne.mockResolvedValue(mockAssignment);
 
       await controller.findOne(42);
 
@@ -171,7 +171,7 @@ describe('AssignmentsController', () => {
   // ── findByUser ─────────────────────────────────────────────────────────
   describe('findByUser', () => {
     it('should return assignments for a user', async () => {
-      service.findByUser.mockResolvedValue([mockAssignment] as any);
+      service.findByUser.mockResolvedValue([mockAssignment]);
 
       const result = await controller.findByUser('user-uuid-1');
 
@@ -199,7 +199,7 @@ describe('AssignmentsController', () => {
   // ── remove ─────────────────────────────────────────────────────────────
   describe('remove', () => {
     it('should call service.remove with correct id', async () => {
-      service.remove.mockResolvedValue(undefined as any);
+      service.remove.mockResolvedValue(undefined);
 
       await controller.remove(1);
 
@@ -207,7 +207,7 @@ describe('AssignmentsController', () => {
     });
 
     it('should not throw for existing assignment', async () => {
-      service.remove.mockResolvedValue(undefined as any);
+      service.remove.mockResolvedValue(undefined);
 
       await expect(controller.remove(1)).resolves.not.toThrow();
     });

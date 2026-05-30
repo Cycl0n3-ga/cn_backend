@@ -10,7 +10,8 @@ function sha256Hex(input: string) {
 
 const VALID_SHA256 = sha256Hex('password123');
 // Valid 64-char hex string (sha256 of 'admin123')
-const ADMIN_SHA256 = '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9';
+const ADMIN_SHA256 =
+  '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -46,7 +47,7 @@ describe('AuthController', () => {
         expires_in: '3600',
         user_role: 'ADMIN',
       };
-      authService.login.mockResolvedValue(mockResult as any);
+      authService.login.mockResolvedValue(mockResult);
 
       const result = await controller.login({
         username: 'admin',
@@ -62,7 +63,7 @@ describe('AuthController', () => {
         token: 'user.jwt.token',
         expires_in: '3600',
         user_role: 'USER',
-      } as any);
+      });
 
       const result = await controller.login({
         username: 'alice',
@@ -83,9 +84,16 @@ describe('AuthController', () => {
     });
 
     it('should pass passwordSha256 directly to service (not plaintext)', async () => {
-      authService.login.mockResolvedValue({ token: 't', expires_in: '3600', user_role: 'USER' } as any);
+      authService.login.mockResolvedValue({
+        token: 't',
+        expires_in: '3600',
+        user_role: 'USER',
+      });
 
-      await controller.login({ username: 'test', passwordSha256: VALID_SHA256 });
+      await controller.login({
+        username: 'test',
+        passwordSha256: VALID_SHA256,
+      });
 
       // Ensure the sha256 hash — not plaintext — is forwarded
       expect(authService.login).toHaveBeenCalledWith('test', VALID_SHA256);
@@ -104,7 +112,7 @@ describe('AuthController', () => {
     };
 
     it('should create user and return user info (without password)', async () => {
-      authService.signup.mockResolvedValue(signupResult as any);
+      authService.signup.mockResolvedValue(signupResult);
 
       const result = await controller.signup({
         username: 'newuser',
@@ -119,7 +127,7 @@ describe('AuthController', () => {
     });
 
     it('should pass all fields to service including passwordSha256', async () => {
-      authService.signup.mockResolvedValue(signupResult as any);
+      authService.signup.mockResolvedValue(signupResult);
 
       await controller.signup({
         username: 'newuser',
@@ -137,7 +145,7 @@ describe('AuthController', () => {
     });
 
     it('should signup without optional role field', async () => {
-      authService.signup.mockResolvedValue(signupResult as any);
+      authService.signup.mockResolvedValue(signupResult);
 
       await controller.signup({
         username: 'newuser',

@@ -23,7 +23,10 @@ export class SubmissionsService {
     private readonly judgeQueueService: JudgeQueueService,
   ) {}
 
-  async create(userId: string, data: { problemId: number; language: string; sourceCode: string }) {
+  async create(
+    userId: string,
+    data: { problemId: number; language: string; sourceCode: string },
+  ) {
     const normalizedLanguage = data.language.trim().toLowerCase();
     // Verify problem exists
     const problem = await this.prisma.problem.findFirst({
@@ -156,10 +159,14 @@ export class SubmissionsService {
       });
 
       if (finalStatus === STATUS.ACCEPTED) {
-        await this.updateUserStatsIfFirstAccepted(input.submissionId, input.userId);
+        await this.updateUserStatsIfFirstAccepted(
+          input.submissionId,
+          input.userId,
+        );
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown judge error.';
+      const message =
+        error instanceof Error ? error.message : 'Unknown judge error.';
       await this.prisma.submission.update({
         where: { id: input.submissionId },
         data: {
@@ -171,7 +178,10 @@ export class SubmissionsService {
     }
   }
 
-  private async updateUserStatsIfFirstAccepted(submissionId: string, userId: string) {
+  private async updateUserStatsIfFirstAccepted(
+    submissionId: string,
+    userId: string,
+  ) {
     const submission = await this.prisma.submission.findUnique({
       where: { id: submissionId },
     });

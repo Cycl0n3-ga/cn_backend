@@ -103,7 +103,11 @@ describe('SubmissionsService', () => {
       prisma.submission.update.mockResolvedValue({});
       prisma.submission.count.mockResolvedValue(0);
 
-      await service.create('user-uuid-1', { problemId: 1, language: 'python3', sourceCode: 'pass' });
+      await service.create('user-uuid-1', {
+        problemId: 1,
+        language: 'python3',
+        sourceCode: 'pass',
+      });
 
       expect(prisma.problem.findFirst).toHaveBeenCalledWith({
         where: { id: 1, isDeleted: false },
@@ -114,7 +118,11 @@ describe('SubmissionsService', () => {
       prisma.problem.findFirst.mockResolvedValue(null);
 
       await expect(
-        service.create('user-uuid-1', { problemId: 999, language: 'python3', sourceCode: 'code' }),
+        service.create('user-uuid-1', {
+          problemId: 999,
+          language: 'python3',
+          sourceCode: 'code',
+        }),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -122,7 +130,11 @@ describe('SubmissionsService', () => {
       prisma.problem.findFirst.mockResolvedValue(null);
 
       await expect(
-        service.create('user-uuid-1', { problemId: 999, language: 'python3', sourceCode: 'code' }),
+        service.create('user-uuid-1', {
+          problemId: 999,
+          language: 'python3',
+          sourceCode: 'code',
+        }),
       ).rejects.toThrow('Problem #999 not found.');
     });
 
@@ -132,7 +144,10 @@ describe('SubmissionsService', () => {
       for (const lang of languages) {
         jest.clearAllMocks();
         prisma.problem.findFirst.mockResolvedValue(mockProblem);
-        prisma.submission.create.mockResolvedValue({ ...mockSubmission, language: lang });
+        prisma.submission.create.mockResolvedValue({
+          ...mockSubmission,
+          language: lang,
+        });
         prisma.submission.update.mockResolvedValue({});
         prisma.submission.count.mockResolvedValue(0);
 
@@ -258,13 +273,17 @@ describe('SubmissionsService', () => {
     it('should throw NotFoundException for non-existent submission', async () => {
       prisma.submission.findUnique.mockResolvedValue(null);
 
-      await expect(service.findOne('nonexistent-id')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('nonexistent-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw NotFoundException with submission ID in message', async () => {
       prisma.submission.findUnique.mockResolvedValue(null);
 
-      await expect(service.findOne('bad-id')).rejects.toThrow('Submission "bad-id" not found.');
+      await expect(service.findOne('bad-id')).rejects.toThrow(
+        'Submission "bad-id" not found.',
+      );
     });
   });
 
@@ -340,18 +359,38 @@ describe('SubmissionsService', () => {
     });
 
     it('should not update user stats if there was a previous ACCEPTED submission', async () => {
-      judgeService.enqueue.mockResolvedValue({ status: 'ACCEPTED', executionTimeMs: 10, stdout: 'OK' });
+      judgeService.enqueue.mockResolvedValue({
+        status: 'ACCEPTED',
+        executionTimeMs: 10,
+        stdout: 'OK',
+      });
       prisma.submission.count.mockResolvedValue(2);
 
-      await (service as any).runJudgeForSubmission({ submissionId: 'sub-uuid-1', problemId: 1, userId: 'user-uuid-1', language: 'javascript', sourceCode: '' });
+      await (service as any).runJudgeForSubmission({
+        submissionId: 'sub-uuid-1',
+        problemId: 1,
+        userId: 'user-uuid-1',
+        language: 'javascript',
+        sourceCode: '',
+      });
 
       expect(prisma.user.update).not.toHaveBeenCalled();
     });
 
     it('should not update user stats for non-ACCEPTED outcomes', async () => {
-      judgeService.enqueue.mockResolvedValue({ status: 'WRONG_ANSWER', executionTimeMs: 10, stdout: 'wrong' });
+      judgeService.enqueue.mockResolvedValue({
+        status: 'WRONG_ANSWER',
+        executionTimeMs: 10,
+        stdout: 'wrong',
+      });
 
-      await (service as any).runJudgeForSubmission({ submissionId: 'sub-uuid-1', problemId: 1, userId: 'user-uuid-1', language: 'javascript', sourceCode: '' });
+      await (service as any).runJudgeForSubmission({
+        submissionId: 'sub-uuid-1',
+        problemId: 1,
+        userId: 'user-uuid-1',
+        language: 'javascript',
+        sourceCode: '',
+      });
 
       expect(prisma.submission.update).toHaveBeenLastCalledWith({
         where: { id: 'sub-uuid-1' },
@@ -363,9 +402,19 @@ describe('SubmissionsService', () => {
     });
 
     it('should map INTERNAL_ERROR to RUNTIME_ERROR', async () => {
-      judgeService.enqueue.mockResolvedValue({ status: 'INTERNAL_ERROR', executionTimeMs: 0, stdout: '' });
+      judgeService.enqueue.mockResolvedValue({
+        status: 'INTERNAL_ERROR',
+        executionTimeMs: 0,
+        stdout: '',
+      });
 
-      await (service as any).runJudgeForSubmission({ submissionId: 'sub-uuid-1', problemId: 1, userId: 'user-uuid-1', language: 'javascript', sourceCode: '' });
+      await (service as any).runJudgeForSubmission({
+        submissionId: 'sub-uuid-1',
+        problemId: 1,
+        userId: 'user-uuid-1',
+        language: 'javascript',
+        sourceCode: '',
+      });
 
       expect(prisma.submission.update).toHaveBeenLastCalledWith({
         where: { id: 'sub-uuid-1' },
@@ -376,10 +425,20 @@ describe('SubmissionsService', () => {
     });
 
     it('should skip stats update when submission cannot be reloaded', async () => {
-      judgeService.enqueue.mockResolvedValue({ status: 'ACCEPTED', executionTimeMs: 10, stdout: 'OK' });
+      judgeService.enqueue.mockResolvedValue({
+        status: 'ACCEPTED',
+        executionTimeMs: 10,
+        stdout: 'OK',
+      });
       prisma.submission.findUnique.mockResolvedValue(null);
 
-      await (service as any).runJudgeForSubmission({ submissionId: 'sub-uuid-1', problemId: 1, userId: 'user-uuid-1', language: 'javascript', sourceCode: '' });
+      await (service as any).runJudgeForSubmission({
+        submissionId: 'sub-uuid-1',
+        problemId: 1,
+        userId: 'user-uuid-1',
+        language: 'javascript',
+        sourceCode: '',
+      });
 
       expect(prisma.submission.count).not.toHaveBeenCalled();
       expect(prisma.user.update).not.toHaveBeenCalled();

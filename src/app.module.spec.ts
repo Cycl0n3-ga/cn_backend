@@ -10,7 +10,7 @@ describe('AppModule', () => {
     }).compile();
   });
 
-  it('should compile the module', async () => {
+  it('should compile the module', () => {
     expect(module).toBeDefined();
   });
 });

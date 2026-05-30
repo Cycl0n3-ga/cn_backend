@@ -39,7 +39,7 @@ describe('LeaderboardController', () => {
   // ── getRankings ───────────────────────────────────────────────────────
   describe('getRankings', () => {
     it('should return rankings data', async () => {
-      service.getRankings.mockResolvedValue(mockRankingsResult as any);
+      service.getRankings.mockResolvedValue(mockRankingsResult);
 
       const result = await controller.getRankings('1', '10');
 
@@ -47,7 +47,7 @@ describe('LeaderboardController', () => {
     });
 
     it('should convert string page and limit to numbers', async () => {
-      service.getRankings.mockResolvedValue(mockRankingsResult as any);
+      service.getRankings.mockResolvedValue(mockRankingsResult);
 
       await controller.getRankings('3', '15');
 
@@ -55,7 +55,7 @@ describe('LeaderboardController', () => {
     });
 
     it('should default page to 1 when not provided', async () => {
-      service.getRankings.mockResolvedValue(mockRankingsResult as any);
+      service.getRankings.mockResolvedValue(mockRankingsResult);
 
       await controller.getRankings(undefined, undefined);
 
@@ -63,7 +63,7 @@ describe('LeaderboardController', () => {
     });
 
     it('should default limit to 20 when not provided', async () => {
-      service.getRankings.mockResolvedValue(mockRankingsResult as any);
+      service.getRankings.mockResolvedValue(mockRankingsResult);
 
       await controller.getRankings('2', undefined);
 
@@ -71,7 +71,7 @@ describe('LeaderboardController', () => {
     });
 
     it('should return total as string', async () => {
-      service.getRankings.mockResolvedValue(mockRankingsResult as any);
+      service.getRankings.mockResolvedValue(mockRankingsResult);
 
       const result = await controller.getRankings('1', '10');
 
@@ -79,7 +79,7 @@ describe('LeaderboardController', () => {
     });
 
     it('should return data array', async () => {
-      service.getRankings.mockResolvedValue(mockRankingsResult as any);
+      service.getRankings.mockResolvedValue(mockRankingsResult);
 
       const result = await controller.getRankings('1', '10');
 
@@ -88,7 +88,7 @@ describe('LeaderboardController', () => {
     });
 
     it('should return all required ranking fields', async () => {
-      service.getRankings.mockResolvedValue(mockRankingsResult as any);
+      service.getRankings.mockResolvedValue(mockRankingsResult);
 
       const result = await controller.getRankings('1', '10');
 
@@ -99,7 +99,7 @@ describe('LeaderboardController', () => {
     });
 
     it('should handle page=1 limit=10 correctly', async () => {
-      service.getRankings.mockResolvedValue(mockRankingsResult as any);
+      service.getRankings.mockResolvedValue(mockRankingsResult);
 
       await controller.getRankings('1', '10');
 

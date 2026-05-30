@@ -28,10 +28,7 @@ export class LeaderboardController {
       },
     },
   })
-  getRankings(
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-  ) {
+  getRankings(@Query('page') page?: string, @Query('limit') limit?: string) {
     return this.leaderboardService.getRankings(
       page ? parseInt(page, 10) : 1,
       limit ? parseInt(limit, 10) : 20,

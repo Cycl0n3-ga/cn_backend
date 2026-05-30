@@ -48,8 +48,8 @@ describe('UsersService (integration)', () => {
   });
 
   it('getSubmissionHistory should throw NotFoundException for non-existent user', async () => {
-    await expect(usersService.getSubmissionHistory('no_such_user_xyz')).rejects.toThrow(
-      NotFoundException,
-    );
+    await expect(
+      usersService.getSubmissionHistory('no_such_user_xyz'),
+    ).rejects.toThrow(NotFoundException);
   });
 });

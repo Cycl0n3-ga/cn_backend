@@ -48,6 +48,8 @@ describe('ProblemsService (integration)', () => {
   });
 
   it('findOne should throw NotFoundException for deleted/non-existent problems', async () => {
-    await expect(problemsService.findOne(99999)).rejects.toThrow(NotFoundException);
+    await expect(problemsService.findOne(99999)).rejects.toThrow(
+      NotFoundException,
+    );
   });
 });

@@ -5,7 +5,9 @@ describe('InternalAuthGuard', () => {
   let guard: InternalAuthGuard;
   const VALID_KEY = 'my-secret-internal-key';
 
-  function createMockContext(headers: Record<string, string> = {}): ExecutionContext {
+  function createMockContext(
+    headers: Record<string, string> = {},
+  ): ExecutionContext {
     return {
       switchToHttp: () => ({
         getRequest: () => ({ headers }),

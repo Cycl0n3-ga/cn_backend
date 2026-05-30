@@ -11,8 +11,18 @@ describe('ProblemsController', () => {
     total: '5',
     page: '1',
     items: [
-      { problem_id: '1', title: 'Two Sum', difficulty: 'EASY', acceptance_rate: '0.49' },
-      { problem_id: '2', title: 'Add Two Numbers', difficulty: 'MEDIUM', acceptance_rate: '0.39' },
+      {
+        problem_id: '1',
+        title: 'Two Sum',
+        difficulty: 'EASY',
+        acceptance_rate: '0.49',
+      },
+      {
+        problem_id: '2',
+        title: 'Add Two Numbers',
+        difficulty: 'MEDIUM',
+        acceptance_rate: '0.39',
+      },
     ],
   };
 
@@ -63,7 +73,7 @@ describe('ProblemsController', () => {
   // ── findAll ───────────────────────────────────────────────────────────
   describe('findAll', () => {
     it('should return paginated problem list', async () => {
-      service.findAll.mockResolvedValue(mockFindAllResult as any);
+      service.findAll.mockResolvedValue(mockFindAllResult);
 
       const result = await controller.findAll('1', '10', 'EASY');
 
@@ -71,7 +81,7 @@ describe('ProblemsController', () => {
     });
 
     it('should pass parsed page and limit to service', async () => {
-      service.findAll.mockResolvedValue(mockFindAllResult as any);
+      service.findAll.mockResolvedValue(mockFindAllResult);
 
       await controller.findAll('2', '15', 'HARD');
 
@@ -79,7 +89,7 @@ describe('ProblemsController', () => {
     });
 
     it('should default page to 1 when not provided', async () => {
-      service.findAll.mockResolvedValue(mockFindAllResult as any);
+      service.findAll.mockResolvedValue(mockFindAllResult);
 
       await controller.findAll(undefined, undefined, undefined);
 
@@ -87,7 +97,7 @@ describe('ProblemsController', () => {
     });
 
     it('should default limit to 20 when not provided', async () => {
-      service.findAll.mockResolvedValue(mockFindAllResult as any);
+      service.findAll.mockResolvedValue(mockFindAllResult);
 
       await controller.findAll('1', undefined, undefined);
 
@@ -95,7 +105,7 @@ describe('ProblemsController', () => {
     });
 
     it('should pass difficulty filter to service', async () => {
-      service.findAll.mockResolvedValue(mockFindAllResult as any);
+      service.findAll.mockResolvedValue(mockFindAllResult);
 
       await controller.findAll('1', '10', 'MEDIUM');
 
@@ -103,7 +113,7 @@ describe('ProblemsController', () => {
     });
 
     it('should handle undefined difficulty', async () => {
-      service.findAll.mockResolvedValue(mockFindAllResult as any);
+      service.findAll.mockResolvedValue(mockFindAllResult);
 
       await controller.findAll('1', '10');
 
@@ -114,7 +124,7 @@ describe('ProblemsController', () => {
   // ── findOne ───────────────────────────────────────────────────────────
   describe('findOne', () => {
     it('should return problem details', async () => {
-      service.findOne.mockResolvedValue(mockFindOneResult as any);
+      service.findOne.mockResolvedValue(mockFindOneResult);
 
       const result = await controller.findOne(1);
 
@@ -122,7 +132,7 @@ describe('ProblemsController', () => {
     });
 
     it('should pass problem ID directly to service', async () => {
-      service.findOne.mockResolvedValue(mockFindOneResult as any);
+      service.findOne.mockResolvedValue(mockFindOneResult);
 
       await controller.findOne(42);
 
@@ -142,27 +152,29 @@ describe('ProblemsController', () => {
         new NotFoundException('Problem #999 not found.'),
       );
 
-      await expect(controller.findOne(999)).rejects.toThrow('Problem #999 not found.');
+      await expect(controller.findOne(999)).rejects.toThrow(
+        'Problem #999 not found.',
+      );
     });
   });
 
   // ── create ────────────────────────────────────────────────────────────
   describe('create', () => {
     it('should create problem and return result', async () => {
-      service.create.mockResolvedValue(mockCreateResult as any);
+      service.create.mockResolvedValue(mockCreateResult);
 
       const result = await controller.create({
         title: 'New Problem',
         description: 'Test description',
         difficulty: 'EASY',
         test_cases: [{ input: '1', output: '1' }],
-      } as any);
+      });
 
       expect(result).toEqual(mockCreateResult);
     });
 
     it('should map DTO fields to service parameters correctly', async () => {
-      service.create.mockResolvedValue(mockCreateResult as any);
+      service.create.mockResolvedValue(mockCreateResult);
 
       await controller.create({
         title: 'Problem',
@@ -175,7 +187,7 @@ describe('ProblemsController', () => {
           { input: '1', output: '2', is_hidden: true },
           { input: '3', output: '4', is_hidden: false },
         ],
-      } as any);
+      });
 
       expect(service.create).toHaveBeenCalledWith({
         title: 'Problem',
@@ -192,14 +204,14 @@ describe('ProblemsController', () => {
     });
 
     it('should default is_hidden to true when not provided', async () => {
-      service.create.mockResolvedValue(mockCreateResult as any);
+      service.create.mockResolvedValue(mockCreateResult);
 
       await controller.create({
         title: 'T',
         description: 'D',
         difficulty: 'EASY',
         test_cases: [{ input: '1', output: '1' }],
-      } as any);
+      });
 
       const call = service.create.mock.calls[0][0];
       expect(call.testCases[0].isHidden).toBe(true);
@@ -209,7 +221,7 @@ describe('ProblemsController', () => {
   // ── remove ────────────────────────────────────────────────────────────
   describe('remove', () => {
     it('should call service.remove with correct id', async () => {
-      service.remove.mockResolvedValue(undefined as any);
+      service.remove.mockResolvedValue(undefined);
 
       await controller.remove(1);
 
@@ -228,7 +240,7 @@ describe('ProblemsController', () => {
   // ── assign ────────────────────────────────────────────────────────────
   describe('assign', () => {
     it('should assign problem and return result', async () => {
-      service.assign.mockResolvedValue(mockAssignResult as any);
+      service.assign.mockResolvedValue(mockAssignResult);
 
       const result = await controller.assign(1, { assignee_username: 'alice' });
 
@@ -236,7 +248,7 @@ describe('ProblemsController', () => {
     });
 
     it('should pass problem ID and assignee_username to service', async () => {
-      service.assign.mockResolvedValue(mockAssignResult as any);
+      service.assign.mockResolvedValue(mockAssignResult);
 
       await controller.assign(5, { assignee_username: 'bob' });
 

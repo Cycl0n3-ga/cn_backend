@@ -4,7 +4,37 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { hasPrismaErrorCode } from '../prisma/prisma-errors.js';
 import { CreateInterviewAssignmentDto } from './dto/assignment.dto.js';
+
+type AssignmentInterview = {
+  id: number;
+  jobRole: string;
+  examinerEmpId: string;
+};
+
+type AssignmentProblem = {
+  id: number;
+  title: string;
+  difficulty: string;
+};
+
+type AssignmentUser = {
+  id: string;
+  username: string;
+  email: string;
+};
+
+type AssignmentWithRelations = {
+  id: number;
+  jobId: number;
+  userId: string;
+  problemId: number;
+  createdAt: Date;
+  interview?: AssignmentInterview | null;
+  problem: AssignmentProblem;
+  user: AssignmentUser;
+};
 
 @Injectable()
 export class AssignmentsService {
@@ -42,8 +72,8 @@ export class AssignmentsService {
       });
 
       return this.formatAssignment(assignment);
-    } catch (error: any) {
-      if (error.code === 'P2002') {
+    } catch (error) {
+      if (hasPrismaErrorCode(error, 'P2002')) {
         throw new ConflictException(
           'This problem is already assigned to the user in this interview.',
         );
@@ -115,7 +145,7 @@ export class AssignmentsService {
     };
   }
 
-  private formatAssignment(a: any) {
+  private formatAssignment(a: AssignmentWithRelations) {
     return {
       id: a.id.toString(),
       jobId: a.jobId.toString(),

@@ -54,7 +54,10 @@ describe('InterviewsService', () => {
     it('should return id as string', async () => {
       prisma.interview.create.mockResolvedValue(mockInterview);
 
-      const result = await service.create({ jobRole: 'Test', examinerEmpId: 'uid' });
+      const result = await service.create({
+        jobRole: 'Test',
+        examinerEmpId: 'uid',
+      });
 
       expect(typeof result.id).toBe('string');
     });
@@ -62,7 +65,10 @@ describe('InterviewsService', () => {
     it('should pass correct data to prisma', async () => {
       prisma.interview.create.mockResolvedValue(mockInterview);
 
-      await service.create({ jobRole: 'Frontend Dev', examinerEmpId: 'examiner-uuid' });
+      await service.create({
+        jobRole: 'Frontend Dev',
+        examinerEmpId: 'examiner-uuid',
+      });
 
       expect(prisma.interview.create).toHaveBeenCalledWith({
         data: { jobRole: 'Frontend Dev', examinerEmpId: 'examiner-uuid' },
@@ -108,7 +114,9 @@ describe('InterviewsService', () => {
         jobRole: 'Senior Backend Developer',
       });
 
-      const result = await service.update(1, { jobRole: 'Senior Backend Developer' });
+      const result = await service.update(1, {
+        jobRole: 'Senior Backend Developer',
+      });
 
       expect(result).toHaveProperty('jobRole', 'Senior Backend Developer');
       expect(result).toHaveProperty('id', '1');
@@ -117,7 +125,9 @@ describe('InterviewsService', () => {
     it('should throw NotFoundException for non-existent interview', async () => {
       prisma.interview.findUnique.mockResolvedValue(null);
 
-      await expect(service.update(999, { jobRole: 'Test' })).rejects.toThrow(NotFoundException);
+      await expect(service.update(999, { jobRole: 'Test' })).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw with correct message', async () => {
@@ -136,7 +146,9 @@ describe('InterviewsService', () => {
       prisma.interview.delete.mockResolvedValue(mockInterview);
 
       await expect(service.remove(1)).resolves.not.toThrow();
-      expect(prisma.interview.delete).toHaveBeenCalledWith({ where: { id: 1 } });
+      expect(prisma.interview.delete).toHaveBeenCalledWith({
+        where: { id: 1 },
+      });
     });
 
     it('should throw NotFoundException for non-existent interview', async () => {

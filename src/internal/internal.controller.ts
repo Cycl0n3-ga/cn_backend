@@ -1,4 +1,10 @@
-import { Controller, Get, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiHeader } from '@nestjs/swagger';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { InternalAuthGuard } from './internal-auth.guard.js';
@@ -28,9 +34,7 @@ export class InternalController {
         problem_id: '1',
         time_limit_ms: '1000',
         memory_limit_mb: '256',
-        test_cases: [
-          { input: '3 5\n', output: '8\n' },
-        ],
+        test_cases: [{ input: '3 5\n', output: '8\n' }],
       },
     },
   })

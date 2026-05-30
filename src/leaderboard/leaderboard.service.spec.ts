@@ -96,7 +96,9 @@ describe('LeaderboardService', () => {
 
       await service.getRankings();
 
-      expect(prisma.user.count).toHaveBeenCalledWith({ where: { role: 'USER' } });
+      expect(prisma.user.count).toHaveBeenCalledWith({
+        where: { role: 'USER' },
+      });
       expect(prisma.user.findMany).toHaveBeenCalledWith(
         expect.objectContaining({ where: { role: 'USER' } }),
       );

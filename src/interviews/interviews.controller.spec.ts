@@ -51,7 +51,7 @@ describe('InterviewsController', () => {
   // ── create ────────────────────────────────────────────────────────────
   describe('create', () => {
     it('should create interview and return result', async () => {
-      service.create.mockResolvedValue(mockCreateResult as any);
+      service.create.mockResolvedValue(mockCreateResult);
 
       const result = await controller.create({
         jobRole: 'Backend Developer',
@@ -62,7 +62,7 @@ describe('InterviewsController', () => {
     });
 
     it('should pass DTO directly to service', async () => {
-      service.create.mockResolvedValue(mockCreateResult as any);
+      service.create.mockResolvedValue(mockCreateResult);
       const dto = { jobRole: 'Frontend Dev', examinerEmpId: 'examiner-uuid' };
 
       await controller.create(dto);
@@ -71,7 +71,7 @@ describe('InterviewsController', () => {
     });
 
     it('should return id as string', async () => {
-      service.create.mockResolvedValue(mockCreateResult as any);
+      service.create.mockResolvedValue(mockCreateResult);
 
       const result = await controller.create({
         jobRole: 'Test',
@@ -85,7 +85,7 @@ describe('InterviewsController', () => {
   // ── findAll ───────────────────────────────────────────────────────────
   describe('findAll', () => {
     it('should return all interviews', async () => {
-      service.findAll.mockResolvedValue(mockFindAllResult as any);
+      service.findAll.mockResolvedValue(mockFindAllResult);
 
       const result = await controller.findAll();
 
@@ -94,7 +94,7 @@ describe('InterviewsController', () => {
     });
 
     it('should call service.findAll once', async () => {
-      service.findAll.mockResolvedValue([] as any);
+      service.findAll.mockResolvedValue([]);
 
       await controller.findAll();
 
@@ -102,7 +102,7 @@ describe('InterviewsController', () => {
     });
 
     it('should return empty array when no interviews', async () => {
-      service.findAll.mockResolvedValue([] as any);
+      service.findAll.mockResolvedValue([]);
 
       const result = await controller.findAll();
 
@@ -113,7 +113,7 @@ describe('InterviewsController', () => {
   // ── update ────────────────────────────────────────────────────────────
   describe('update', () => {
     it('should update interview and return result', async () => {
-      service.update.mockResolvedValue(mockUpdateResult as any);
+      service.update.mockResolvedValue(mockUpdateResult);
 
       const result = await controller.update(1, {
         jobRole: 'Senior Backend Developer',
@@ -123,11 +123,13 @@ describe('InterviewsController', () => {
     });
 
     it('should pass id and DTO to service', async () => {
-      service.update.mockResolvedValue(mockUpdateResult as any);
+      service.update.mockResolvedValue(mockUpdateResult);
 
       await controller.update(5, { jobRole: 'Updated Role' });
 
-      expect(service.update).toHaveBeenCalledWith(5, { jobRole: 'Updated Role' });
+      expect(service.update).toHaveBeenCalledWith(5, {
+        jobRole: 'Updated Role',
+      });
     });
 
     it('should propagate NotFoundException from service', async () => {
@@ -135,9 +137,9 @@ describe('InterviewsController', () => {
         new NotFoundException('Interview #999 not found.'),
       );
 
-      await expect(
-        controller.update(999, { jobRole: 'Test' }),
-      ).rejects.toThrow(NotFoundException);
+      await expect(controller.update(999, { jobRole: 'Test' })).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should propagate error message correctly', async () => {
@@ -145,16 +147,16 @@ describe('InterviewsController', () => {
         new NotFoundException('Interview #42 not found.'),
       );
 
-      await expect(
-        controller.update(42, { jobRole: 'Test' }),
-      ).rejects.toThrow('Interview #42 not found.');
+      await expect(controller.update(42, { jobRole: 'Test' })).rejects.toThrow(
+        'Interview #42 not found.',
+      );
     });
   });
 
   // ── remove ────────────────────────────────────────────────────────────
   describe('remove', () => {
     it('should call service.remove with correct id', async () => {
-      service.remove.mockResolvedValue(undefined as any);
+      service.remove.mockResolvedValue(undefined);
 
       await controller.remove(1);
 
@@ -170,7 +172,7 @@ describe('InterviewsController', () => {
     });
 
     it('should not throw for existing interview', async () => {
-      service.remove.mockResolvedValue(undefined as any);
+      service.remove.mockResolvedValue(undefined);
 
       await expect(controller.remove(1)).resolves.not.toThrow();
     });

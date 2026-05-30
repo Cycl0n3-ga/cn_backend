@@ -1,12 +1,17 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 
+type ProblemFindAllWhere = {
+  isDeleted: boolean;
+  difficulty?: string;
+};
+
 @Injectable()
 export class ProblemsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(page = 1, limit = 20, difficulty?: string) {
-    const where: any = { isDeleted: false };
+    const where: ProblemFindAllWhere = { isDeleted: false };
     if (difficulty) {
       where.difficulty = difficulty.toUpperCase();
     }

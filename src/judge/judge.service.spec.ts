@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { JudgeService, JudgeInput } from './judge.service';
-import * as childProcess from 'node:child_process';
+import { JudgeService } from './judge.service';
 import * as fs from 'node:fs/promises';
 import { EventEmitter } from 'node:events';
 
@@ -12,7 +11,7 @@ jest.mock('node:fs/promises', () => ({
 
 const mockSpawn = jest.fn();
 jest.mock('node:child_process', () => ({
-  spawn: (...args: any[]) => mockSpawn(...args),
+  spawn: (...args: unknown[]) => mockSpawn(...args),
 }));
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -57,6 +56,7 @@ describe('JudgeService', () => {
   let service: JudgeService;
 
   beforeEach(async () => {
+    mockSpawn.mockClear();
     const module: TestingModule = await Test.createTestingModule({
       providers: [JudgeService],
     }).compile();
@@ -111,7 +111,7 @@ describe('JudgeService', () => {
 
   describe('run() with supported languages', () => {
     it('should run python3 with the python image', async () => {
-      mockSpawn.mockReturnValue(makeChildStub(0, 'hello\n', '') as any);
+      mockSpawn.mockReturnValue(makeChildStub(0, 'hello\n', ''));
 
       const result = await service.run({
         language: 'python3',
@@ -125,7 +125,7 @@ describe('JudgeService', () => {
     });
 
     it('should compile and run C++ with gcc image', async () => {
-      mockSpawn.mockReturnValue(makeChildStub(0, '42', '') as any);
+      mockSpawn.mockReturnValue(makeChildStub(0, '42', ''));
 
       const result = await service.run({
         language: 'cpp',
@@ -136,11 +136,13 @@ describe('JudgeService', () => {
 
       expect(result.status).toBe('ACCEPTED');
       expect(mockSpawn.mock.calls[0][1]).toContain('gcc:14');
-      expect(mockSpawn.mock.calls[0][1]).toContain('g++ main.cpp -O2 -pipe -std=c++17 -o /tmp/main && /tmp/main');
+      expect(mockSpawn.mock.calls[0][1]).toContain(
+        'g++ main.cpp -O2 -pipe -std=c++17 -o /tmp/main && /tmp/main',
+      );
     });
 
     it('should compile and run C with gcc image', async () => {
-      mockSpawn.mockReturnValue(makeChildStub(0, '42', '') as any);
+      mockSpawn.mockReturnValue(makeChildStub(0, '42', ''));
 
       const result = await service.run({
         language: 'c',
@@ -150,13 +152,15 @@ describe('JudgeService', () => {
       });
 
       expect(result.status).toBe('ACCEPTED');
-      expect(mockSpawn.mock.calls[0][1]).toContain('gcc main.c -O2 -pipe -o /tmp/main && /tmp/main');
+      expect(mockSpawn.mock.calls[0][1]).toContain(
+        'gcc main.c -O2 -pipe -o /tmp/main && /tmp/main',
+      );
     });
   });
 
   describe('run() with javascript', () => {
     it('should return ACCEPTED when stdout matches expectedOutput', async () => {
-      mockSpawn.mockReturnValue(makeChildStub(0, 'hello\n', '') as any);
+      mockSpawn.mockReturnValue(makeChildStub(0, 'hello\n', ''));
 
       const result = await service.run({
         language: 'javascript',
@@ -170,7 +174,7 @@ describe('JudgeService', () => {
     });
 
     it('should return WRONG_ANSWER when stdout does not match', async () => {
-      mockSpawn.mockReturnValue(makeChildStub(0, 'wrong\n', '') as any);
+      mockSpawn.mockReturnValue(makeChildStub(0, 'wrong\n', ''));
 
       const result = await service.run({
         language: 'javascript',
@@ -185,7 +189,7 @@ describe('JudgeService', () => {
 
     it('should return RUNTIME_ERROR on non-zero exit code', async () => {
       const child = makeChildStub(1, '', 'ReferenceError: x is not defined');
-      mockSpawn.mockReturnValue(child as any);
+      mockSpawn.mockReturnValue(child);
 
       const result = await service.run({
         language: 'javascript',
@@ -199,9 +203,9 @@ describe('JudgeService', () => {
     });
 
     it('should return TIME_LIMIT_EXCEEDED when process is killed via SIGTERM', async () => {
-      const child = makeChildStub(null as any, '', '', 'SIGTERM');
-      (child as any).kill = jest.fn();
-      mockSpawn.mockReturnValue(child as any);
+      const child = makeChildStub(null as unknown as number, '', '', 'SIGTERM');
+      child.kill = jest.fn();
+      mockSpawn.mockReturnValue(child);
 
       const result = await service.run({
         language: 'javascript',
@@ -216,19 +220,23 @@ describe('JudgeService', () => {
 
     it('should return INTERNAL_ERROR when docker command is not found (ENOENT)', async () => {
       const spawnMock = mockSpawn.mockImplementation(() => {
-          const child = new EventEmitter() as any;
-          child.stdout = Object.assign(new EventEmitter(), { setEncoding: jest.fn() });
-          child.stderr = Object.assign(new EventEmitter(), { setEncoding: jest.fn() });
-          child.stdin = { end: jest.fn() };
-          child.kill = jest.fn();
-          setImmediate(() => {
-            const err = Object.assign(new Error('spawn docker ENOENT'), {
-              code: 'ENOENT',
-            });
-            child.emit('error', err);
-          });
-          return child;
+        const child = new EventEmitter() as any;
+        child.stdout = Object.assign(new EventEmitter(), {
+          setEncoding: jest.fn(),
         });
+        child.stderr = Object.assign(new EventEmitter(), {
+          setEncoding: jest.fn(),
+        });
+        child.stdin = { end: jest.fn() };
+        child.kill = jest.fn();
+        setImmediate(() => {
+          const err = Object.assign(new Error('spawn docker ENOENT'), {
+            code: 'ENOENT',
+          });
+          child.emit('error', err);
+        });
+        return child;
+      });
 
       const result = await service.run({
         language: 'javascript',
@@ -242,7 +250,9 @@ describe('JudgeService', () => {
     });
 
     it('should include stdout and stderr from docker in the result', async () => {
-      mockSpawn.mockReturnValue(makeChildStub(0, 'output-value\n', 'some-warning') as any);
+      mockSpawn.mockReturnValue(
+        makeChildStub(0, 'output-value\n', 'some-warning'),
+      );
 
       const result = await service.run({
         language: 'javascript',
@@ -257,7 +267,7 @@ describe('JudgeService', () => {
 
     it('should normalise trailing whitespace / CRLF for comparison', async () => {
       // Docker outputs "hello\r\n", expectedOutput is "hello"
-      mockSpawn.mockReturnValue(makeChildStub(0, 'hello\r\n', '') as any);
+      mockSpawn.mockReturnValue(makeChildStub(0, 'hello\r\n', ''));
 
       const result = await service.run({
         language: 'javascript',
@@ -271,7 +281,7 @@ describe('JudgeService', () => {
 
     it('should clean up the temp workdir even when docker fails', async () => {
       const rmSpy = jest.spyOn(fs, 'rm').mockResolvedValue(undefined);
-      mockSpawn.mockReturnValue(makeChildStub(1, '', 'error') as any);
+      mockSpawn.mockReturnValue(makeChildStub(1, '', 'error'));
 
       await service.run({
         language: 'javascript',
@@ -287,8 +297,10 @@ describe('JudgeService', () => {
     });
 
     it('should write both submission.js and runner.js to the workdir', async () => {
-      const writeFileSpy = jest.spyOn(fs, 'writeFile').mockResolvedValue(undefined);
-      mockSpawn.mockReturnValue(makeChildStub(0, '', '') as any);
+      const writeFileSpy = jest
+        .spyOn(fs, 'writeFile')
+        .mockResolvedValue(undefined);
+      mockSpawn.mockReturnValue(makeChildStub(0, '', ''));
 
       await service.run({
         language: 'javascript',
@@ -304,7 +316,7 @@ describe('JudgeService', () => {
 
     it('should send the input string to docker stdin', async () => {
       const child = makeChildStub(0, 'result', '');
-      mockSpawn.mockReturnValue(child as any);
+      mockSpawn.mockReturnValue(child);
 
       await service.run({
         language: 'javascript',

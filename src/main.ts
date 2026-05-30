@@ -56,7 +56,10 @@ async function bootstrap() {
     )
     .setVersion('1.0')
     .addBearerAuth()
-    .addServer(`http://localhost:${process.env.PORT || 4100}`, 'Local Development')
+    .addServer(
+      `http://localhost:${process.env.PORT || 4100}`,
+      'Local Development',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
@@ -76,4 +79,4 @@ async function bootstrap() {
   console.log(`📚 Swagger UI: http://localhost:${port}/api/docs`);
   console.log(`🔑 API Base: http://localhost:${port}/api/v1\n`);
 }
-bootstrap();
+void bootstrap();

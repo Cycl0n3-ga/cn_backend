@@ -1,5 +1,10 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { hasPrismaErrorCode } from '../prisma/prisma-errors.js';
 import { CreateInterviewCandidateDto } from './dto/interview-candidate.dto.js';
 
 @Injectable()
@@ -10,7 +15,9 @@ export class InterviewCandidatesService {
     const { jobId, userId } = createInterviewCandidateDto;
 
     // Check if interview exists
-    const interview = await this.prisma.interview.findUnique({ where: { id: jobId } });
+    const interview = await this.prisma.interview.findUnique({
+      where: { id: jobId },
+    });
     if (!interview) {
       throw new NotFoundException(`Interview #${jobId} not found.`);
     }
@@ -34,9 +41,11 @@ export class InterviewCandidatesService {
         jobId: candidate.jobId.toString(),
         userId: candidate.userId,
       };
-    } catch (error: any) {
-      if (error.code === 'P2002') {
-        throw new ConflictException('User is already a candidate for this interview.');
+    } catch (error) {
+      if (hasPrismaErrorCode(error, 'P2002')) {
+        throw new ConflictException(
+          'User is already a candidate for this interview.',
+        );
       }
       throw error;
     }
@@ -72,7 +81,9 @@ export class InterviewCandidatesService {
   }
 
   async remove(id: number) {
-    const candidate = await this.prisma.interviewCandidate.findUnique({ where: { id } });
+    const candidate = await this.prisma.interviewCandidate.findUnique({
+      where: { id },
+    });
     if (!candidate) {
       throw new NotFoundException(`InterviewCandidate #${id} not found.`);
     }

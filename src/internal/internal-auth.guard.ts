@@ -13,7 +13,9 @@ import {
 @Injectable()
 export class InternalAuthGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<{
+      headers: Record<string, string | undefined>;
+    }>();
     const apiKey = request.headers['x-internal-api-key'];
     const expectedKey = process.env.INTERNAL_API_KEY;
 

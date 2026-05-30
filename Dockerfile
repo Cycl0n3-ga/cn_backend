@@ -4,6 +4,7 @@ FROM node:20.15.1-alpine AS builder
 WORKDIR /app
 
 # Install dependencies
+RUN apk add --no-cache python3 make g++
 COPY package*.json ./
 COPY prisma ./prisma/
 RUN npm ci

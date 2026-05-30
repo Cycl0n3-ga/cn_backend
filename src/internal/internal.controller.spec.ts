@@ -29,9 +29,7 @@ describe('InternalController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [InternalController],
-      providers: [
-        { provide: PrismaService, useValue: prisma },
-      ],
+      providers: [{ provide: PrismaService, useValue: prisma }],
     }).compile();
 
     controller = module.get<InternalController>(InternalController);
@@ -111,19 +109,25 @@ describe('InternalController', () => {
     it('should throw NotFoundException for non-existent problem', async () => {
       prisma.problem.findFirst.mockResolvedValue(null);
 
-      await expect(controller.getTestCases(999)).rejects.toThrow(NotFoundException);
+      await expect(controller.getTestCases(999)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw NotFoundException for deleted problem', async () => {
       prisma.problem.findFirst.mockResolvedValue(null); // isDeleted: true returns null from findFirst
 
-      await expect(controller.getTestCases(1)).rejects.toThrow(NotFoundException);
+      await expect(controller.getTestCases(1)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw NotFoundException with problem ID in message', async () => {
       prisma.problem.findFirst.mockResolvedValue(null);
 
-      await expect(controller.getTestCases(42)).rejects.toThrow('Problem #42 not found.');
+      await expect(controller.getTestCases(42)).rejects.toThrow(
+        'Problem #42 not found.',
+      );
     });
   });
 });

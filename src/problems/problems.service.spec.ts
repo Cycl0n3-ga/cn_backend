@@ -55,7 +55,12 @@ describe('ProblemsService', () => {
       prisma.problem.count.mockResolvedValue(2);
       prisma.problem.findMany.mockResolvedValue([
         { id: 1, title: 'Two Sum', difficulty: 'EASY', acceptanceRate: 0.49 },
-        { id: 2, title: 'Add Two Numbers', difficulty: 'MEDIUM', acceptanceRate: 0.39 },
+        {
+          id: 2,
+          title: 'Add Two Numbers',
+          difficulty: 'MEDIUM',
+          acceptanceRate: 0.39,
+        },
       ]);
 
       const result = await service.findAll(1, 20);
@@ -104,10 +109,14 @@ describe('ProblemsService', () => {
       await service.findAll(1, 20, 'EASY');
 
       expect(prisma.problem.count).toHaveBeenCalledWith(
-        expect.objectContaining({ where: expect.objectContaining({ difficulty: 'EASY' }) }),
+        expect.objectContaining({
+          where: expect.objectContaining({ difficulty: 'EASY' }),
+        }),
       );
       expect(prisma.problem.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: expect.objectContaining({ difficulty: 'EASY' }) }),
+        expect.objectContaining({
+          where: expect.objectContaining({ difficulty: 'EASY' }),
+        }),
       );
     });
 
@@ -118,7 +127,9 @@ describe('ProblemsService', () => {
       await service.findAll(1, 20, 'medium');
 
       expect(prisma.problem.count).toHaveBeenCalledWith(
-        expect.objectContaining({ where: expect.objectContaining({ difficulty: 'MEDIUM' }) }),
+        expect.objectContaining({
+          where: expect.objectContaining({ difficulty: 'MEDIUM' }),
+        }),
       );
     });
 
@@ -140,7 +151,9 @@ describe('ProblemsService', () => {
       await service.findAll();
 
       expect(prisma.problem.count).toHaveBeenCalledWith(
-        expect.objectContaining({ where: expect.objectContaining({ isDeleted: false }) }),
+        expect.objectContaining({
+          where: expect.objectContaining({ isDeleted: false }),
+        }),
       );
     });
 
@@ -179,7 +192,10 @@ describe('ProblemsService', () => {
     });
 
     it('should return constraints as strings', async () => {
-      prisma.problem.findFirst.mockResolvedValue({ ...mockProblem, testCases: [] });
+      prisma.problem.findFirst.mockResolvedValue({
+        ...mockProblem,
+        testCases: [],
+      });
 
       const result = await service.findOne(1);
 
@@ -202,7 +218,10 @@ describe('ProblemsService', () => {
     });
 
     it('should only fetch non-hidden test cases', async () => {
-      prisma.problem.findFirst.mockResolvedValue({ ...mockProblem, testCases: [] });
+      prisma.problem.findFirst.mockResolvedValue({
+        ...mockProblem,
+        testCases: [],
+      });
 
       await service.findOne(1);
 
@@ -226,7 +245,9 @@ describe('ProblemsService', () => {
     it('should throw NotFoundException with problem ID in message', async () => {
       prisma.problem.findFirst.mockResolvedValue(null);
 
-      await expect(service.findOne(42)).rejects.toThrow('Problem #42 not found.');
+      await expect(service.findOne(42)).rejects.toThrow(
+        'Problem #42 not found.',
+      );
     });
   });
 
@@ -251,7 +272,11 @@ describe('ProblemsService', () => {
     });
 
     it('should default timeLimitMs to 1000 and memoryLimitMb to 256', async () => {
-      prisma.problem.create.mockResolvedValue({ id: 1, title: 'Test', testCases: [] });
+      prisma.problem.create.mockResolvedValue({
+        id: 1,
+        title: 'Test',
+        testCases: [],
+      });
 
       await service.create({
         title: 'Test',
@@ -266,7 +291,11 @@ describe('ProblemsService', () => {
     });
 
     it('should use provided timeLimitMs and memoryLimitMb', async () => {
-      prisma.problem.create.mockResolvedValue({ id: 1, title: 'Test', testCases: [] });
+      prisma.problem.create.mockResolvedValue({
+        id: 1,
+        title: 'Test',
+        testCases: [],
+      });
 
       await service.create({
         title: 'Test',
@@ -283,7 +312,11 @@ describe('ProblemsService', () => {
     });
 
     it('should default test case isHidden to true', async () => {
-      prisma.problem.create.mockResolvedValue({ id: 1, title: 'Test', testCases: [] });
+      prisma.problem.create.mockResolvedValue({
+        id: 1,
+        title: 'Test',
+        testCases: [],
+      });
 
       await service.create({
         title: 'Test',
@@ -297,7 +330,11 @@ describe('ProblemsService', () => {
     });
 
     it('should allow setting isHidden to false', async () => {
-      prisma.problem.create.mockResolvedValue({ id: 1, title: 'Test', testCases: [] });
+      prisma.problem.create.mockResolvedValue({
+        id: 1,
+        title: 'Test',
+        testCases: [],
+      });
 
       await service.create({
         title: 'Test',
@@ -337,7 +374,9 @@ describe('ProblemsService', () => {
 
       await service.remove(1);
 
-      expect(prisma.problem.findUnique).toHaveBeenCalledWith({ where: { id: 1 } });
+      expect(prisma.problem.findUnique).toHaveBeenCalledWith({
+        where: { id: 1 },
+      });
     });
   });
 
@@ -352,7 +391,10 @@ describe('ProblemsService', () => {
 
       const result = await service.assign(1, 'alice');
 
-      expect(result).toHaveProperty('message', 'Assignment created successfully.');
+      expect(result).toHaveProperty(
+        'message',
+        'Assignment created successfully.',
+      );
       expect(result).toHaveProperty('assignment_id', '1');
       expect(result).toHaveProperty('problem_id', '1');
       expect(result).toHaveProperty('assignee', 'alice');
@@ -372,14 +414,18 @@ describe('ProblemsService', () => {
     it('should throw NotFoundException if problem does not exist or is deleted', async () => {
       prisma.problem.findFirst.mockResolvedValue(null);
 
-      await expect(service.assign(999, 'alice')).rejects.toThrow(NotFoundException);
+      await expect(service.assign(999, 'alice')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw NotFoundException if user does not exist', async () => {
       prisma.problem.findFirst.mockResolvedValue(mockProblem);
       prisma.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.assign(1, 'nonexistent')).rejects.toThrow(NotFoundException);
+      await expect(service.assign(1, 'nonexistent')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should use upsert to avoid duplicate assignments', async () => {
