@@ -20,6 +20,8 @@ FROM node:20.15.1-alpine AS production
 
 WORKDIR /app
 
+RUN apk add --no-cache docker-cli
+
 # Copy built assets and production dependencies
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules

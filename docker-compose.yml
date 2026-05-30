@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   backend-api:
     build:
@@ -7,22 +5,40 @@ services:
       dockerfile: Dockerfile
     container_name: code-judge-backend
     ports:
-      - "4100:4100"
+      - "${HOST_PORT:-4100}:${PORT:-4100}"
     environment:
       # This repository currently runs on SQLite via Prisma driver adapter.
       # The DB file is persisted via the /app/data volume.
-      - DATABASE_URL=${DATABASE_URL:-file:./data/code_judge.db}
-      - JWT_SECRET=${JWT_SECRET:-production-secret-key-change-me}
-      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-86400}
-      - INTERNAL_API_KEY=${INTERNAL_API_KEY:-internal-judge-worker-key-change-me}
-      - PORT=${PORT:-4100}
+      DATABASE_URL: ${DATABASE_URL:-file:/app/data/code_judge.db}
+      SQLITE_DB_FILE: ${SQLITE_DB_FILE:-/app/data/code_judge.db}
+      JWT_SECRET: ${JWT_SECRET:-production-secret-key-change-me}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-86400}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-internal-judge-worker-key-change-me}
+      NODE_ENV: production
+      PORT: ${PORT:-4100}
+      JUDGE_CONCURRENCY: ${JUDGE_CONCURRENCY:-2}
+      TMPDIR: ${JUDGE_TMP_DIR:-/tmp/code-judge-workspaces}
       # Optional: seed demo data on startup (WARNING: seed wipes existing data)
-      - SEED_DB=${SEED_DB:-false}
+      SEED_DB: ${SEED_DB:-false}
     volumes:
       - backend_data:/app/data
+      # JudgeService calls Docker to run untrusted submissions in isolated containers.
+      - /var/run/docker.sock:/var/run/docker.sock
+      # This path must exist on both the host and backend container for Docker bind mounts.
+      - ${JUDGE_TMP_DIR:-/tmp/code-judge-workspaces}:${JUDGE_TMP_DIR:-/tmp/code-judge-workspaces}
     command: >
-      sh -c "npx prisma migrate deploy && if [ \"$SEED_DB\" = \"true\" ]; then npx prisma db seed; fi && npm run start:prod"
-    restart: always
+      sh -c "DB_DIR=$${SQLITE_DB_FILE%/*} && mkdir -p \"$$DB_DIR\" && touch \"$$SQLITE_DB_FILE\" && npx prisma migrate deploy && if [ \"$$SEED_DB\" = \"true\" ]; then npx prisma db seed; fi && npm run start:prod"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://127.0.0.1:' + (process.env.PORT || 4100) + '/api/v1/health').then(r => r.ok ? r.json() : Promise.reject(new Error('bad status'))).then(body => process.exit(body.status === 'UP' ? 0 : 1)).catch(() => process.exit(1))\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    restart: unless-stopped
 
 volumes:
   backend_data:
