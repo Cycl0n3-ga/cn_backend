@@ -22,12 +22,22 @@ describe('InterviewsService', () => {
 
   beforeEach(async () => {
     prisma = {
+      $transaction: jest.fn((callback) => callback(prisma)),
       interview: {
         create: jest.fn(),
         findMany: jest.fn(),
         findUnique: jest.fn(),
         update: jest.fn(),
         delete: jest.fn(),
+      },
+      interviewCandidate: {
+        create: jest.fn(),
+      },
+      interviewAssignment: {
+        create: jest.fn(),
+      },
+      problem: {
+        findMany: jest.fn(),
       },
       user: {
         findUnique: jest.fn(),
@@ -89,26 +99,175 @@ describe('InterviewsService', () => {
       });
     });
 
-    it('should throw NotFoundException when examiner user does not exist', async () => {
+    it('should create an interview candidate and assign problems by difficulty counts', async () => {
+      const createdAt = new Date('2026-05-31T00:00:00.000Z');
+      const easyProblem1 = { id: 10, title: 'Two Sum', difficulty: 'EASY' };
+      const easyProblem2 = {
+        id: 11,
+        title: 'Reverse String',
+        difficulty: 'EASY',
+      };
+      const mediumProblem = {
+        id: 20,
+        title: 'Maximum Subarray',
+        difficulty: 'MEDIUM',
+      };
+
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'candidate-uuid',
+        username: 'alice',
+      });
+      prisma.problem.findMany
+        .mockResolvedValueOnce([easyProblem1, easyProblem2])
+        .mockResolvedValueOnce([mediumProblem]);
+      prisma.interview.create.mockResolvedValue(mockInterview);
+      prisma.interviewCandidate.create.mockResolvedValue({
+        id: 7,
+        jobId: 1,
+        userId: 'candidate-uuid',
+      });
+      prisma.interviewAssignment.create
+        .mockResolvedValueOnce({
+          id: 100,
+          jobId: 1,
+          userId: 'candidate-uuid',
+          problemId: 10,
+          createdAt,
+          problem: easyProblem1,
+        })
+        .mockResolvedValueOnce({
+          id: 101,
+          jobId: 1,
+          userId: 'candidate-uuid',
+          problemId: 11,
+          createdAt,
+          problem: easyProblem2,
+        })
+        .mockResolvedValueOnce({
+          id: 102,
+          jobId: 1,
+          userId: 'candidate-uuid',
+          problemId: 20,
+          createdAt,
+          problem: mediumProblem,
+        });
+
+      const result = await service.create({
+        jobRole: 'Backend Developer',
+        examinerEmpId: 'user-uuid-1',
+        candidateUserId: 'candidate-uuid',
+        problemCounts: { easy: 2, medium: 1, hard: 0 },
+      });
+
+      expect(prisma.user.findUnique).toHaveBeenCalledWith({
+        where: { id: 'candidate-uuid' },
+      });
+      expect(prisma.problem.findMany).toHaveBeenNthCalledWith(1, {
+        where: { difficulty: 'EASY', isDeleted: false },
+        select: { id: true, title: true, difficulty: true },
+        orderBy: { id: 'asc' },
+        take: 2,
+      });
+      expect(prisma.problem.findMany).toHaveBeenNthCalledWith(2, {
+        where: { difficulty: 'MEDIUM', isDeleted: false },
+        select: { id: true, title: true, difficulty: true },
+        orderBy: { id: 'asc' },
+        take: 1,
+      });
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+      expect(prisma.interviewCandidate.create).toHaveBeenCalledWith({
+        data: { jobId: 1, userId: 'candidate-uuid' },
+      });
+      expect(prisma.interviewAssignment.create).toHaveBeenCalledTimes(3);
+      expect(result).toMatchObject({
+        id: '1',
+        candidate: { id: '7', jobId: '1', userId: 'candidate-uuid' },
+        problemCounts: { easy: 2, medium: 1, hard: 0 },
+        assignments: [
+          { id: '100', problemId: '10', problem: easyProblem1 },
+          { id: '101', problemId: '11', problem: easyProblem2 },
+          { id: '102', problemId: '20', problem: mediumProblem },
+        ],
+      });
+    });
+
+    it('should create a candidate without assignments when candidateUserId has no counts', async () => {
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'candidate-uuid',
+        username: 'alice',
+      });
+      prisma.interview.create.mockResolvedValue(mockInterview);
+      prisma.interviewCandidate.create.mockResolvedValue({
+        id: 7,
+        jobId: 1,
+        userId: 'candidate-uuid',
+      });
+
+      const result = await service.create({
+        jobRole: 'Backend Developer',
+        examinerEmpId: 'user-uuid-1',
+        candidateUserId: 'candidate-uuid',
+      });
+
+      expect(prisma.problem.findMany).not.toHaveBeenCalled();
+      expect(prisma.interviewAssignment.create).not.toHaveBeenCalled();
+      expect(result).toMatchObject({
+        id: '1',
+        candidate: { id: '7', jobId: '1', userId: 'candidate-uuid' },
+        problemCounts: { easy: 0, medium: 0, hard: 0 },
+        assignments: [],
+      });
+    });
+
+    it('should throw BadRequestException when problem counts are provided without candidateUserId', async () => {
+      await expect(
+        service.create({
+          jobRole: 'Backend Developer',
+          examinerEmpId: 'user-uuid-1',
+          problemCounts: { easy: 1, medium: 0, hard: 0 },
+        }),
+      ).rejects.toThrow(BadRequestException);
+
+      expect(prisma.interview.create).not.toHaveBeenCalled();
+    });
+
+    it('should throw NotFoundException when candidate user does not exist', async () => {
       prisma.user.findUnique.mockResolvedValue(null);
 
       await expect(
-        service.create({ jobRole: 'Frontend Dev', examinerEmpId: 'missing' }),
-      ).rejects.toThrow(NotFoundException);
+        service.create({
+          jobRole: 'Backend Developer',
+          examinerEmpId: 'user-uuid-1',
+          candidateUserId: 'missing-user',
+          problemCounts: { easy: 1, medium: 0, hard: 0 },
+        }),
+      ).rejects.toThrow('User #missing-user not found.');
+
+      expect(prisma.problem.findMany).not.toHaveBeenCalled();
+      expect(prisma.interview.create).not.toHaveBeenCalled();
     });
 
-    it('should throw BadRequestException when examinerEmpId is not examiner role', async () => {
+    it('should throw BadRequestException when there are not enough problems for a requested difficulty', async () => {
       prisma.user.findUnique.mockResolvedValue({
-        ...mockExaminer,
-        role: 'CANDIDATE',
+        id: 'candidate-uuid',
+        username: 'alice',
       });
+      prisma.problem.findMany.mockResolvedValueOnce([
+        { id: 10, title: 'Two Sum', difficulty: 'EASY' },
+      ]);
 
       await expect(
         service.create({
-          jobRole: 'Frontend Dev',
-          examinerEmpId: 'candidate-uuid',
+          jobRole: 'Backend Developer',
+          examinerEmpId: 'user-uuid-1',
+          candidateUserId: 'candidate-uuid',
+          problemCounts: { easy: 2, medium: 0, hard: 0 },
         }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(
+        'Not enough EASY problems. Requested 2, available 1.',
+      );
+
+      expect(prisma.interview.create).not.toHaveBeenCalled();
     });
   });
 
