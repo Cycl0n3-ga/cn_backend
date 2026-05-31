@@ -963,7 +963,119 @@ x-internal-api-key: <INTERNAL_API_KEY>
 
 ---
 
-## 10. API 端點總覽
+## 10. 壓力測試報告 (Stress Test Reports)
+
+此模組用於收集與展示系統的壓力測試結果，並提供即時的 Dashboard。
+
+### 10.1 新增壓力測試報告
+
+| 項目 | 值 |
+|------|------|
+| **Method** | `POST` |
+| **Path** | `/stress-test-reports` |
+| **認證** | 不需要 (內部工具調用) |
+
+**Request Body:**
+
+```json
+{
+  "testName": "Login Stress Test",
+  "endpoint": "/api/v1/auth/login",
+  "method": "POST",
+  "connections": 100,
+  "duration": 30,
+  "totalRequests": 5000,
+  "successfulReqs": 4900,
+  "failedReqs": 50,
+  "errors": 50,
+  "timeouts": 0,
+  "avgLatencyMs": 45.2,
+  "p50LatencyMs": 40.1,
+  "p99LatencyMs": 120.5,
+  "maxLatencyMs": 300.0,
+  "avgThroughput": 166.67,
+  "statusCodes": "{\"200\":4900,\"500\":100}",
+  "assessment": "PASSED",
+  "assessmentMsg": "All metrics within acceptable bounds."
+}
+```
+
+**Response (201 Created):** 建立的報告物件。
+
+---
+
+### 10.2 取得壓力測試報告列表
+
+| 項目 | 值 |
+|------|------|
+| **Method** | `GET` |
+| **Path** | `/stress-test-reports` |
+| **認證** | 不需要 |
+
+**Query Parameters:**
+- `endpoint` (可選): 篩選特定端點的報告
+- `limit` (可選): 限制回傳筆數，預設 50，最大 100
+
+**Response (200 OK):** 報告陣列。
+
+---
+
+### 10.3 取得特定端點最新報告
+
+| 項目 | 值 |
+|------|------|
+| **Method** | `GET` |
+| **Path** | `/stress-test-reports/latest` |
+| **認證** | 不需要 |
+
+**Query Parameters:**
+- `endpoint` (必填): 端點路徑
+
+**Response (200 OK):** 最新一筆報告物件或 null。
+
+---
+
+### 10.4 取得各端點壓力測試摘要
+
+| 項目 | 值 |
+|------|------|
+| **Method** | `GET` |
+| **Path** | `/stress-test-reports/summary` |
+| **認證** | 不需要 |
+
+**Query Parameters:**
+- `endpoint` (可選): 篩選特定端點
+
+**Response (200 OK):**
+
+```json
+[
+  {
+    "endpoint": "/api/v1/auth/login",
+    "latestReportAt": "2026-05-31T08:00:00.000Z",
+    "reportsCount": 5,
+    "avgSuccessRate": 98.5,
+    "avgP99Latency": 150.2,
+    "overallAssessment": "HEALTHY"
+  }
+]
+```
+
+---
+
+### 10.5 取得壓力測試 Dashboard (HTML)
+
+| 項目 | 值 |
+|------|------|
+| **Method** | `GET` |
+| **Path** | `/stress-test-reports/dashboard` |
+| **認證** | 不需要 |
+
+**Response (200 OK):** 回傳 HTML 格式的監控儀表板。
+
+---
+
+## 11. API 端點總覽
 
 | #   | Method   | Path                             | 認證        | 說明                 |
 | --- | -------- | -------------------------------- | ----------- | -------------------- |
@@ -995,3 +1107,8 @@ x-internal-api-key: <INTERNAL_API_KEY>
 | 26  | `GET`    | `/assignments/user/:userId`      | ❌          | 取得特定使用者的指派 |
 | 27  | `GET`    | `/assignments/:id`               | ❌          | 取得單一指派         |
 | 28  | `DELETE` | `/assignments/:id`               | 🔒 ADMIN / EXAMINER / QUESTIONER | 刪除題目指派         |
+| 29  | `POST`   | `/stress-test-reports`           | ❌          | 新增壓力測試報告     |
+| 30  | `GET`    | `/stress-test-reports`           | ❌          | 取得壓力測試報告列表 |
+| 31  | `GET`    | `/stress-test-reports/latest`    | ❌          | 取得端點最新報告     |
+| 32  | `GET`    | `/stress-test-reports/summary`   | ❌          | 取得壓力測試摘要     |
+| 33  | `GET`    | `/stress-test-reports/dashboard` | ❌          | 取得監控 Dashboard   |

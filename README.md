@@ -171,7 +171,9 @@ curl -X POST http://localhost:4100/api/v1/judge/run \
 - **Users** - 使用者管理、排名統計
 - **Leaderboard** - 排行榜功能
 - **Interviews** - 面試系統管理
-- **Interview-Candidates** - 面試候選人管理（含測驗 startTime/endTime Unix 時間）
+- **Interview-Candidates** - 面試候選人管理
+- **Assignments** - 題目指派模組
+- **Stress-Test-Reports** - 壓力測試報告與系統監控
 - **Internal** - 內部 API 介面（評測機通信）
 - **Health** - 健康檢查
 
