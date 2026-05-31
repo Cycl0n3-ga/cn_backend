@@ -1,10 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HealthController } from './health.controller';
 import { PrismaService } from '../prisma/prisma.service';
+import { JudgeQueueService } from '../judge/judge-queue.service';
 
 describe('HealthController', () => {
   let controller: HealthController;
   let prisma: any;
+  let mockJudgeQueue: any;
 
   beforeEach(async () => {
     prisma = {
@@ -13,12 +15,25 @@ describe('HealthController', () => {
       },
       submission: {
         count: jest.fn().mockResolvedValue(0),
+        groupBy: jest.fn().mockResolvedValue([]),
+        findMany: jest.fn().mockResolvedValue([]),
       },
+      problem: {
+        count: jest.fn().mockResolvedValue(2),
+      },
+      $queryRaw: jest.fn().mockResolvedValue([{ '1': 1 }]),
+    };
+
+    mockJudgeQueue = {
+      getStats: jest.fn().mockReturnValue({ active: 0, queued: 0, concurrency: 2 }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [HealthController],
-      providers: [{ provide: PrismaService, useValue: prisma }],
+      providers: [
+        { provide: PrismaService, useValue: prisma },
+        { provide: JudgeQueueService, useValue: mockJudgeQueue },
+      ],
     }).compile();
 
     controller = module.get<HealthController>(HealthController);
@@ -74,7 +89,6 @@ describe('HealthController', () => {
 
       expect(typeof result.timestamp).toBe('string');
       expect(() => new Date(result.timestamp)).not.toThrow();
-      // ISO 8601 format check
       expect(result.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
     });
 
@@ -91,13 +105,45 @@ describe('HealthController', () => {
 
     it('should return DOWN status when database fails', async () => {
       prisma.user.count.mockRejectedValue(new Error('DB connection failed'));
-      // submission.count still may work or fail gracefully
       prisma.submission.count.mockResolvedValue(0);
 
       const result = await controller.check();
 
       expect(result.status).toBe('DOWN');
       expect(result.services.database).toBe('DOWN');
+    });
+  });
+
+  // ── getStats ──────────────────────────────────────────────────────────
+  describe('getStats', () => {
+    it('should return all required system stats fields', async () => {
+      const result = await controller.getStats();
+
+      expect(result).toHaveProperty('database');
+      expect(result.database.status).toBe('OK');
+      expect(result).toHaveProperty('counters');
+      expect(result.counters.totalUsers).toBe(3);
+      expect(result.counters.totalProblems).toBe(2);
+      expect(result.counters.totalSubmissions).toBe(0);
+      expect(result).toHaveProperty('statusCounts');
+      expect(result).toHaveProperty('recentSubmissions');
+      expect(result).toHaveProperty('queue');
+      expect(result).toHaveProperty('system');
+    });
+  });
+
+  // ── getDashboard ──────────────────────────────────────────────────────
+  describe('getDashboard', () => {
+    it('should return HTML string with status dashboard', () => {
+      const mockRes = {
+        setHeader: jest.fn(),
+        send: jest.fn(),
+      } as any;
+
+      controller.getDashboard(mockRes);
+
+      expect(mockRes.setHeader).toHaveBeenCalledWith('Content-Type', 'text/html; charset=utf-8');
+      expect(mockRes.send).toHaveBeenCalledWith(expect.stringContaining('Code Judge 系統監控儀表板'));
     });
   });
 });
