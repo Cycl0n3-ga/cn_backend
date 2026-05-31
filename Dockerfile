@@ -37,5 +37,7 @@ EXPOSE 4100
 
 # Start server
 # nosemgrep: dockerfile.security.missing-user.missing-user
+# Explicitly set USER to root since the NestJS backend needs root privileges to access the host's mounted docker.sock to execute user code sandboxes.
+USER root
 CMD ["npm", "run", "start:prod"]
 
