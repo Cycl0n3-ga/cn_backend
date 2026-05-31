@@ -17,23 +17,35 @@
 
 ### 快速啟動
 
-#### 1. 使用Docker Compose啟動
+#### 1. 一行指令部署
 
 ```bash
-# 構建并啟動應用
-docker compose up -d
+# 建立部署設定、構建、執行 migration、啟動服務、等待 health check
+npm run deploy
 
 # 查看日誌
-docker compose logs -f backend-api
+docker compose --env-file .deploy/deploy.env logs -f backend-api
 
 # 停止服務
-docker compose down
+docker compose --env-file .deploy/deploy.env down
 ```
+
+`scripts/deploy.sh` 會自動產生 `.deploy/deploy.env`，其中包含 SQLite DB URL、JWT secret、internal API key、port 與 judge 暫存目錄設定。
+
+評測服務會透過 Docker socket 建立隔離的程式執行容器；請只在信任的主機上使用這份預設 Compose 設定。
 
 #### 2. 啟動時灌入种子資料
 
 ```bash
-SEED_DB=true docker compose up -d --build
+SEED_DB=true npm run deploy
+```
+
+> 注意：seed 會清空既有資料，只建議在 demo 或測試部署時使用。
+
+#### 3. 直接使用Docker Compose啟動
+
+```bash
+docker compose --env-file .deploy/deploy.env up -d --build
 ```
 
 ### 單容器部署

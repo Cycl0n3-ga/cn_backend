@@ -85,21 +85,23 @@ npm run test:perf
 本專案支援使用 Docker 進行快速部署。
 
 > 目前程式碼（Prisma Adapter + migrations + seed）以 **SQLite** 為可直接運行的預設設定。
-> `docker-compose.yml` 會在容器啟動時自動執行 `prisma migrate deploy`，並將 DB 檔案持久化在 volume。
+> `npm run deploy` 會建立本機部署設定、建置容器、執行 `prisma migrate deploy`、啟動服務，並等到 health check 通過才結束。
 
 ```bash
-# 建立並啟動 Backend API（SQLite）
-docker compose up -d --build
+# 一行部署並啟動 Backend API（SQLite）
+npm run deploy
 
 # （可選）啟動時灌入 demo seed data（⚠️ seed 會清空既有資料）
-SEED_DB=true docker compose up -d --build
+SEED_DB=true npm run deploy
 
 # 檢視日誌
-docker compose logs -f backend-api
+docker compose --env-file .deploy/deploy.env logs -f backend-api
 
 # 停止服務（若要連同 DB 一起刪除，可加 -v）
-docker compose down
+docker compose --env-file .deploy/deploy.env down
 ```
+
+部署腳本會自動產生 `.deploy/deploy.env`（已被 git ignore），並掛載 Docker socket 讓評測服務可以建立隔離的 sandbox container。
 
 詳細的部署指南請參考 [DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md)
 
