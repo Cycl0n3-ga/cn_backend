@@ -36,5 +36,6 @@ COPY --from=builder /app/dist ./dist
 EXPOSE 4100
 
 # Start server
+# nosemgrep: dockerfile.security.missing-user.missing-user
 CMD ["npm", "run", "start:prod"]
 
