@@ -6,7 +6,6 @@ import {
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateInterviewDto, UpdateInterviewDto } from './dto/interview.dto.js';
 
-
 const DIFFICULTY_CONFIGS = [
   { field: 'easy', difficulty: 'EASY' },
   { field: 'medium', difficulty: 'MEDIUM' },
@@ -139,7 +138,10 @@ export class InterviewsService {
           problemCounts,
         );
       } catch (error) {
-        if (error instanceof Error && (error as any).code === 'P2003') {
+        if (
+          error instanceof Error &&
+          (error as { code?: string }).code === 'P2003'
+        ) {
           throw new BadRequestException('Invalid candidateUserId.');
         }
         throw error;
@@ -178,7 +180,10 @@ export class InterviewsService {
       });
       return this.formatInterview(updated);
     } catch (error) {
-      if (error instanceof Error && (error as any).code === 'P2025') {
+      if (
+        error instanceof Error &&
+        (error as { code?: string }).code === 'P2025'
+      ) {
         throw new NotFoundException(`Interview #${id} not found.`);
       }
       throw error;
@@ -189,7 +194,10 @@ export class InterviewsService {
     try {
       await this.prisma.interview.delete({ where: { id } });
     } catch (error) {
-      if (error instanceof Error && (error as any).code === 'P2025') {
+      if (
+        error instanceof Error &&
+        (error as { code?: string }).code === 'P2025'
+      ) {
         throw new NotFoundException(`Interview #${id} not found.`);
       }
       throw error;

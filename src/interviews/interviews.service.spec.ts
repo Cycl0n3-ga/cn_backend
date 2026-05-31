@@ -263,9 +263,7 @@ describe('InterviewsService', () => {
           candidateUserId: 'candidate-uuid',
           problemCounts: { easy: 2, medium: 0, hard: 0 },
         }),
-      ).rejects.toThrow(
-        'Not enough EASY problems. Requested 2, available 1.',
-      );
+      ).rejects.toThrow('Not enough EASY problems. Requested 2, available 1.');
 
       expect(prisma.interview.create).not.toHaveBeenCalled();
     });

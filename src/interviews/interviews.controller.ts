@@ -40,8 +40,11 @@ export class InterviewsController {
     description: '建立一個新的面試',
   })
   @ApiResponse({ status: 201, description: '建立成功' })
-  create(@Request() req: any, @Body() createInterviewDto: CreateInterviewDto) {
-    const examinerId = req.user.sub || req.user.id;
+  create(
+    @Request() req: { user: { sub?: string; id?: string } },
+    @Body() createInterviewDto: CreateInterviewDto,
+  ) {
+    const examinerId = String(req.user.sub || req.user.id);
     return this.interviewsService.create(examinerId, createInterviewDto);
   }
 
@@ -51,10 +54,7 @@ export class InterviewsController {
     description: '取得所有面試',
   })
   @ApiResponse({ status: 200, description: '取得成功' })
-  findAll(
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-  ) {
+  findAll(@Query('page') page?: string, @Query('limit') limit?: string) {
     const parsedPage = page ? parseInt(page, 10) : 1;
     const parsedLimit = limit ? parseInt(limit, 10) : 20;
     return this.interviewsService.findAll(parsedPage, parsedLimit);
