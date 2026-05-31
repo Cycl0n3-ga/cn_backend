@@ -562,9 +562,17 @@ x-internal-api-key: <INTERNAL_API_KEY>
 ```json
 {
   "jobRole": "Backend Developer",
-  "examinerEmpId": "uuid-string"
+  "examinerEmpId": "uuid-string",
+  "candidateUserId": "candidate-uuid-string",
+  "problemCounts": {
+    "easy": 2,
+    "medium": 1,
+    "hard": 0
+  }
 }
 ```
+
+`candidateUserId` 與 `problemCounts` 為選填；若 `problemCounts` 任一題數大於 0，必須一併提供 `candidateUserId`。系統會依難度從未刪除題目中取指定數量，建立面試時同步新增候選人與面試題目指派。
 
 **Response (201 Created):**
 
@@ -572,9 +580,35 @@ x-internal-api-key: <INTERNAL_API_KEY>
 {
   "id": "1",
   "jobRole": "Backend Developer",
-  "examinerEmpId": "uuid-string"
+  "examinerEmpId": "uuid-string",
+  "candidate": {
+    "id": "1",
+    "jobId": "1",
+    "userId": "candidate-uuid-string"
+  },
+  "problemCounts": {
+    "easy": 2,
+    "medium": 1,
+    "hard": 0
+  },
+  "assignments": [
+    {
+      "id": "1",
+      "jobId": "1",
+      "userId": "candidate-uuid-string",
+      "problemId": "1",
+      "createdAt": "2026-05-31T00:00:00.000Z",
+      "problem": {
+        "id": 1,
+        "title": "Two Sum",
+        "difficulty": "EASY"
+      }
+    }
+  ]
 }
 ```
+
+若未提供 `candidateUserId`，回應維持原本格式，只包含 `id`、`jobRole`、`examinerEmpId`。
 
 ---
 

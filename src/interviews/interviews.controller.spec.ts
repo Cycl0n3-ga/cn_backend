@@ -70,6 +70,25 @@ describe('InterviewsController', () => {
       expect(service.create).toHaveBeenCalledWith(dto);
     });
 
+    it('should pass candidate and problem counts to service', async () => {
+      service.create.mockResolvedValue({
+        ...mockCreateResult,
+        candidate: { id: '7', jobId: '1', userId: 'candidate-uuid' },
+        problemCounts: { easy: 2, medium: 1, hard: 0 },
+        assignments: [],
+      });
+      const dto = {
+        jobRole: 'Backend Developer',
+        examinerEmpId: 'user-uuid-1',
+        candidateUserId: 'candidate-uuid',
+        problemCounts: { easy: 2, medium: 1, hard: 0 },
+      };
+
+      await controller.create(dto);
+
+      expect(service.create).toHaveBeenCalledWith(dto);
+    });
+
     it('should return id as string', async () => {
       service.create.mockResolvedValue(mockCreateResult);
 
