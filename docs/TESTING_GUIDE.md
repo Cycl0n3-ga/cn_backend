@@ -96,8 +96,9 @@ describe('AuthService', () => {
     it('應該建立新使用者', async () => {
       const input = {
         username: 'testuser',
-        email: 'test@example.com',
+        email: null,
         passwordSha256: 'abc123...',
+        role: 'CANDIDATE',
       };
 
       jest.spyOn(prismaService.user, 'create').mockResolvedValue({
@@ -185,8 +186,9 @@ describe('Auth Integration Tests', () => {
         .post('/api/v1/auth/signup')
         .send({
           username: 'newuser',
-          email: 'newuser@example.com',
-          passwordSha256: 'abc123...',
+          email: null,
+          passwordSha256: 'e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446',
+          role: 'CANDIDATE',
         })
         .expect(201)
         .expect((res) => {
@@ -262,8 +264,9 @@ describe('App E2E', () => {
         .post('/api/v1/auth/signup')
         .send({
           username: 'e2euser',
-          email: 'e2e@example.com',
-          passwordSha256: 'hash123',
+          email: null,
+          passwordSha256: 'e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446',
+          role: 'CANDIDATE',
         })
         .expect(201);
     });
@@ -417,7 +420,7 @@ curl http://localhost:4100/api/v1/health
 # 2. 使用者註冊
 curl -X POST http://localhost:4100/api/v1/auth/signup \
   -H "Content-Type: application/json" \
-  -d '{"username":"test","email":"test@example.com","passwordSha256":"abc123"}'
+  -d '{"username":"test","email":null,"passwordSha256":"e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446","role":"CANDIDATE"}'
 
 # 3. 使用者登入
 curl -X POST http://localhost:4100/api/v1/auth/login \

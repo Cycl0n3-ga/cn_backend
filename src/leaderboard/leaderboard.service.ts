@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { UserRole } from '../auth/user-role.js';
 
 @Injectable()
 export class LeaderboardService {
@@ -7,9 +8,9 @@ export class LeaderboardService {
 
   async getRankings(page = 1, limit = 20) {
     const [total, users] = await Promise.all([
-      this.prisma.user.count({ where: { role: 'USER' } }),
+      this.prisma.user.count({ where: { role: UserRole.CANDIDATE } }),
       this.prisma.user.findMany({
-        where: { role: 'USER' },
+        where: { role: UserRole.CANDIDATE },
         select: {
           username: true,
           solvedCount: true,

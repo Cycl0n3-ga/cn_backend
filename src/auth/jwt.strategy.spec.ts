@@ -10,7 +10,7 @@ describe('JwtStrategy', () => {
     id: 'user-uuid-1',
     username: 'testuser',
     email: 'test@example.com',
-    role: 'USER',
+    role: 'CANDIDATE',
   };
 
   beforeEach(() => {
@@ -33,7 +33,7 @@ describe('JwtStrategy', () => {
       const result = await strategy.validate({
         sub: 'user-uuid-1',
         username: 'testuser',
-        role: 'USER',
+        role: 'CANDIDATE',
       });
 
       expect(result).toEqual(mockUser);
@@ -45,7 +45,7 @@ describe('JwtStrategy', () => {
       await strategy.validate({
         sub: 'user-uuid-1',
         username: 'testuser',
-        role: 'USER',
+        role: 'CANDIDATE',
       });
 
       expect(authService.validateUserById).toHaveBeenCalledWith('user-uuid-1');
@@ -58,7 +58,7 @@ describe('JwtStrategy', () => {
         strategy.validate({
           sub: 'invalid-uuid',
           username: 'ghost',
-          role: 'USER',
+          role: 'CANDIDATE',
         }),
       ).rejects.toThrow(UnauthorizedException);
     });
@@ -70,7 +70,7 @@ describe('JwtStrategy', () => {
         strategy.validate({
           sub: 'invalid-uuid',
           username: 'ghost',
-          role: 'USER',
+          role: 'CANDIDATE',
         }),
       ).rejects.toThrow(UnauthorizedException);
     });
@@ -94,7 +94,7 @@ describe('JwtStrategy', () => {
       const result = await strategy.validate({
         sub: 'user-uuid-1',
         username: 'testuser',
-        role: 'USER',
+        role: 'CANDIDATE',
       });
 
       expect(result).not.toHaveProperty('passwordHash');

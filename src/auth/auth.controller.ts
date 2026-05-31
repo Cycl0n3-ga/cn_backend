@@ -22,7 +22,7 @@ export class AuthController {
       example: {
         token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
         expires_in: '3600',
-        user_role: 'USER',
+        user_role: 'CANDIDATE',
       },
     },
   })

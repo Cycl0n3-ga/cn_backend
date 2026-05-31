@@ -12,8 +12,8 @@ describe('UsersController', () => {
       {
         id: 'uuid-1',
         username: 'alice',
-        email: 'alice@example.com',
-        role: 'USER',
+        email: null,
+        role: 'CANDIDATE',
         solvedCount: '3',
         rating: '1500',
         createdAt: new Date(),

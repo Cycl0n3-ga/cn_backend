@@ -27,14 +27,14 @@ describe('RolesGuard', () => {
 
   it('should return true when no roles are required', () => {
     jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(undefined);
-    const context = createMockContext({ role: 'USER' });
+    const context = createMockContext({ role: 'CANDIDATE' });
 
     expect(guard.canActivate(context)).toBe(true);
   });
 
   it('should return true when required roles is empty array', () => {
     jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(null);
-    const context = createMockContext({ role: 'USER' });
+    const context = createMockContext({ role: 'CANDIDATE' });
 
     expect(guard.canActivate(context)).toBe(true);
   });
@@ -46,9 +46,16 @@ describe('RolesGuard', () => {
     expect(guard.canActivate(context)).toBe(true);
   });
 
-  it('should return true when user has the required USER role', () => {
-    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(['USER']);
-    const context = createMockContext({ role: 'USER' });
+  it('should return true when user has the required CANDIDATE role', () => {
+    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(['CANDIDATE']);
+    const context = createMockContext({ role: 'CANDIDATE' });
+
+    expect(guard.canActivate(context)).toBe(true);
+  });
+
+  it('should return true when ADMIN accesses any role-protected endpoint', () => {
+    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(['QUESTIONER']);
+    const context = createMockContext({ role: 'ADMIN' });
 
     expect(guard.canActivate(context)).toBe(true);
   });
@@ -56,22 +63,22 @@ describe('RolesGuard', () => {
   it('should return true when user role matches one of multiple required roles', () => {
     jest
       .spyOn(reflector, 'getAllAndOverride')
-      .mockReturnValue(['ADMIN', 'USER']);
-    const context = createMockContext({ role: 'USER' });
+      .mockReturnValue(['EXAMINER', 'CANDIDATE']);
+    const context = createMockContext({ role: 'CANDIDATE' });
 
     expect(guard.canActivate(context)).toBe(true);
   });
 
   it('should throw ForbiddenException when user role does not match', () => {
     jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(['ADMIN']);
-    const context = createMockContext({ role: 'USER' });
+    const context = createMockContext({ role: 'CANDIDATE' });
 
     expect(() => guard.canActivate(context)).toThrow(ForbiddenException);
   });
 
   it('should throw ForbiddenException with correct message', () => {
     jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(['ADMIN']);
-    const context = createMockContext({ role: 'USER' });
+    const context = createMockContext({ role: 'CANDIDATE' });
 
     expect(() => guard.canActivate(context)).toThrow(
       'Insufficient permissions.',
@@ -103,7 +110,7 @@ describe('RolesGuard', () => {
     const spy = jest
       .spyOn(reflector, 'getAllAndOverride')
       .mockReturnValue(undefined);
-    const context = createMockContext({ role: 'USER' });
+    const context = createMockContext({ role: 'CANDIDATE' });
 
     guard.canActivate(context);
 

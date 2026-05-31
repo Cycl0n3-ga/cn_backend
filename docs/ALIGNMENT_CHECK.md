@@ -101,7 +101,7 @@
 | Submission | 12 | ✅ DATABASE_SCHEMA | ⭐⭐⭐ | 完整定義 |
 | Assignment | 4 | ✅ DATABASE_SCHEMA | ⭐⭐⭐ | 完整定義 |
 | Interview | 5 | ✅ DATABASE_SCHEMA | ⭐⭐⭐ | 完整定義 |
-| InterviewCandidate | 4 | ✅ DATABASE_SCHEMA | ⭐⭐⭐ | 完整定義 |
+| InterviewCandidate | 6 | ✅ DATABASE_SCHEMA | ⭐⭐⭐ | 完整定義 |
 
 **統計:** 7 個表，全部涵蓋 ✅
 
@@ -123,8 +123,22 @@
 | /leaderboard | GET | ✅ API_SPECIFICATION | ✓ | 排行榜 |
 | /health | GET | ✅ API_SPECIFICATION | ✓ | 健康檢查 |
 | /internal/testcases/:id | GET | ✅ API_SPECIFICATION | ✓ | 測試用例 |
+| /interviews | POST | ✅ API_SPECIFICATION | ✓ | 建立面試 |
+| /interviews | GET | ✅ API_SPECIFICATION | ✓ | 面試列表 |
+| /interviews/:id | PATCH | ✅ API_SPECIFICATION | ✓ | 更新面試 |
+| /interviews/:id | DELETE | ✅ API_SPECIFICATION | ✓ | 刪除面試 |
+| /interview-candidates | POST | ✅ API_SPECIFICATION | ✓ | 新增面試考生 |
+| /interview-candidates | GET | ✅ API_SPECIFICATION | ✓ | 面試考生列表 |
+| /interview-candidates/:id/time | PATCH | ✅ API_SPECIFICATION | ✓ | 更新測驗時間 |
+| /interview-candidates/:id/time-status | GET | ✅ API_SPECIFICATION | ✓ | 查詢伺服器時間與剩餘時間 |
+| /interview-candidates/:id | DELETE | ✅ API_SPECIFICATION | ✓ | 移除面試考生 |
+| /assignments | POST | ✅ API_SPECIFICATION | ✓ | 指派題目 |
+| /assignments | GET | ✅ API_SPECIFICATION | ✓ | 題目指派列表 |
+| /assignments/user/:userId | GET | ✅ API_SPECIFICATION | ✓ | 使用者指派列表 |
+| /assignments/:id | GET | ✅ API_SPECIFICATION | ✓ | 單一指派 |
+| /assignments/:id | DELETE | ✅ API_SPECIFICATION | ✓ | 刪除指派 |
 
-**統計:** 14 個主要端點，全部涵蓋 ✅
+**統計:** 28 個主要端點，全部涵蓋 ✅
 
 ---
 

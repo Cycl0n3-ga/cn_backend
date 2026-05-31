@@ -3,6 +3,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UnauthorizedException, ConflictException } from '@nestjs/common';
 import { createHash } from 'node:crypto';
+import { UserRole } from './user-role';
 
 function sha256Hex(input: string) {
   return createHash('sha256').update(input).digest('hex');
@@ -58,11 +59,11 @@ describe('AuthController', () => {
       expect(authService.login).toHaveBeenCalledWith('admin', ADMIN_SHA256);
     });
 
-    it('should return USER role in token response', async () => {
+    it('should return CANDIDATE role in token response', async () => {
       authService.login.mockResolvedValue({
         token: 'user.jwt.token',
         expires_in: '3600',
-        user_role: 'USER',
+        user_role: 'CANDIDATE',
       });
 
       const result = await controller.login({
@@ -70,7 +71,7 @@ describe('AuthController', () => {
         passwordSha256: VALID_SHA256,
       });
 
-      expect(result.user_role).toBe('USER');
+      expect(result.user_role).toBe('CANDIDATE');
     });
 
     it('should propagate UnauthorizedException from service', async () => {
@@ -87,7 +88,7 @@ describe('AuthController', () => {
       authService.login.mockResolvedValue({
         token: 't',
         expires_in: '3600',
-        user_role: 'USER',
+        user_role: 'CANDIDATE',
       });
 
       await controller.login({
@@ -107,7 +108,7 @@ describe('AuthController', () => {
       id: 'uuid-1',
       username: 'newuser',
       email: 'new@example.com',
-      role: 'USER',
+      role: 'CANDIDATE',
       createdAt: new Date(),
     };
 
@@ -133,14 +134,14 @@ describe('AuthController', () => {
         username: 'newuser',
         email: 'new@example.com',
         passwordSha256: VALID_SHA256,
-        role: 'USER',
+        role: UserRole.CANDIDATE,
       });
 
       expect(authService.signup).toHaveBeenCalledWith({
         username: 'newuser',
         email: 'new@example.com',
         passwordSha256: VALID_SHA256,
-        role: 'USER',
+        role: 'CANDIDATE',
       });
     });
 

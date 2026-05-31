@@ -18,6 +18,9 @@ import {
 import { SubmissionsService } from './submissions.service.js';
 import { CreateSubmissionDto } from './dto/index.js';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
+import { RolesGuard } from '../auth/roles.guard.js';
+import { Roles } from '../auth/roles.decorator.js';
+import { UserRole } from '../auth/user-role.js';
 
 @ApiTags('Submissions')
 @Controller('submissions')
@@ -25,7 +28,8 @@ export class SubmissionsController {
   constructor(private readonly submissionsService: SubmissionsService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.CANDIDATE)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.ACCEPTED)
   @ApiOperation({

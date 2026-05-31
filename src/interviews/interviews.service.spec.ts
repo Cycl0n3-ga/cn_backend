@@ -14,6 +14,11 @@ describe('InterviewsService', () => {
     createdAt: new Date(),
     updatedAt: new Date(),
   };
+  const mockExaminer = {
+    id: 'user-uuid-1',
+    username: 'examiner',
+    role: 'EXAMINER',
+  };
 
   beforeEach(async () => {
     prisma = {
@@ -52,6 +57,7 @@ describe('InterviewsService', () => {
   // ── create ────────────────────────────────────────────────────────────
   describe('create', () => {
     it('should create an interview and return id, jobRole, examinerEmpId', async () => {
+      prisma.user.findUnique.mockResolvedValue(mockExaminer);
       prisma.interview.create.mockResolvedValue(mockInterview);
 
       const result = await service.create({
@@ -65,6 +71,7 @@ describe('InterviewsService', () => {
     });
 
     it('should return id as string', async () => {
+      prisma.user.findUnique.mockResolvedValue(mockExaminer);
       prisma.interview.create.mockResolvedValue(mockInterview);
 
       const result = await service.create({
@@ -76,6 +83,10 @@ describe('InterviewsService', () => {
     });
 
     it('should pass correct data to prisma', async () => {
+      prisma.user.findUnique.mockResolvedValue({
+        ...mockExaminer,
+        id: 'examiner-uuid',
+      });
       prisma.interview.create.mockResolvedValue(mockInterview);
 
       await service.create({

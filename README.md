@@ -46,8 +46,10 @@ npm run start:dev
 | 帳號 | 明文密碼（僅供人類閱讀） | passwordSha256 (sha256 hex) | 角色 |
 |------|--------------------------|------------------------|------|
 | admin | admin123 | 240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9 | ADMIN |
-| alice | user123 | e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446 | USER |
-| bob | user123 | e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446 | USER |
+| examiner | user123 | e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446 | EXAMINER |
+| questioner | user123 | e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446 | QUESTIONER |
+| alice | user123 | e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446 | CANDIDATE |
+| bob | user123 | e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446 | CANDIDATE |
 
 ## 🧬 測試
 
@@ -169,7 +171,7 @@ curl -X POST http://localhost:4100/api/v1/judge/run \
 - **Users** - 使用者管理、排名統計
 - **Leaderboard** - 排行榜功能
 - **Interviews** - 面試系統管理
-- **Interview-Candidates** - 面試候選人管理
+- **Interview-Candidates** - 面試候選人管理（含測驗 startTime/endTime Unix 時間）
 - **Internal** - 內部 API 介面（評測機通信）
 - **Health** - 健康檢查
 
@@ -251,6 +253,8 @@ npm run db:seed        # 灌入種子資料
 | PATCH | `/api/v1/interviews/:id` | 更改面試名稱 |
 | DELETE | `/api/v1/interviews/:id` | 刪除面試 |
 | POST | `/api/v1/interview-candidates` | 新增面試者 |
+| GET | `/api/v1/interview-candidates/:id/time-status` | 取得伺服器時間與測驗剩餘時間 |
+| PATCH | `/api/v1/interview-candidates/:id/time` | 更新面試者測驗開始/結束時間 |
 | DELETE | `/api/v1/interview-candidates/:id` | 移除面試者 |
 
 ## 文件

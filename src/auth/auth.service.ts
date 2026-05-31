@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   UnauthorizedException,
   ConflictException,
@@ -6,6 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { normalizeEmail, normalizeUserRole, UserRole } from './user-role.js';
 
 @Injectable()
 export class AuthService {
@@ -46,14 +48,27 @@ export class AuthService {
 
   async signup(data: {
     username: string;
-    email: string;
+    email?: string | null;
     // sha256(password) 的 64 位 hex 字串
     passwordSha256: string;
     role?: string;
   }) {
+    const role = normalizeUserRole(data.role);
+    const email = normalizeEmail(data.email);
+
+    if (role !== UserRole.CANDIDATE && !email) {
+      throw new BadRequestException(
+        'email is required for ADMIN, EXAMINER, and QUESTIONER accounts.',
+      );
+    }
+
+    const conflictChecks = email
+      ? [{ username: data.username }, { email }]
+      : [{ username: data.username }];
+
     const existingUser = await this.prisma.user.findFirst({
       where: {
-        OR: [{ username: data.username }, { email: data.email }],
+        OR: conflictChecks,
       },
     });
 
@@ -67,9 +82,9 @@ export class AuthService {
     const user = await this.prisma.user.create({
       data: {
         username: data.username,
-        email: data.email,
+        email,
         passwordHash,
-        role: data.role || 'USER',
+        role,
       },
       select: {
         id: true,

@@ -1,7 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AssignmentsService } from './assignments.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 
 describe('AssignmentsService', () => {
   let service: AssignmentsService;
@@ -25,7 +29,7 @@ describe('AssignmentsService', () => {
   const mockUser = {
     id: 'user-uuid-1',
     username: 'alice',
-    email: 'alice@example.com',
+    role: 'CANDIDATE',
   };
   const mockProblem = {
     id: 1,
@@ -42,7 +46,7 @@ describe('AssignmentsService', () => {
     createdAt: new Date('2026-01-01T00:00:00Z'),
     interview: mockInterview,
     problem: { id: 1, title: 'Two Sum', difficulty: 'EASY' },
-    user: { id: 'user-uuid-1', username: 'alice', email: 'alice@example.com' },
+    user: { id: 'user-uuid-1', username: 'alice', role: 'CANDIDATE' },
   };
 
   beforeEach(async () => {
@@ -145,6 +149,18 @@ describe('AssignmentsService', () => {
       await expect(
         service.create({ jobId: 1, userId: 'user-uuid-1', problemId: 999 }),
       ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw BadRequestException when user is not a candidate', async () => {
+      prisma.interview.findUnique.mockResolvedValue(mockInterview);
+      prisma.user.findUnique.mockResolvedValue({
+        ...mockUser,
+        role: 'EXAMINER',
+      });
+
+      await expect(
+        service.create({ jobId: 1, userId: 'user-uuid-1', problemId: 1 }),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should throw NotFoundException with problem ID in message', async () => {

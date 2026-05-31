@@ -2,7 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
-import { UnauthorizedException, ConflictException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { createHash } from 'node:crypto';
 
@@ -20,7 +24,7 @@ describe('AuthService', () => {
     username: 'testuser',
     email: 'test@example.com',
     passwordHash: '',
-    role: 'USER',
+    role: 'CANDIDATE',
     solvedCount: 0,
     rating: 0,
     createdAt: new Date(),
@@ -63,7 +67,7 @@ describe('AuthService', () => {
 
       expect(result).toHaveProperty('token', 'mock-jwt-token');
       expect(result).toHaveProperty('expires_in');
-      expect(result).toHaveProperty('user_role', 'USER');
+      expect(result).toHaveProperty('user_role', 'CANDIDATE');
     });
 
     it('should include correct JWT payload (sub, username, role)', async () => {
@@ -144,7 +148,7 @@ describe('AuthService', () => {
       id: 'new-uuid',
       username: 'newuser',
       email: 'new@example.com',
-      role: 'USER',
+      role: 'CANDIDATE',
       createdAt: new Date(),
     };
 
@@ -193,7 +197,7 @@ describe('AuthService', () => {
       expect(result).not.toHaveProperty('passwordHash');
     });
 
-    it('should default role to USER if not specified', async () => {
+    it('should default role to CANDIDATE if not specified', async () => {
       prisma.user.findFirst.mockResolvedValue(null);
       prisma.user.create.mockResolvedValue(newUserResult);
 
@@ -204,7 +208,29 @@ describe('AuthService', () => {
       });
 
       const createCall = prisma.user.create.mock.calls[0][0];
-      expect(createCall.data.role).toBe('USER');
+      expect(createCall.data.role).toBe('CANDIDATE');
+    });
+
+    it('should create candidate account without email', async () => {
+      prisma.user.findFirst.mockResolvedValue(null);
+      prisma.user.create.mockResolvedValue({
+        ...newUserResult,
+        email: null,
+        role: 'CANDIDATE',
+      });
+
+      const result = await service.signup({
+        username: 'candidate1',
+        passwordSha256: sha256Hex('candidate123'),
+      });
+
+      const createCall = prisma.user.create.mock.calls[0][0];
+      expect(createCall.data).toMatchObject({
+        username: 'candidate1',
+        email: null,
+        role: 'CANDIDATE',
+      });
+      expect(result).toHaveProperty('email', null);
     });
 
     it('should accept ADMIN role when specified', async () => {
@@ -220,6 +246,34 @@ describe('AuthService', () => {
 
       const createCall = prisma.user.create.mock.calls[0][0];
       expect(createCall.data.role).toBe('ADMIN');
+    });
+
+    it('should normalize lowercase role input', async () => {
+      prisma.user.findFirst.mockResolvedValue(null);
+      prisma.user.create.mockResolvedValue({
+        ...newUserResult,
+        role: 'QUESTIONER',
+      });
+
+      await service.signup({
+        username: 'questioner1',
+        email: 'questioner1@example.com',
+        passwordSha256: sha256Hex('questioner123'),
+        role: 'questioner',
+      });
+
+      const createCall = prisma.user.create.mock.calls[0][0];
+      expect(createCall.data.role).toBe('QUESTIONER');
+    });
+
+    it('should require email for non-candidate roles', async () => {
+      await expect(
+        service.signup({
+          username: 'examiner1',
+          passwordSha256: sha256Hex('examiner123'),
+          role: 'EXAMINER',
+        }),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should throw ConflictException for duplicate username', async () => {

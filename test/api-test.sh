@@ -234,11 +234,11 @@ assert_status "DELETE /problems/:id returns 204" "204" "$DELETE_STATUS"
 
 # ─── 14. Interviews & Candidates ─────────────────────────────────
 echo -e "\n${YELLOW}▸ Interviews & Candidates${NC}"
-ADMIN_ID=$(curl -s "$BASE_URL/users" | python3 -c "import sys,json; users=json.load(sys.stdin)['data']; print([u['id'] for u in users if u['username']=='admin'][0])" 2>/dev/null)
+EXAMINER_ID=$(curl -s "$BASE_URL/users" | python3 -c "import sys,json; users=json.load(sys.stdin)['data']; print([u['id'] for u in users if u['username']=='examiner'][0])" 2>/dev/null)
 INTERVIEW_RESULT=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/interviews" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
-  -d "{\"jobRole\":\"Frontend Developer\", \"examinerEmpId\":\"$ADMIN_ID\"}")
+  -d "{\"jobRole\":\"Frontend Developer\", \"examinerEmpId\":\"$EXAMINER_ID\"}")
 INTERVIEW_RESPONSE=$(echo "$INTERVIEW_RESULT" | sed '$d')
 INTERVIEW_STATUS=$(echo "$INTERVIEW_RESULT" | tail -n 1)
 assert_status "POST /interviews returns 201" "201" "$INTERVIEW_STATUS"
@@ -262,6 +262,16 @@ CANDIDATE_STATUS=$(echo "$CANDIDATE_RESULT" | tail -n 1)
 assert_status "POST /interview-candidates returns 201" "201" "$CANDIDATE_STATUS"
 
 CANDIDATE_ID=$(echo "$CANDIDATE_RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])" 2>/dev/null)
+
+UPDATE_CANDIDATE_TIME_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X PATCH "$BASE_URL/interview-candidates/$CANDIDATE_ID/time" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"startTime":1770000000,"endTime":1770003600}')
+assert_status "PATCH /interview-candidates/:id/time returns 200" "200" "$UPDATE_CANDIDATE_TIME_STATUS"
+
+TIME_STATUS_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/interview-candidates/$CANDIDATE_ID/time-status" \
+  -H "Authorization: Bearer $TOKEN")
+assert_status "GET /interview-candidates/:id/time-status returns 200" "200" "$TIME_STATUS_STATUS"
 
 # Delete candidate
 DEL_CANDIDATE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE "$BASE_URL/interview-candidates/$CANDIDATE_ID" \

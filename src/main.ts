@@ -49,10 +49,12 @@ async function bootstrap() {
 
 ### 測試帳號
 | 帳號 | 明文密碼（僅供人類閱讀） | password (sha256 hex) | 角色 |
-|------|------|------|
+|------|------|------|------|
 | admin | admin123 | 240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9 | ADMIN |
-| alice | user123 | e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446 | USER |
-| bob | user123 | e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446 | USER |`,
+| examiner | user123 | e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446 | EXAMINER |
+| questioner | user123 | e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446 | QUESTIONER |
+| alice | user123 | e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446 | CANDIDATE |
+| bob | user123 | e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446 | CANDIDATE |`,
     )
     .setVersion('1.0')
     .addBearerAuth()

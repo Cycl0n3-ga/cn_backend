@@ -20,6 +20,9 @@ import {
 import { InterviewsService } from './interviews.service.js';
 import { CreateInterviewDto, UpdateInterviewDto } from './dto/interview.dto.js';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
+import { RolesGuard } from '../auth/roles.guard.js';
+import { Roles } from '../auth/roles.decorator.js';
+import { UserRole } from '../auth/user-role.js';
 
 @ApiTags('Interviews')
 @Controller('interviews')
@@ -27,7 +30,8 @@ export class InterviewsController {
   constructor(private readonly interviewsService: InterviewsService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.EXAMINER)
   @ApiBearerAuth()
   @ApiOperation({
     summary: '建立面試 (輔助測試)',
@@ -49,7 +53,8 @@ export class InterviewsController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.EXAMINER)
   @ApiBearerAuth()
   @ApiOperation({
     summary: '更改面試名稱',
@@ -65,7 +70,8 @@ export class InterviewsController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.EXAMINER)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: '刪除面試', description: '從系統中移除面試' })

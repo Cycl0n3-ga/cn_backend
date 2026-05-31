@@ -11,6 +11,7 @@ cn_22_backend/
 │   │   ├── auth.controller.ts
 │   │   ├── auth.service.ts
 │   │   ├── auth.module.ts
+│   │   ├── user-role.ts          # 角色 enum 與正規化工具
 │   │   ├── jwt.strategy.ts        # JWT策略
 │   │   ├── jwt-auth.guard.ts      # JWT守卫
 │   │   ├── roles.guard.ts         # 角色權限守卫
@@ -180,7 +181,7 @@ cn_22_backend/
 - `Submission` - 程庫碼提交记錄
 - `Assignment` - 题目指派
 - `Interview` - 面試记錄
-- `InterviewCandidate` - 面試候選人
+- `InterviewCandidate` - 面試候選人與測驗開始/結束時間
 
 ## 关键配置檔案
 

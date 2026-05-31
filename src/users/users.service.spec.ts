@@ -11,8 +11,8 @@ describe('UsersService', () => {
     {
       id: 'uuid-1',
       username: 'alice',
-      email: 'alice@example.com',
-      role: 'USER',
+      email: null,
+      role: 'CANDIDATE',
       solvedCount: 3,
       rating: 1500,
       createdAt: new Date('2026-05-01T00:00:00Z'),
@@ -20,8 +20,8 @@ describe('UsersService', () => {
     {
       id: 'uuid-2',
       username: 'bob',
-      email: 'bob@example.com',
-      role: 'USER',
+      email: null,
+      role: 'CANDIDATE',
       solvedCount: 5,
       rating: 1800,
       createdAt: new Date('2026-05-02T00:00:00Z'),
@@ -89,8 +89,8 @@ describe('UsersService', () => {
       expect(result.data[0]).toMatchObject({
         id: 'uuid-1',
         username: 'alice',
-        email: 'alice@example.com',
-        role: 'USER',
+        email: null,
+        role: 'CANDIDATE',
       });
     });
 

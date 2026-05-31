@@ -5,6 +5,7 @@
 ## 概述
 
 專案使用 **Prisma ORM** 管理資料庫，支持：
+
 - **SQLite** - 開發環境預設
 - **PostgreSQL** - 生產環境推薦
 
@@ -20,34 +21,38 @@
 model User {
   id           String       @id @default(uuid())
   username     String       @unique
-  email        String       @unique
+  email        String?      @unique
   passwordHash String
-  role         String       @default("USER")
+  role         String       @default("CANDIDATE")
   solvedCount  Int          @default(0)
   rating       Int          @default(0)
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
-  
+
   submissions         Submission[]
   assignments         Assignment[]
+  problemsCreated     Problem[]
   interviewsCreated   Interview[]
   interviewCandidates InterviewCandidate[]
 }
 ```
 
 **說明：**
+
 - `id`: UUID 卤一識別碼
 - `username`: 使用者名稱（卤一）
-- `email`: 郸箱（卤一）
+- `email`: 郸箱（卤一，`CANDIDATE` 可為 null）
 - `passwordHash`: 密碼雜湯（使用 bcryptjs）
-- `role`: 使用者角色 - `"ADMIN"` 或 `"USER"`
+- `role`: 使用者角色 - `"ADMIN"` | `"EXAMINER"` | `"QUESTIONER"` | `"CANDIDATE"`，預設 `"CANDIDATE"`
 - `solvedCount`: 已解決的題目數
 - `rating`: 使用者評分/等級
 - `createdAt/updatedAt`: 時間戳
 
 **關係：**
+
 - 1-N: 一個使用者可以有多個提交記錄
 - 1-N: 一個使用者可以被指派多個題目
+- 1-N: 一個使用者可以建立多個題目
 - 1-N: 一個使用者可以建立多個面試
 - 1-N: 一個使用者可以作為多個面試的候選人
 - 1-N: 一个使用者可以建立多个面試
@@ -66,11 +71,13 @@ model Problem {
   timeLimitMs    Int          @default(1000)
   memoryLimitMb  Int          @default(256)
   functionName   String?
+  creatorId      String?
   acceptanceRate Float        @default(0)
   isDeleted      Boolean      @default(false)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
-  
+
+  creator     User?
   testCases    TestCase[]
   submissions  Submission[]
   assignments  Assignment[]
@@ -78,6 +85,7 @@ model Problem {
 ```
 
 **說明：**
+
 - `id`: 自增整數主鍵
 - `title`: 項目標題
 - `description`: 項目描述/問題陳述
@@ -85,11 +93,14 @@ model Problem {
 - `timeLimitMs`: 時間限制（毫秒，預設1000ms）
 - `memoryLimitMb`: 記憶體限制（MB，預設256MB）
 - `functionName`: 预期實現的函數名称（可选）
+- `creatorId`: 題目創作者 ID（可選，舊資料可能為 null）
 - `acceptanceRate`: 通過率（百分比）
 - `isDeleted`: 逻辑刪除標誌
 - `createdAt/updatedAt`: 時間戳
 
 **關係：**
+
+- N-1: 多個題目可以由同一個使用者建立
 - 1-N: 一個項目可以有多個測試用例
 - 1-N: 一個項目可以有多個提交記錄
 - 1-N: 一個項目可以被指派給多個使用者
@@ -105,12 +116,13 @@ model TestCase {
   input     String
   output    String
   isHidden  Boolean @default(true)
-  
+
   problem   Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
 }
 ```
 
 **說明：**
+
 - `id`: 自增整數主鍵
 - `problemId`: 關聯的項目ID（外鍵）
 - `input`: 輸入資料
@@ -118,6 +130,7 @@ model TestCase {
 - `isHidden`: 是否隱藏（在提交前隱藏）
 
 **關係：**
+
 - N-1: 多個測試用例屬於一個項目（級聯刪除）
 
 ---
@@ -138,13 +151,14 @@ model Submission {
   executionTimeMs Int?
   memoryUsageKb   Int?
   createdAt       DateTime @default(now())
-  
+
   user    User    @relation(fields: [userId], references: [id])
   problem Problem @relation(fields: [problemId], references: [id])
 }
 ```
 
 **說明：**
+
 - `id`: UUID唯一標识符
 - `userId`: 提交者ID（外鍵）
 - `problemId`: 項目ID（外鍵）
@@ -168,6 +182,7 @@ model Submission {
 - `createdAt`: 提交時間
 
 **關係：**
+
 - N-1: 多個提交屬於一個使用者
 - N-1: 多個提交屬於一個項目
 
@@ -181,24 +196,27 @@ model Assignment {
   problemId Int
   userId    String
   createdAt DateTime @default(now())
-  
+
   problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
   user    User    @relation(fields: [userId], references: [id])
-  
+
   @@unique([problemId, userId])
 }
 ```
 
 **說明：**
+
 - `id`: 自增整數主鍵
 - `problemId`: 項目ID（外鍵）
 - `userId`: 使用者ID（外鍵）
 - `createdAt`: 指派時間
 
 **約束：**
+
 - 聯合唯一約束：同一項目不會被指派給同一使用者兩次
 
 **關係：**
+
 - N-1: 多個指派屬於一個項目（級聯刪除）
 - N-1: 多個指派屬於一個使用者
 
@@ -213,19 +231,21 @@ model Interview {
   examinerEmpId  String
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-  
+
   examiner       User     @relation(fields: [examinerEmpId], references: [id])
   candidates     InterviewCandidate[]
 }
 ```
 
 **說明：**
+
 - `id`: 自增整數主鍵
 - `jobRole`: 崗位/職位名稱
 - `examinerEmpId`: 面試官ID（外鍵）
 - `createdAt/updatedAt`: 時間戳
 
 **關係：**
+
 - N-1: 多个面試由一个使用者（面試官）建立
 - 1-N: 一個面試可以有多個候選人
 
@@ -238,25 +258,33 @@ model InterviewCandidate {
   id          Int      @id @default(autoincrement())
   jobId       Int
   userId      String
+  startTime   Int?
+  endTime     Int?
   createdAt   DateTime @default(now())
-  
+
   interview   Interview @relation(fields: [jobId], references: [id], onDelete: Cascade)
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@unique([jobId, userId])
 }
 ```
 
 **說明：**
+
 - `id`: 自增整數主鍵
 - `jobId`: 面試ID（外鍵）
 - `userId`: 候選人ID（外鍵）
+- `startTime`: 測驗開始時間，Unix timestamp seconds，可為 null
+- `endTime`: 測驗結束時間，Unix timestamp seconds，可為 null
 - `createdAt`: 新增時間
 
 **約束：**
+
 - 联合唯一約束：同一候選人不会被新增到同一面試两次
+- 若 `startTime` 與 `endTime` 皆有值，API 會檢查 `endTime >= startTime`
 
 **關係：**
+
 - N-1: 多個候選記錄屬於一個面試（級聯刪除）
 - N-1: 多個候選記錄屬於一個使用者（級聯刪除）
 
@@ -301,15 +329,18 @@ InterviewCandidate (N)
 ## 索引和效能優化
 
 ### 主鍵索引
+
 - 所有主鍵欄位都會自動建立索引
-- `User.username`, `User.email` - 唯一索引
+- `User.username`, `User.email` - 唯一索引（SQLite/PostgreSQL 允許多筆 `email = null`）
 - `Problem.title` - 可考虑新增
 
 ### 联合唯一約束
+
 - `Assignment(problemId, userId)` - 防止重復指派
 - `InterviewCandidate(jobId, userId)` - 防止重復候選
 
 ### 建議的额外索引
+
 ```sql
 -- 提交查詢優化
 CREATE INDEX idx_submission_user_id ON submissions(user_id);
@@ -328,16 +359,35 @@ CREATE INDEX idx_problem_is_deleted ON problems(is_deleted);
 ### 遷移历史
 
 1. **20260513053228_init_code_judge**
+
    - 初始化所有核心表
    - 設置關係和約束
 
 2. **20260513070803_add_fields_for_judge_requirements**
+
    - 新增 `Problem.functionName` 欄位
    - 新增 `Submission.userOutput` 欄位
 
 3. **20260513072022_add_interview_models**
+
    - 建立 `Interview` 表
    - 建立 `InterviewCandidate` 表
+
+4. **20260531061000_add_interview_candidate_times**
+
+   - 新增 `InterviewCandidate.startTime` 欄位
+   - 新增 `InterviewCandidate.endTime` 欄位
+
+5. **20260531070000_add_problem_creator**
+
+   - 新增 `Problem.creatorId` 欄位
+   - 新增題目建立者關聯與索引
+
+6. **20260531080000_update_user_roles_and_candidate_email**
+
+   - `User.email` 改為 nullable，讓 `CANDIDATE` 帳號可不填 email
+   - `User.role` 預設改為 `CANDIDATE`
+   - 舊資料角色 `USER` 會遷移為 `CANDIDATE`
 
 ### 執行遷移
 
@@ -365,11 +415,13 @@ SEED_DB=true docker compose up -d --build
 
 ### 预置帳戶
 
-| 使用者名 | 密碼 | 角色 |
-|--------|------|------|
-| admin | admin123 | ADMIN |
-| alice | user123 | USER |
-| bob | user123 | USER |
+| 使用者名   | 密碼     | 角色       | Email |
+| ---------- | -------- | ---------- | ----- |
+| admin      | admin123 | ADMIN      | admin@codejudge.dev |
+| examiner   | user123  | EXAMINER   | examiner@codejudge.dev |
+| questioner | user123  | QUESTIONER | questioner@codejudge.dev |
+| alice      | user123  | CANDIDATE  | null |
+| bob        | user123  | CANDIDATE  | null |
 
 ---
 
@@ -377,22 +429,24 @@ SEED_DB=true docker compose up -d --build
 
 ### SQLite（開發）vs PostgreSQL（生产）
 
-| 特性 | SQLite | PostgreSQL |
-|------|--------|------------|
-| 并發效能 | ⚠️ 有限 | ✅ 優秀 |
-| 事務支持 | ✅ 是 | ✅ 是 |
-| ACID特性 | ✅ 是 | ✅ 是 |
-| 索引类型 | 基礎 | 進階 |
-| JSON支持 | 基礎 | 優秀 |
+| 特性     | SQLite  | PostgreSQL |
+| -------- | ------- | ---------- |
+| 并發效能 | ⚠️ 有限 | ✅ 優秀    |
+| 事務支持 | ✅ 是   | ✅ 是      |
+| ACID特性 | ✅ 是   | ✅ 是      |
+| 索引类型 | 基礎    | 進階       |
+| JSON支持 | 基礎    | 優秀       |
 
 ### 資料庫連接配置
 
 **SQLite（開發）：**
+
 ```
 DATABASE_URL=file:./data/code_judge.db
 ```
 
 **PostgreSQL（生产）：**
+
 ```
 DATABASE_URL=postgresql://user:password@localhost:5432/code_judge
 ```

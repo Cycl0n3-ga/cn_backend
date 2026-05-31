@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   ConflictException,
@@ -6,6 +7,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service.js';
 import { hasPrismaErrorCode } from '../prisma/prisma-errors.js';
 import { CreateInterviewAssignmentDto } from './dto/assignment.dto.js';
+import { hasUserRole, UserRole } from '../auth/user-role.js';
 
 type AssignmentInterview = {
   id: number;
@@ -22,7 +24,7 @@ type AssignmentProblem = {
 type AssignmentUser = {
   id: string;
   username: string;
-  email: string;
+  role: string;
 };
 
 type AssignmentWithRelations = {
@@ -55,6 +57,9 @@ export class AssignmentsService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException(`User #${userId} not found.`);
+    }
+    if (!hasUserRole(user.role, UserRole.CANDIDATE)) {
+      throw new BadRequestException('userId must belong to a CANDIDATE user.');
     }
 
     // Verify problem exists
@@ -139,7 +144,7 @@ export class AssignmentsService {
         select: {
           id: true,
           username: true,
-          email: true,
+          role: true,
         },
       },
     };

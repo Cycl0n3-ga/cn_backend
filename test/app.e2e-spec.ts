@@ -161,12 +161,24 @@ describe('Code Judge API (e2e)', () => {
     });
 
     describe('POST /api/v1/auth/signup', () => {
-      it('should return 400 for missing email', async () => {
+      it('should allow candidate signup without email', async () => {
+        const suffix = Date.now();
         await request(app.getHttpServer())
           .post('/api/v1/auth/signup')
           .send({
-            username: 'signuptest',
+            username: `candidate_no_email_${suffix}`,
             passwordSha256: validSha256,
+          })
+          .expect(201);
+      });
+
+      it('should return 400 for examiner signup without email', async () => {
+        await request(app.getHttpServer())
+          .post('/api/v1/auth/signup')
+          .send({
+            username: 'examiner_no_email',
+            passwordSha256: validSha256,
+            role: 'EXAMINER',
           })
           .expect(400);
       });
@@ -235,7 +247,7 @@ describe('Code Judge API (e2e)', () => {
         expect(signup.body).toHaveProperty('id');
         expect(signup.body).toHaveProperty('username', username);
         expect(signup.body).toHaveProperty('email', email);
-        expect(signup.body).toHaveProperty('role', 'USER');
+        expect(signup.body).toHaveProperty('role', 'CANDIDATE');
 
         const login = await request(app.getHttpServer())
           .post('/api/v1/auth/login')
@@ -243,7 +255,7 @@ describe('Code Judge API (e2e)', () => {
           .expect(200);
 
         expect(login.body).toHaveProperty('token');
-        expect(login.body).toHaveProperty('user_role', 'USER');
+        expect(login.body).toHaveProperty('user_role', 'CANDIDATE');
       });
     });
   });
@@ -275,6 +287,11 @@ describe('Code Judge API (e2e)', () => {
           expect(res.body.items[0]).toHaveProperty('title');
           expect(res.body.items[0]).toHaveProperty('difficulty');
           expect(res.body.items[0]).toHaveProperty('acceptance_rate');
+          expect(res.body.items[0]).toHaveProperty('creator');
+          expect(res.body.items[0]).toHaveProperty('assignedCount');
+          expect(res.body.items[0]).toHaveProperty('submittedCount');
+          expect(res.body.items[0]).toHaveProperty('acceptedCount');
+          expect(res.body.items[0]).toHaveProperty('failedCount');
         }
       });
 
@@ -324,6 +341,11 @@ describe('Code Judge API (e2e)', () => {
           expect(res.body).toHaveProperty('title');
           expect(res.body).toHaveProperty('description');
           expect(res.body).toHaveProperty('difficulty');
+          expect(res.body).toHaveProperty('creator');
+          expect(res.body).toHaveProperty('assignedCount');
+          expect(res.body).toHaveProperty('submittedCount');
+          expect(res.body).toHaveProperty('acceptedCount');
+          expect(res.body).toHaveProperty('failedCount');
           expect(res.body).toHaveProperty('constraints');
           expect(res.body).toHaveProperty('sample_test_cases');
         }
@@ -398,10 +420,14 @@ describe('Code Judge API (e2e)', () => {
 
         expect(res.body).toHaveProperty('problem_id');
         expect(typeof res.body.problem_id).toBe('string');
+        expect(res.body.creator).toMatchObject({
+          username: 'admin',
+          email: 'admin@codejudge.dev',
+        });
         createdProblemId = res.body.problem_id;
       });
 
-      it('should return 403 when USER tries to create a problem', async () => {
+      it('should return 403 when CANDIDATE tries to create a problem', async () => {
         await request(app.getHttpServer())
           .post('/api/v1/problems')
           .set('Authorization', `Bearer ${aliceToken}`)
@@ -856,6 +882,23 @@ describe('Code Judge API (e2e)', () => {
           .get('/api/v1/interview-candidates')
           .expect(200);
         expect(Array.isArray(res.body)).toBe(true);
+      });
+    });
+
+    describe('PATCH /api/v1/interview-candidates/:id/time', () => {
+      it('should return 401 without auth token', async () => {
+        await request(app.getHttpServer())
+          .patch('/api/v1/interview-candidates/1/time')
+          .send({ startTime: 1770000000, endTime: 1770003600 })
+          .expect(401);
+      });
+    });
+
+    describe('GET /api/v1/interview-candidates/:id/time-status', () => {
+      it('should return 401 without auth token', async () => {
+        await request(app.getHttpServer())
+          .get('/api/v1/interview-candidates/1/time-status')
+          .expect(401);
       });
     });
 

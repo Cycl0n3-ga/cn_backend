@@ -30,6 +30,14 @@ describe('ProblemsService (integration)', () => {
     const first = res.items[0];
     expect(typeof first.problem_id).toBe('string');
     expect(typeof first.acceptance_rate).toBe('string');
+    expect(typeof first.assignedCount).toBe('string');
+    expect(typeof first.submittedCount).toBe('string');
+    expect(typeof first.acceptedCount).toBe('string');
+    expect(typeof first.failedCount).toBe('string');
+    expect(first.creator).toMatchObject({
+      username: 'questioner',
+      email: 'questioner@codejudge.dev',
+    });
   });
 
   it('findAll should filter by difficulty', async () => {
@@ -45,6 +53,16 @@ describe('ProblemsService (integration)', () => {
 
     expect(detail.problem_id).toBe('1');
     expect(detail.sample_test_cases.length).toBe(2);
+    expect(detail.creator).toMatchObject({
+      username: 'questioner',
+      email: 'questioner@codejudge.dev',
+    });
+    expect(detail).toMatchObject({
+      assignedCount: '1',
+      submittedCount: '2',
+      acceptedCount: '1',
+      failedCount: '1',
+    });
   });
 
   it('findOne should throw NotFoundException for deleted/non-existent problems', async () => {

@@ -19,6 +19,9 @@ import {
 import { AssignmentsService } from './assignments.service.js';
 import { CreateInterviewAssignmentDto } from './dto/assignment.dto.js';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
+import { RolesGuard } from '../auth/roles.guard.js';
+import { Roles } from '../auth/roles.decorator.js';
+import { UserRole } from '../auth/user-role.js';
 
 @ApiTags('Assignments')
 @Controller('assignments')
@@ -26,7 +29,8 @@ export class AssignmentsController {
   constructor(private readonly assignmentsService: AssignmentsService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.EXAMINER, UserRole.QUESTIONER)
   @ApiBearerAuth()
   @ApiOperation({
     summary: '指派題目給面試考生',
@@ -84,7 +88,8 @@ export class AssignmentsController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.EXAMINER, UserRole.QUESTIONER)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({

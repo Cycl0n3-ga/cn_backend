@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateInterviewDto, UpdateInterviewDto } from './dto/interview.dto.js';
 
+
 const DIFFICULTY_CONFIGS = [
   { field: 'easy', difficulty: 'EASY' },
   { field: 'medium', difficulty: 'MEDIUM' },
