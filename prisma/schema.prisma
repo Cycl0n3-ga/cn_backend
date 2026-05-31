@@ -66,6 +66,7 @@ model TestCase {
 
   problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
 
+  @@index([problemId])
   @@map("test_cases")
 }
 
@@ -87,6 +88,9 @@ model Submission {
   user    User    @relation(fields: [userId], references: [id])
   problem Problem @relation(fields: [problemId], references: [id])
 
+  @@index([userId])
+  @@index([userId, problemId, status])
+  @@index([problemId, status])
   @@map("submissions")
 }
 
@@ -132,6 +136,7 @@ model InterviewCandidate {
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([jobId, userId])
+  @@index([userId])
   @@map("interview_candidates")
 }
 

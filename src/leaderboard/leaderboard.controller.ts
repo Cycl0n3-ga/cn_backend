@@ -29,9 +29,8 @@ export class LeaderboardController {
     },
   })
   getRankings(@Query('page') page?: string, @Query('limit') limit?: string) {
-    return this.leaderboardService.getRankings(
-      page ? parseInt(page, 10) : 1,
-      limit ? parseInt(limit, 10) : 20,
-    );
+    const parsedPage = Math.max(1, parseInt(page || '1', 10) || 1);
+    const parsedLimit = Math.min(100, Math.max(1, parseInt(limit || '20', 10) || 20));
+    return this.leaderboardService.getRankings(parsedPage, parsedLimit);
   }
 }

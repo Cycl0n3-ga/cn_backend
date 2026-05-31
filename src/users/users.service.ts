@@ -5,21 +5,28 @@ import { PrismaService } from '../prisma/prisma.service.js';
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll() {
-    const users = await this.prisma.user.findMany({
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        role: true,
-        solvedCount: true,
-        rating: true,
-        createdAt: true,
-      },
-      orderBy: { createdAt: 'asc' },
-    });
+  async findAll(page = 1, limit = 20) {
+    const [total, users] = await Promise.all([
+      this.prisma.user.count(),
+      this.prisma.user.findMany({
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          role: true,
+          solvedCount: true,
+          rating: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: 'asc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+    ]);
 
     return {
+      total: total.toString(),
+      page: page.toString(),
       data: users.map((u) => ({
         id: u.id,
         username: u.username,

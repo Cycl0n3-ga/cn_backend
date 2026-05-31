@@ -182,31 +182,35 @@ export class SubmissionsService {
     submissionId: string,
     userId: string,
   ) {
-    const submission = await this.prisma.submission.findUnique({
-      where: { id: submissionId },
-    });
-    if (!submission) {
-      return;
-    }
+    // Use a transaction to prevent race condition where two concurrent
+    // ACCEPTED submissions both see previousAccepted === 0 and both increment.
+    await this.prisma.$transaction(async (tx) => {
+      const submission = await tx.submission.findUnique({
+        where: { id: submissionId },
+      });
+      if (!submission) {
+        return;
+      }
 
-    const previousAccepted = await this.prisma.submission.count({
-      where: {
-        userId,
-        problemId: submission.problemId,
-        status: STATUS.ACCEPTED,
-        id: { not: submissionId },
-      },
-    });
-
-    if (previousAccepted === 0) {
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: {
-          solvedCount: { increment: 1 },
-          rating: { increment: 10 },
+      const previousAccepted = await tx.submission.count({
+        where: {
+          userId,
+          problemId: submission.problemId,
+          status: STATUS.ACCEPTED,
+          id: { not: submissionId },
         },
       });
-    }
+
+      if (previousAccepted === 0) {
+        await tx.user.update({
+          where: { id: userId },
+          data: {
+            solvedCount: { increment: 1 },
+            rating: { increment: 10 },
+          },
+        });
+      }
+    });
   }
 
   private mapJudgeStatus(status: JudgeResult['status']) {

@@ -12,5 +12,15 @@
   },
   "globalSetup": "<rootDir>/jest.global-setup.js",
   "globalTeardown": "<rootDir>/jest.global-teardown.js",
-  "testTimeout": 30000
+  "testTimeout": 30000,
+  "reporters": [
+    "default",
+    [
+      "jest-junit",
+      {
+        "outputDirectory": "./test-results",
+        "outputName": "e2e-test-results.xml"
+      }
+    ]
+  ]
 }

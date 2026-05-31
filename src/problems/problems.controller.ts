@@ -49,9 +49,11 @@ export class ProblemsController {
     @Query('limit') limit?: string,
     @Query('difficulty') difficulty?: string,
   ) {
+    const parsedPage = Math.max(1, parseInt(page || '1', 10) || 1);
+    const parsedLimit = Math.min(100, Math.max(1, parseInt(limit || '20', 10) || 20));
     return this.problemsService.findAll(
-      page ? parseInt(page, 10) : 1,
-      limit ? parseInt(limit, 10) : 20,
+      parsedPage,
+      parsedLimit,
       difficulty,
     );
   }

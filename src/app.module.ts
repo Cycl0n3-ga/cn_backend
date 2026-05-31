@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { UsersModule } from './users/users.module.js';
@@ -14,6 +16,13 @@ import { StressTestReportsModule } from './stress-test-reports/stress-test-repor
 
 @Module({
   imports: [
+    // Global rate limiting: 60 requests per minute per IP
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 60,
+      },
+    ]),
     PrismaModule,
     AuthModule,
     UsersModule,
@@ -26,6 +35,12 @@ import { StressTestReportsModule } from './stress-test-reports/stress-test-repor
     InterviewCandidatesModule,
     AssignmentsModule,
     StressTestReportsModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}

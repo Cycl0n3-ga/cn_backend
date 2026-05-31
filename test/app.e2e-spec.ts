@@ -578,6 +578,7 @@ describe('Code Judge API (e2e)', () => {
       it('should return users list', async () => {
         const res = await request(app.getHttpServer())
           .get('/api/v1/users')
+          .set('Authorization', `Bearer ${adminToken}`)
           .expect(200);
 
         expect(res.body).toHaveProperty('data');
@@ -587,6 +588,7 @@ describe('Code Judge API (e2e)', () => {
       it('should return user fields with correct types', async () => {
         const res = await request(app.getHttpServer())
           .get('/api/v1/users')
+          .set('Authorization', `Bearer ${adminToken}`)
           .expect(200);
 
         if (res.body.data.length > 0) {
@@ -606,6 +608,7 @@ describe('Code Judge API (e2e)', () => {
       it('should not expose passwordHash', async () => {
         const res = await request(app.getHttpServer())
           .get('/api/v1/users')
+          .set('Authorization', `Bearer ${adminToken}`)
           .expect(200);
 
         if (res.body.data.length > 0) {
@@ -618,6 +621,7 @@ describe('Code Judge API (e2e)', () => {
       it('should return 404 for non-existent user', async () => {
         await request(app.getHttpServer())
           .get('/api/v1/users/nonexistent_user_xyz/submissions')
+          .set('Authorization', `Bearer ${adminToken}`)
           .expect(404);
       });
 
@@ -625,12 +629,14 @@ describe('Code Judge API (e2e)', () => {
         // First find an existing user
         const usersRes = await request(app.getHttpServer())
           .get('/api/v1/users')
+          .set('Authorization', `Bearer ${adminToken}`)
           .expect(200);
 
         if (usersRes.body.data.length > 0) {
           const username = usersRes.body.data[0].username;
           const res = await request(app.getHttpServer())
             .get(`/api/v1/users/${username}/submissions`)
+            .set('Authorization', `Bearer ${adminToken}`)
             .expect(200);
 
           expect(res.body).toHaveProperty('total');
@@ -644,12 +650,14 @@ describe('Code Judge API (e2e)', () => {
       it('should support pagination parameters', async () => {
         const usersRes = await request(app.getHttpServer())
           .get('/api/v1/users')
+          .set('Authorization', `Bearer ${adminToken}`)
           .expect(200);
 
         if (usersRes.body.data.length > 0) {
           const username = usersRes.body.data[0].username;
           const res = await request(app.getHttpServer())
             .get(`/api/v1/users/${username}/submissions?page=1&limit=5`)
+            .set('Authorization', `Bearer ${adminToken}`)
             .expect(200);
 
           expect(res.body.page).toBe('1');
@@ -830,9 +838,11 @@ describe('Code Judge API (e2e)', () => {
       it('should return interviews list', async () => {
         const res = await request(app.getHttpServer())
           .get('/api/v1/interviews')
+          .set('Authorization', `Bearer ${adminToken}`)
           .expect(200);
 
-        expect(Array.isArray(res.body)).toBe(true);
+        expect(Array.isArray(res.body.data)).toBe(true);
+        expect(res.body).toHaveProperty('total');
       });
     });
 
@@ -880,6 +890,7 @@ describe('Code Judge API (e2e)', () => {
       it('should return candidates list', async () => {
         const res = await request(app.getHttpServer())
           .get('/api/v1/interview-candidates')
+          .set('Authorization', `Bearer ${adminToken}`)
           .expect(200);
         expect(Array.isArray(res.body)).toBe(true);
       });

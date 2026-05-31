@@ -49,14 +49,19 @@ export class InterviewsController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.EXAMINER)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: '取得面試列表 (輔助測試)',
-    description: '取得所有面試',
+    description: '取得所有面試。需要 EXAMINER 權限。',
   })
   @ApiResponse({ status: 200, description: '取得成功' })
+  @ApiResponse({ status: 401, description: '未認證' })
+  @ApiResponse({ status: 403, description: '權限不足' })
   findAll(@Query('page') page?: string, @Query('limit') limit?: string) {
-    const parsedPage = page ? parseInt(page, 10) : 1;
-    const parsedLimit = limit ? parseInt(limit, 10) : 20;
+    const parsedPage = Math.max(1, parseInt(page || '1', 10) || 1);
+    const parsedLimit = Math.min(100, Math.max(1, parseInt(limit || '20', 10) || 20));
     return this.interviewsService.findAll(parsedPage, parsedLimit);
   }
 
