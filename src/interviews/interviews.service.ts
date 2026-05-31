@@ -72,7 +72,7 @@ type InterviewResponse = {
 export class InterviewsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createInterviewDto: CreateInterviewDto) {
+  async create(examinerId: string, createInterviewDto: CreateInterviewDto) {
     const problemCounts = this.normalizeProblemCounts(
       createInterviewDto.problemCounts,
     );
@@ -96,86 +96,104 @@ export class InterviewsService {
 
       const problems = await this.findAssignableProblems(problemCounts);
 
-      const result = await this.prisma.$transaction(async (tx) => {
-        const interview = await tx.interview.create({
-          data: {
-            jobRole: createInterviewDto.jobRole,
-            examinerEmpId: createInterviewDto.examinerEmpId,
-          },
-        });
+      try {
+        const result = await this.prisma.$transaction(async (tx) => {
+          const interview = await tx.interview.create({
+            data: {
+              jobRole: createInterviewDto.jobRole,
+              examinerEmpId: examinerId,
+            },
+          });
 
-        const interviewCandidate = await tx.interviewCandidate.create({
-          data: {
-            jobId: interview.id,
-            userId: createInterviewDto.candidateUserId!,
-          },
-        });
+          const interviewCandidate = await tx.interviewCandidate.create({
+            data: {
+              jobId: interview.id,
+              userId: createInterviewDto.candidateUserId!,
+            },
+          });
 
-        const assignments = await Promise.all(
-          problems.map((problem) =>
-            tx.interviewAssignment.create({
-              data: {
-                jobId: interview.id,
-                userId: createInterviewDto.candidateUserId!,
-                problemId: problem.id,
-              },
-              include: {
-                problem: {
-                  select: { id: true, title: true, difficulty: true },
+          const assignments = await Promise.all(
+            problems.map((problem) =>
+              tx.interviewAssignment.create({
+                data: {
+                  jobId: interview.id,
+                  userId: createInterviewDto.candidateUserId!,
+                  problemId: problem.id,
                 },
-              },
-            }),
-          ),
+                include: {
+                  problem: {
+                    select: { id: true, title: true, difficulty: true },
+                  },
+                },
+              }),
+            ),
+          );
+
+          return { interview, interviewCandidate, assignments };
+        });
+
+        return this.formatInterview(
+          result.interview,
+          result.interviewCandidate,
+          result.assignments,
+          problemCounts,
         );
-
-        return { interview, interviewCandidate, assignments };
-      });
-
-      return this.formatInterview(
-        result.interview,
-        result.interviewCandidate,
-        result.assignments,
-        problemCounts,
-      );
+      } catch (error) {
+        if (error instanceof Error && (error as any).code === 'P2003') {
+          throw new BadRequestException('Invalid candidateUserId.');
+        }
+        throw error;
+      }
     }
 
     const interview = await this.prisma.interview.create({
       data: {
         jobRole: createInterviewDto.jobRole,
-        examinerEmpId: createInterviewDto.examinerEmpId,
+        examinerEmpId: examinerId,
       },
     });
 
     return this.formatInterview(interview);
   }
 
-  async findAll() {
-    const interviews = await this.prisma.interview.findMany();
-    return interviews.map((i) => this.formatInterview(i));
+  async findAll(page: number, limit: number) {
+    const skip = (page - 1) * limit;
+    const [total, interviews] = await Promise.all([
+      this.prisma.interview.count(),
+      this.prisma.interview.findMany({ skip, take: limit }),
+    ]);
+    return {
+      data: interviews.map((i) => this.formatInterview(i)),
+      total,
+      page,
+      limit,
+    };
   }
 
   async update(id: number, updateInterviewDto: UpdateInterviewDto) {
-    const interview = await this.prisma.interview.findUnique({ where: { id } });
-    if (!interview) {
-      throw new NotFoundException(`Interview #${id} not found.`);
+    try {
+      const updated = await this.prisma.interview.update({
+        where: { id },
+        data: { jobRole: updateInterviewDto.jobRole },
+      });
+      return this.formatInterview(updated);
+    } catch (error) {
+      if (error instanceof Error && (error as any).code === 'P2025') {
+        throw new NotFoundException(`Interview #${id} not found.`);
+      }
+      throw error;
     }
-
-    const updated = await this.prisma.interview.update({
-      where: { id },
-      data: { jobRole: updateInterviewDto.jobRole },
-    });
-
-    return this.formatInterview(updated);
   }
 
   async remove(id: number) {
-    const interview = await this.prisma.interview.findUnique({ where: { id } });
-    if (!interview) {
-      throw new NotFoundException(`Interview #${id} not found.`);
+    try {
+      await this.prisma.interview.delete({ where: { id } });
+    } catch (error) {
+      if (error instanceof Error && (error as any).code === 'P2025') {
+        throw new NotFoundException(`Interview #${id} not found.`);
+      }
+      throw error;
     }
-
-    await this.prisma.interview.delete({ where: { id } });
-    return;
   }
 
   private async findAssignableProblems(
@@ -188,20 +206,19 @@ export class InterviewsService {
           return [];
         }
 
-        const problems = await this.prisma.problem.findMany({
+        const allProblems = await this.prisma.problem.findMany({
           where: { difficulty, isDeleted: false },
           select: { id: true, title: true, difficulty: true },
-          orderBy: { id: 'asc' },
-          take: count,
         });
 
-        if (problems.length < count) {
+        if (allProblems.length < count) {
           throw new BadRequestException(
-            `Not enough ${difficulty} problems. Requested ${count}, available ${problems.length}.`,
+            `Not enough ${difficulty} problems. Requested ${count}, available ${allProblems.length}.`,
           );
         }
 
-        return problems;
+        const shuffled = allProblems.sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, count);
       }),
     );
 

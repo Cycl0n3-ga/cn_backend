@@ -10,6 +10,8 @@ import {
   HttpStatus,
   ParseIntPipe,
   UseGuards,
+  Request,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -38,8 +40,9 @@ export class InterviewsController {
     description: '建立一個新的面試',
   })
   @ApiResponse({ status: 201, description: '建立成功' })
-  create(@Body() createInterviewDto: CreateInterviewDto) {
-    return this.interviewsService.create(createInterviewDto);
+  create(@Request() req: any, @Body() createInterviewDto: CreateInterviewDto) {
+    const examinerId = req.user.sub || req.user.id;
+    return this.interviewsService.create(examinerId, createInterviewDto);
   }
 
   @Get()
@@ -48,8 +51,13 @@ export class InterviewsController {
     description: '取得所有面試',
   })
   @ApiResponse({ status: 200, description: '取得成功' })
-  findAll() {
-    return this.interviewsService.findAll();
+  findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const parsedPage = page ? parseInt(page, 10) : 1;
+    const parsedLimit = limit ? parseInt(limit, 10) : 20;
+    return this.interviewsService.findAll(parsedPage, parsedLimit);
   }
 
   @Patch(':id')
