@@ -99,10 +99,7 @@ describe('UsersController', () => {
     it('should return submission history for own user', async () => {
       service.getSubmissionHistory.mockResolvedValue(mockHistoryResult);
 
-      const result = await controller.getSubmissions(
-        mockAliceReq,
-        'alice',
-      );
+      const result = await controller.getSubmissions(mockAliceReq, 'alice');
 
       expect(result).toEqual(mockHistoryResult);
       expect(service.getSubmissionHistory).toHaveBeenCalledWith('alice', 1, 20);
@@ -123,9 +120,9 @@ describe('UsersController', () => {
     });
 
     it('should throw ForbiddenException when viewing other user submissions', () => {
-      expect(() =>
-        controller.getSubmissions(mockBobReq, 'alice'),
-      ).toThrow(ForbiddenException);
+      expect(() => controller.getSubmissions(mockBobReq, 'alice')).toThrow(
+        ForbiddenException,
+      );
     });
 
     it('should propagate NotFoundException for unknown username', async () => {
@@ -141,10 +138,14 @@ describe('UsersController', () => {
     it('should use page=1 when page query param is not provided', async () => {
       service.getSubmissionHistory.mockResolvedValue(mockHistoryResult);
 
-      await controller.getSubmissions(mockAliceReq, 'alice', undefined, undefined);
+      await controller.getSubmissions(
+        mockAliceReq,
+        'alice',
+        undefined,
+        undefined,
+      );
 
       expect(service.getSubmissionHistory).toHaveBeenCalledWith('alice', 1, 20);
     });
   });
 });
-

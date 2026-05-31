@@ -12,7 +12,12 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @Throttle({ default: { limit: process.env.NODE_ENV === 'production' ? 5 : 100, ttl: 60000 } }) // 5 attempts per minute — brute-force protection
+  @Throttle({
+    default: {
+      limit: process.env.NODE_ENV === 'production' ? 5 : 100,
+      ttl: 60000,
+    },
+  }) // 5 attempts per minute — brute-force protection
   @ApiOperation({
     summary: '使用者登入',
     description: '驗證帳號密碼並核發 JWT Token',

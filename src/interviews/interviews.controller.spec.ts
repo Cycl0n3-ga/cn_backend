@@ -57,7 +57,7 @@ describe('InterviewsController', () => {
         { user: { id: 'user-uuid-1' } } as any,
         {
           jobRole: 'Backend Developer',
-        }
+        },
       );
 
       expect(result).toEqual(mockCreateResult);
@@ -94,12 +94,9 @@ describe('InterviewsController', () => {
     it('should return id as string', async () => {
       service.create.mockResolvedValue(mockCreateResult);
 
-      const result = await controller.create(
-        { user: { id: 'uid' } } as any,
-        {
-          jobRole: 'Test',
-        }
-      );
+      const result = await controller.create({ user: { id: 'uid' } } as any, {
+        jobRole: 'Test',
+      });
 
       expect(typeof result.id).toBe('string');
     });
@@ -127,7 +124,12 @@ describe('InterviewsController', () => {
     });
 
     it('should call service.findAll once', async () => {
-      service.findAll.mockResolvedValue({ data: [], total: 0, page: 1, limit: 20 });
+      service.findAll.mockResolvedValue({
+        data: [],
+        total: 0,
+        page: 1,
+        limit: 20,
+      });
 
       await controller.findAll();
 
@@ -135,7 +137,12 @@ describe('InterviewsController', () => {
     });
 
     it('should return empty array when no interviews', async () => {
-      service.findAll.mockResolvedValue({ data: [], total: 0, page: 1, limit: 20 });
+      service.findAll.mockResolvedValue({
+        data: [],
+        total: 0,
+        page: 1,
+        limit: 20,
+      });
 
       const result = await controller.findAll();
 

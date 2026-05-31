@@ -33,12 +33,12 @@ export class UsersController {
   @ApiQuery({ name: 'limit', required: false, example: 20 })
   @ApiResponse({ status: 200, description: '成功取得使用者列表' })
   @ApiResponse({ status: 401, description: '未認證' })
-  findAll(
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-  ) {
+  findAll(@Query('page') page?: string, @Query('limit') limit?: string) {
     const parsedPage = Math.max(1, parseInt(page || '1', 10) || 1);
-    const parsedLimit = Math.min(100, Math.max(1, parseInt(limit || '20', 10) || 20));
+    const parsedLimit = Math.min(
+      100,
+      Math.max(1, parseInt(limit || '20', 10) || 20),
+    );
     return this.usersService.findAll(parsedPage, parsedLimit);
   }
 
@@ -71,7 +71,10 @@ export class UsersController {
     }
 
     const parsedPage = Math.max(1, parseInt(page || '1', 10) || 1);
-    const parsedLimit = Math.min(100, Math.max(1, parseInt(limit || '20', 10) || 20));
+    const parsedLimit = Math.min(
+      100,
+      Math.max(1, parseInt(limit || '20', 10) || 20),
+    );
     return this.usersService.getSubmissionHistory(
       username,
       parsedPage,

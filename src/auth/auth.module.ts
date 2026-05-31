@@ -1,7 +1,6 @@
-import { Module, Logger } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { randomBytes } from 'node:crypto';
 import { PrismaModule } from '../prisma/prisma.module.js';
 import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';
@@ -25,4 +24,3 @@ import { resolveJwtSecret } from './jwt-secret.js';
   exports: [AuthService, JwtModule],
 })
 export class AuthModule {}
-

@@ -70,7 +70,8 @@ export class InterviewCandidatesController {
   @ApiBearerAuth()
   @ApiOperation({
     summary: '取得所有面試考生列表',
-    description: '列出所有面試中的考生記錄（含面試及使用者資訊）。需要 EXAMINER 權限。',
+    description:
+      '列出所有面試中的考生記錄（含面試及使用者資訊）。需要 EXAMINER 權限。',
   })
   @ApiResponse({
     status: 200,

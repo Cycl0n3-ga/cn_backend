@@ -12,4 +12,3 @@ import { JudgeService } from './judge.service.js';
   exports: [JudgeService, JudgeQueueService],
 })
 export class JudgeModule {}
-

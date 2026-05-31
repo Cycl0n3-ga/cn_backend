@@ -2,11 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-  BadRequestException,
-  ConflictException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { createHash } from 'node:crypto';
 
@@ -235,7 +231,10 @@ describe('AuthService', () => {
 
     it('should always force role to CANDIDATE regardless of input', async () => {
       prisma.user.findFirst.mockResolvedValue(null);
-      prisma.user.create.mockResolvedValue({ ...newUserResult, role: 'CANDIDATE' });
+      prisma.user.create.mockResolvedValue({
+        ...newUserResult,
+        role: 'CANDIDATE',
+      });
 
       await service.signup({
         username: 'adminuser',
@@ -275,7 +274,7 @@ describe('AuthService', () => {
       });
 
       // role is ignored; email is optional for CANDIDATE
-      const result = await service.signup({
+      await service.signup({
         username: 'examiner1',
         passwordSha256: sha256Hex('examiner123'),
         role: 'EXAMINER',

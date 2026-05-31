@@ -6,7 +6,12 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { JudgeQueueService } from './judge-queue.service.js';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
@@ -18,13 +23,19 @@ class RunDto {
   @IsInt()
   problem_id: number;
 
-  @ApiProperty({ example: 'python', enum: ['javascript', 'python', 'c', 'cpp'] })
+  @ApiProperty({
+    example: 'python',
+    enum: ['javascript', 'python', 'c', 'cpp'],
+  })
   @IsString()
   @IsNotEmpty()
   @MaxLength(20)
   language: string;
 
-  @ApiProperty({ example: 'def solve(input): return input', description: '原始碼（最大 64KB）' })
+  @ApiProperty({
+    example: 'def solve(input): return input',
+    description: '原始碼（最大 64KB）',
+  })
   @IsString()
   @IsNotEmpty()
   @MaxLength(65536)
@@ -85,4 +96,3 @@ export class JudgeController {
     return this.judgeQueueService.getStats();
   }
 }
-

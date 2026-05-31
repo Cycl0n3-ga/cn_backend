@@ -310,7 +310,9 @@ describe('InterviewsService', () => {
     });
 
     it('should throw NotFoundException for non-existent interview', async () => {
-      prisma.interview.update.mockRejectedValue(Object.assign(new Error(), { code: 'P2025' }));
+      prisma.interview.update.mockRejectedValue(
+        Object.assign(new Error(), { code: 'P2025' }),
+      );
 
       await expect(service.update(999, { jobRole: 'Test' })).rejects.toThrow(
         NotFoundException,
@@ -318,7 +320,9 @@ describe('InterviewsService', () => {
     });
 
     it('should throw with correct message', async () => {
-      prisma.interview.update.mockRejectedValue(Object.assign(new Error(), { code: 'P2025' }));
+      prisma.interview.update.mockRejectedValue(
+        Object.assign(new Error(), { code: 'P2025' }),
+      );
 
       await expect(service.update(5, { jobRole: 'Test' })).rejects.toThrow(
         'Interview #5 not found.',
@@ -339,7 +343,9 @@ describe('InterviewsService', () => {
     });
 
     it('should throw NotFoundException for non-existent interview', async () => {
-      prisma.interview.delete.mockRejectedValue(Object.assign(new Error(), { code: 'P2025' }));
+      prisma.interview.delete.mockRejectedValue(
+        Object.assign(new Error(), { code: 'P2025' }),
+      );
 
       await expect(service.remove(999)).rejects.toThrow(NotFoundException);
     });
