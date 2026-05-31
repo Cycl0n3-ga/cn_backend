@@ -299,7 +299,60 @@ Authorization: Bearer <JWT_TOKEN>
 
 ---
 
-### 3.4 刪除題目 (Admin Only)
+### 3.4 編輯題目 (Admin Only)
+
+| 項目       | 值                      |
+| ---------- | ----------------------- |
+| **Method** | `PATCH`                  |
+| **Path**   | `/problems/{id}`        |
+| **認證**   | ✅ Bearer Token (`ADMIN`, `QUESTIONER`) |
+
+**Request Body:**
+
+```json
+{
+  "title": "Updated Problem Title",
+  "description": "## Description\n\nNew markdown text...",
+  "difficulty": "MEDIUM",
+  "function_name": "solve",
+  "time_limit_ms": 1500,
+  "memory_limit_mb": 512,
+  "test_cases": [
+    { "input": "[1,2,3]", "output": "6", "is_hidden": false }
+  ]
+}
+```
+
+| 欄位                     | 型別    | 必填 | 說明                           |
+| ------------------------ | ------- | ---- | ------------------------------ |
+| `title`                  | string  | 否   | 題目標題                       |
+| `description`            | string  | 否   | 題目描述 (Markdown)            |
+| `difficulty`             | enum    | 否   | `EASY`, `MEDIUM`, `HARD`       |
+| `function_name`          | string  | 否   | 預期使用者實作的 function 名稱 |
+| `time_limit_ms`          | number  | 否   | 時間限制（毫秒）               |
+| `memory_limit_mb`        | number  | 否   | 記憶體限制（MB）               |
+| `test_cases`             | array   | 否   | 新的測試資料（傳入會完全覆蓋舊測資） |
+| `test_cases[].input`     | string  | ✅   | 輸入                           |
+| `test_cases[].output`    | string  | ✅   | 預期輸出                       |
+| `test_cases[].is_hidden` | boolean | 否   | 是否隱藏，預設 true            |
+
+**Response (200 OK):**
+
+```json
+{
+  "problem_id": "1",
+  "title": "Updated Problem Title",
+  "creator": {
+    "id": "uuid-string",
+    "username": "admin",
+    "email": "admin@codejudge.dev"
+  }
+}
+```
+
+---
+
+### 3.5 刪除題目 (Admin Only)
 
 | 項目       | 值                      |
 | ---------- | ----------------------- |
@@ -313,7 +366,7 @@ Authorization: Bearer <JWT_TOKEN>
 
 ---
 
-### 3.5 指派題目 (Admin Only)
+### 3.6 指派題目 (Admin Only)
 
 | 項目       | 值                      |
 | ---------- | ----------------------- |
@@ -1084,31 +1137,32 @@ x-internal-api-key: <INTERNAL_API_KEY>
 | 3   | `GET`    | `/problems`                      | ❌          | 題目列表             |
 | 4   | `GET`    | `/problems/:id`                  | ❌          | 題目詳情             |
 | 5   | `POST`   | `/problems`                      | 🔒 ADMIN / QUESTIONER | 新增題目             |
-| 6   | `DELETE` | `/problems/:id`                  | 🔒 ADMIN / QUESTIONER | 刪除題目             |
-| 7   | `POST`   | `/problems/:id/assign`           | 🔒 ADMIN / EXAMINER / QUESTIONER | 指派題目             |
-| 8   | `POST`   | `/submissions`                   | 🔒 ADMIN / CANDIDATE | 提交程式碼           |
-| 9   | `GET`    | `/submissions/:id`               | ❌          | 查詢評測結果         |
-| 10  | `GET`    | `/users`                         | ❌          | 使用者列表           |
-| 11  | `GET`    | `/users/:username/submissions`   | ❌          | 使用者提交歷史       |
-| 12  | `GET`    | `/leaderboard`                   | ❌          | 排行榜               |
-| 13  | `GET`    | `/health`                        | ❌          | 健康檢查             |
-| 14  | `GET`    | `/internal/testcases/:id`        | 🔑 Internal | 評測機測資           |
-| 15  | `POST`   | `/interviews`                    | 🔒 ADMIN / EXAMINER | 建立面試             |
-| 16  | `GET`    | `/interviews`                    | ❌          | 取得面試列表         |
-| 17  | `PATCH`  | `/interviews/:id`                | 🔒 ADMIN / EXAMINER | 更改面試名稱         |
-| 18  | `DELETE` | `/interviews/:id`                | 🔒 ADMIN / EXAMINER | 刪除面試             |
-| 19  | `POST`   | `/interview-candidates`          | 🔒 ADMIN / EXAMINER | 新增面試者           |
-| 20  | `GET`    | `/interview-candidates`          | ❌          | 取得所有面試考生列表 |
-| 21  | `PATCH`  | `/interview-candidates/:id/time` | 🔒 ADMIN / EXAMINER | 更新面試考生測驗時間 |
-| 22  | `GET`    | `/interview-candidates/:id/time-status` | 🔒 ADMIN / EXAMINER / CANDIDATE | 取得伺服器時間與剩餘時間 |
-| 23  | `DELETE` | `/interview-candidates/:id`      | 🔒 ADMIN / EXAMINER | 移除面試者           |
-| 24  | `POST`   | `/assignments`                   | 🔒 ADMIN / EXAMINER / QUESTIONER | 指派題目給考生       |
-| 25  | `GET`    | `/assignments`                   | ❌          | 取得題目指派列表     |
-| 26  | `GET`    | `/assignments/user/:userId`      | ❌          | 取得特定使用者的指派 |
-| 27  | `GET`    | `/assignments/:id`               | ❌          | 取得單一指派         |
-| 28  | `DELETE` | `/assignments/:id`               | 🔒 ADMIN / EXAMINER / QUESTIONER | 刪除題目指派         |
-| 29  | `POST`   | `/stress-test-reports`           | ❌          | 新增壓力測試報告     |
-| 30  | `GET`    | `/stress-test-reports`           | ❌          | 取得壓力測試報告列表 |
-| 31  | `GET`    | `/stress-test-reports/latest`    | ❌          | 取得端點最新報告     |
-| 32  | `GET`    | `/stress-test-reports/summary`   | ❌          | 取得壓力測試摘要     |
-| 33  | `GET`    | `/stress-test-reports/dashboard` | ❌          | 取得監控 Dashboard   |
+| 6   | `PATCH`  | `/problems/:id`                  | 🔒 ADMIN / QUESTIONER | 編輯題目             |
+| 7   | `DELETE` | `/problems/:id`                  | 🔒 ADMIN / QUESTIONER | 刪除題目             |
+| 8   | `POST`   | `/problems/:id/assign`           | 🔒 ADMIN / EXAMINER / QUESTIONER | 指派題目             |
+| 9   | `POST`   | `/submissions`                   | 🔒 ADMIN / CANDIDATE | 提交程式碼           |
+| 10  | `GET`    | `/submissions/:id`               | ❌          | 查詢評測結果         |
+| 11  | `GET`    | `/users`                         | ❌          | 使用者列表           |
+| 12  | `GET`    | `/users/:username/submissions`   | ❌          | 使用者提交歷史       |
+| 13  | `GET`    | `/leaderboard`                   | ❌          | 排行榜               |
+| 14  | `GET`    | `/health`                        | ❌          | 健康檢查             |
+| 15  | `GET`    | `/internal/testcases/:id`        | 🔑 Internal | 評測機測資           |
+| 16  | `POST`   | `/interviews`                    | 🔒 ADMIN / EXAMINER | 建立面試             |
+| 17  | `GET`    | `/interviews`                    | ❌          | 取得面試列表         |
+| 18  | `PATCH`  | `/interviews/:id`                | 🔒 ADMIN / EXAMINER | 更改面試名稱         |
+| 19  | `DELETE` | `/interviews/:id`                | 🔒 ADMIN / EXAMINER | 刪除面試             |
+| 20  | `POST`   | `/interview-candidates`          | 🔒 ADMIN / EXAMINER | 新增面試者           |
+| 21  | `GET`    | `/interview-candidates`          | ❌          | 取得所有面試考生列表 |
+| 22  | `PATCH`  | `/interview-candidates/:id/time` | 🔒 ADMIN / EXAMINER | 更新面試考生測驗時間 |
+| 23  | `GET`    | `/interview-candidates/:id/time-status` | 🔒 ADMIN / EXAMINER / CANDIDATE | 取得伺服器時間與剩餘時間 |
+| 24  | `DELETE` | `/interview-candidates/:id`      | 🔒 ADMIN / EXAMINER | 移除面試者           |
+| 25  | `POST`   | `/assignments`                   | 🔒 ADMIN / EXAMINER / QUESTIONER | 指派題目給考生       |
+| 26  | `GET`    | `/assignments`                   | ❌          | 取得題目指派列表     |
+| 27  | `GET`    | `/assignments/user/:userId`      | ❌          | 取得特定使用者的指派 |
+| 28  | `GET`    | `/assignments/:id`               | ❌          | 取得單一指派         |
+| 29  | `DELETE` | `/assignments/:id`               | 🔒 ADMIN / EXAMINER / QUESTIONER | 刪除題目指派         |
+| 30  | `POST`   | `/stress-test-reports`           | ❌          | 新增壓力測試報告     |
+| 31  | `GET`    | `/stress-test-reports`           | ❌          | 取得壓力測試報告列表 |
+| 32  | `GET`    | `/stress-test-reports/latest`    | ❌          | 取得端點最新報告     |
+| 33  | `GET`    | `/stress-test-reports/summary`   | ❌          | 取得壓力測試摘要     |
+| 34  | `GET`    | `/stress-test-reports/dashboard` | ❌          | 取得監控 Dashboard   |

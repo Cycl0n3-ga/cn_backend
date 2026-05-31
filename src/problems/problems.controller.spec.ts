@@ -87,6 +87,7 @@ describe('ProblemsController', () => {
             findAll: jest.fn(),
             findOne: jest.fn(),
             create: jest.fn(),
+            update: jest.fn(),
             remove: jest.fn(),
             assign: jest.fn(),
           },
@@ -257,6 +258,57 @@ describe('ProblemsController', () => {
 
       const call = service.create.mock.calls[0][0];
       expect(call.testCases[0].isHidden).toBe(true);
+    });
+  });
+
+  // ── update ────────────────────────────────────────────────────────────
+  describe('update', () => {
+    it('should update problem and return result', async () => {
+      service.update.mockResolvedValue(mockCreateResult);
+
+      const result = await controller.update(1, {
+        title: 'Updated Title',
+        description: 'New desc',
+      });
+
+      expect(result).toEqual(mockCreateResult);
+      expect(service.update).toHaveBeenCalledWith(1, {
+        title: 'Updated Title',
+        description: 'New desc',
+        difficulty: undefined,
+        functionName: undefined,
+        timeLimitMs: undefined,
+        memoryLimitMb: undefined,
+        testCases: undefined,
+      });
+    });
+
+    it('should map test cases DTO to service format', async () => {
+      service.update.mockResolvedValue(mockCreateResult);
+
+      await controller.update(1, {
+        test_cases: [{ input: 'new-in', output: 'new-out', is_hidden: false }],
+      });
+
+      expect(service.update).toHaveBeenCalledWith(1, {
+        title: undefined,
+        description: undefined,
+        difficulty: undefined,
+        functionName: undefined,
+        timeLimitMs: undefined,
+        memoryLimitMb: undefined,
+        testCases: [{ input: 'new-in', output: 'new-out', isHidden: false }],
+      });
+    });
+
+    it('should propagate NotFoundException from service', async () => {
+      service.update.mockRejectedValue(
+        new NotFoundException('Problem #999 not found.'),
+      );
+
+      await expect(controller.update(999, { title: 'No' })).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
