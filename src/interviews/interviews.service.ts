@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateInterviewDto, UpdateInterviewDto } from './dto/interview.dto.js';
-import { hasAnyUserRole, UserRole } from '../auth/user-role.js';
+
 
 const DIFFICULTY_CONFIGS = [
   { field: 'easy', difficulty: 'EASY' },
