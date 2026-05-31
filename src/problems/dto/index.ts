@@ -1,1 +1,5 @@
-export { CreateProblemDto, AssignProblemDto } from './problem.dto.js';
+export {
+  CreateProblemDto,
+  AssignProblemDto,
+  UpdateProblemDto,
+} from './problem.dto.js';

@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Delete,
   Body,
   Param,
@@ -20,7 +21,11 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { ProblemsService } from './problems.service.js';
-import { CreateProblemDto, AssignProblemDto } from './dto/index.js';
+import {
+  CreateProblemDto,
+  AssignProblemDto,
+  UpdateProblemDto,
+} from './dto/index.js';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/roles.guard.js';
 import { Roles } from '../auth/roles.decorator.js';
@@ -92,6 +97,34 @@ export class ProblemsController {
       timeLimitMs: dto.time_limit_ms,
       memoryLimitMb: dto.memory_limit_mb,
       testCases: dto.test_cases.map((tc) => ({
+        input: tc.input,
+        output: tc.output,
+        isHidden: tc.is_hidden ?? true,
+      })),
+    });
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.QUESTIONER)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: '修改題目',
+    description: '題目管理者修改題目，可部分更新欄位與測試資料',
+  })
+  @ApiResponse({ status: 200, description: '題目修改成功' })
+  @ApiResponse({ status: 401, description: '未認證' })
+  @ApiResponse({ status: 403, description: '權限不足' })
+  @ApiResponse({ status: 404, description: '題目不存在' })
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProblemDto) {
+    return this.problemsService.update(id, {
+      title: dto.title,
+      description: dto.description,
+      difficulty: dto.difficulty,
+      functionName: dto.function_name,
+      timeLimitMs: dto.time_limit_ms,
+      memoryLimitMb: dto.memory_limit_mb,
+      testCases: dto.test_cases?.map((tc) => ({
         input: tc.input,
         output: tc.output,
         isHidden: tc.is_hidden ?? true,

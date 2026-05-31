@@ -167,6 +167,71 @@ export class ProblemsService {
     };
   }
 
+  async update(
+    id: number,
+    data: {
+      title?: string;
+      description?: string;
+      difficulty?: string;
+      functionName?: string;
+      timeLimitMs?: number;
+      memoryLimitMb?: number;
+      testCases?: { input: string; output: string; isHidden?: boolean }[];
+    },
+  ) {
+    const existing = await this.prisma.problem.findFirst({
+      where: { id, isDeleted: false },
+    });
+    if (!existing) {
+      throw new NotFoundException(`Problem #${id} not found.`);
+    }
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      if (data.testCases) {
+        // Delete all old test cases first
+        await tx.testCase.deleteMany({
+          where: { problemId: id },
+        });
+      }
+
+      return tx.problem.update({
+        where: { id },
+        data: {
+          title: data.title,
+          description: data.description,
+          difficulty: data.difficulty,
+          functionName: data.functionName,
+          timeLimitMs: data.timeLimitMs,
+          memoryLimitMb: data.memoryLimitMb,
+          testCases: data.testCases
+            ? {
+                create: data.testCases.map((tc) => ({
+                  input: tc.input,
+                  output: tc.output,
+                  isHidden: tc.isHidden ?? true,
+                })),
+              }
+            : undefined,
+        },
+        include: {
+          creator: {
+            select: {
+              id: true,
+              username: true,
+              email: true,
+            },
+          },
+        },
+      });
+    });
+
+    return {
+      problem_id: updated.id.toString(),
+      title: updated.title,
+      creator: this.formatCreator(updated.creator),
+    };
+  }
+
   async remove(id: number) {
     const problem = await this.prisma.problem.findUnique({ where: { id } });
     if (!problem) {

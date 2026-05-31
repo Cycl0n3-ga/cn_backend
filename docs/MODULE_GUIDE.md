@@ -218,6 +218,18 @@ Response:
 }
 ```
 
+#### 編輯項目（Admin）
+
+```typescript
+// PATCH /api/v1/problems/:id
+{
+  "title": "更新標題",
+  "testCases": [
+    { "input": "...", "output": "..." }
+  ]
+}
+```
+
 #### 刪除項目（Admin）
 
 ```typescript

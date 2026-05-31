@@ -66,6 +66,50 @@ export class CreateProblemDto {
   test_cases: TestCaseDto[];
 }
 
+export class UpdateProblemDto {
+  @ApiPropertyOptional({ example: 'Two Sum' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  title?: string;
+
+  @ApiPropertyOptional({ example: 'Given an array of integers...' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  description?: string;
+
+  @ApiPropertyOptional({ example: 'EASY', enum: ['EASY', 'MEDIUM', 'HARD'] })
+  @IsOptional()
+  @IsEnum(['EASY', 'MEDIUM', 'HARD'] as const)
+  difficulty?: string;
+
+  @ApiPropertyOptional({ example: 1000, default: 1000 })
+  @IsOptional()
+  @IsInt()
+  time_limit_ms?: number;
+
+  @ApiPropertyOptional({ example: 256, default: 256 })
+  @IsOptional()
+  @IsInt()
+  memory_limit_mb?: number;
+
+  @ApiPropertyOptional({
+    example: 'twoSum',
+    description: '進入點 function 名稱',
+  })
+  @IsOptional()
+  @IsString()
+  function_name?: string;
+
+  @ApiPropertyOptional({ type: [TestCaseDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => TestCaseDto)
+  test_cases?: TestCaseDto[];
+}
+
 export class AssignProblemDto {
   @ApiProperty({ example: 'alice' })
   @IsString()

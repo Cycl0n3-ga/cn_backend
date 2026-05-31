@@ -23,6 +23,7 @@ describe('ProblemsService', () => {
 
   beforeEach(async () => {
     prisma = {
+      $transaction: jest.fn((callback) => callback(prisma)),
       problem: {
         count: jest.fn(),
         findMany: jest.fn(),
@@ -30,6 +31,9 @@ describe('ProblemsService', () => {
         findUnique: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
+      },
+      testCase: {
+        deleteMany: jest.fn(),
       },
       user: {
         findUnique: jest.fn(),
@@ -453,6 +457,59 @@ describe('ProblemsService', () => {
 
       const createCall = prisma.problem.create.mock.calls[0][0];
       expect(createCall.data.testCases.create[0].isHidden).toBe(false);
+    });
+  });
+
+  // ── update ────────────────────────────────────────────────────────────
+  describe('update', () => {
+    it('should update problem details and return format', async () => {
+      prisma.problem.findFirst.mockResolvedValue(mockProblem);
+      prisma.problem.update.mockResolvedValue({
+        id: 1,
+        title: 'Updated Two Sum',
+        creator: {
+          id: 'admin-uuid',
+          username: 'admin',
+          email: 'admin@codejudge.dev',
+        },
+      });
+
+      const result = await service.update(1, {
+        title: 'Updated Two Sum',
+      });
+
+      expect(result).toHaveProperty('problem_id', '1');
+      expect(result).toHaveProperty('title', 'Updated Two Sum');
+      expect(result).toHaveProperty('creator', {
+        id: 'admin-uuid',
+        username: 'admin',
+        email: 'admin@codejudge.dev',
+      });
+    });
+
+    it('should replace test cases if testCases are provided', async () => {
+      prisma.problem.findFirst.mockResolvedValue(mockProblem);
+      prisma.problem.update.mockResolvedValue({ id: 1, title: 'Two Sum' });
+
+      await service.update(1, {
+        testCases: [{ input: 'new-in', output: 'new-out', isHidden: false }],
+      });
+
+      expect(prisma.testCase.deleteMany).toHaveBeenCalledWith({
+        where: { problemId: 1 },
+      });
+      const updateCall = prisma.problem.update.mock.calls[0][0];
+      expect(updateCall.data.testCases.create[0].input).toBe('new-in');
+      expect(updateCall.data.testCases.create[0].output).toBe('new-out');
+      expect(updateCall.data.testCases.create[0].isHidden).toBe(false);
+    });
+
+    it('should throw NotFoundException if problem does not exist or is deleted', async () => {
+      prisma.problem.findFirst.mockResolvedValue(null);
+
+      await expect(service.update(999, { title: 'No' })).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
