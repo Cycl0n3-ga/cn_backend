@@ -623,6 +623,13 @@ describe('Code Judge API (e2e)', () => {
           expect(res.body.data[0]).not.toHaveProperty('passwordHash');
         }
       });
+
+      it('should reject candidates from listing all users', async () => {
+        await request(app.getHttpServer())
+          .get('/api/v1/users')
+          .set('Authorization', `Bearer ${aliceToken}`)
+          .expect(403);
+      });
     });
 
     describe('GET /api/v1/users/:username/submissions', () => {

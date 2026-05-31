@@ -122,7 +122,7 @@ docker compose --env-file .deploy/deploy.env down
 | GET | `/api/v1/judge/queue` | 查詢評測佇列狀態 |
 | POST | `/api/v1/submissions` | 提交程式碼 |
 | GET | `/api/v1/submissions/:id` | 查詢評測結果 |
-| GET | `/api/v1/users` | 使用者列表 |
+| GET | `/api/v1/users` | 使用者列表 (Admin/Examiner) |
 | GET | `/api/v1/users/:username/submissions` | 提交歷史 |
 | GET | `/api/v1/leaderboard` | 排行榜 |
 | GET | `/api/v1/health` | 健康檢查 |

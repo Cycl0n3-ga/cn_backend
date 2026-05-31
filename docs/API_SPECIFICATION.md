@@ -494,7 +494,7 @@ Authorization: Bearer <JWT_TOKEN>
 | ---------- | -------- |
 | **Method** | `GET`    |
 | **Path**   | `/users` |
-| **認證**   | ✅ Bearer Token |
+| **認證**   | ✅ ADMIN / EXAMINER |
 
 **Response (200 OK):**
 
@@ -1142,7 +1142,7 @@ x-internal-api-key: <INTERNAL_API_KEY>
 | 8   | `POST`   | `/problems/:id/assign`           | 🔒 ADMIN / EXAMINER / QUESTIONER | 指派題目             |
 | 9   | `POST`   | `/submissions`                   | 🔒 ADMIN / CANDIDATE | 提交程式碼           |
 | 10  | `GET`    | `/submissions/:id`               | 🔒 owner / ADMIN / EXAMINER | 查詢評測結果         |
-| 11  | `GET`    | `/users`                         | 🔒 Bearer   | 使用者列表           |
+| 11  | `GET`    | `/users`                         | 🔒 ADMIN / EXAMINER | 使用者列表           |
 | 12  | `GET`    | `/users/:username/submissions`   | 🔒 owner / ADMIN / EXAMINER | 使用者提交歷史       |
 | 13  | `GET`    | `/leaderboard`                   | ❌          | 排行榜               |
 | 14  | `GET`    | `/health`                        | ❌          | 健康檢查             |

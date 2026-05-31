@@ -344,6 +344,7 @@ src/users/
 
 ```typescript
 // GET /api/v1/users?page=1&limit=20
+// Auth: ADMIN / EXAMINER
 ```
 
 Response:

@@ -534,7 +534,7 @@ docker compose down
 | 7 | `POST` | `/api/v1/problems/:id/assign` | 🔒 ADMIN / EXAMINER / QUESTIONER | 指派題目給使用者 |
 | 8 | `POST` | `/api/v1/submissions` | 🔒 ADMIN / CANDIDATE | 提交程庫碼（非同步評測） |
 | 9 | `GET` | `/api/v1/submissions/:id` | 🔒 owner / ADMIN / EXAMINER | 輪詢評測結果 |
-| 10 | `GET` | `/api/v1/users` | 🔒 Bearer | 使用者列表 |
+| 10 | `GET` | `/api/v1/users` | 🔒 ADMIN / EXAMINER | 使用者列表 |
 | 11 | `GET` | `/api/v1/users/:username/submissions` | 🔒 owner / ADMIN / EXAMINER | 使用者提交歷史 |
 | 12 | `GET` | `/api/v1/leaderboard` | ❌ | 全站排行榜 |
 | 13 | `GET` | `/api/v1/health` | ❌ | 系統健康檢查 |
