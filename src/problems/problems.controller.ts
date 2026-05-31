@@ -6,6 +6,7 @@ import {
   Body,
   Param,
   Query,
+  Request,
   ParseIntPipe,
   UseGuards,
   HttpCode,
@@ -76,12 +77,16 @@ export class ProblemsController {
   @ApiResponse({ status: 201, description: '題目建立成功' })
   @ApiResponse({ status: 401, description: '未認證' })
   @ApiResponse({ status: 403, description: '權限不足' })
-  create(@Body() dto: CreateProblemDto) {
+  create(
+    @Body() dto: CreateProblemDto,
+    @Request() req: { user: { id: string } },
+  ) {
     return this.problemsService.create({
       title: dto.title,
       description: dto.description,
       difficulty: dto.difficulty,
       functionName: dto.function_name,
+      creatorId: req.user.id,
       timeLimitMs: dto.time_limit_ms,
       memoryLimitMb: dto.memory_limit_mb,
       testCases: dto.test_cases.map((tc) => ({

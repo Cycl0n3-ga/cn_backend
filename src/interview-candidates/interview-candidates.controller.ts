@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Body,
   Param,
   Delete,
@@ -17,7 +18,10 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { InterviewCandidatesService } from './interview-candidates.service.js';
-import { CreateInterviewCandidateDto } from './dto/interview-candidate.dto.js';
+import {
+  CreateInterviewCandidateDto,
+  UpdateInterviewCandidateTimeDto,
+} from './dto/interview-candidate.dto.js';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
 
 @ApiTags('Interview Candidates')
@@ -36,8 +40,19 @@ export class InterviewCandidatesController {
   })
   @ApiResponse({
     status: 201,
-    description: '新增成功，回傳包含 id、jobId、userId 的資料',
+    description:
+      '新增成功，回傳包含 id、jobId、userId、startTime、endTime 的資料',
+    schema: {
+      example: {
+        id: '1',
+        jobId: '1',
+        userId: 'uuid-string',
+        startTime: 1770000000,
+        endTime: 1770003600,
+      },
+    },
   })
+  @ApiResponse({ status: 400, description: '時間格式或區間不合法' })
   @ApiResponse({ status: 404, description: '面試或使用者不存在' })
   @ApiResponse({ status: 409, description: '使用者已在此面試中' })
   create(@Body() createInterviewCandidateDto: CreateInterviewCandidateDto) {
@@ -58,6 +73,8 @@ export class InterviewCandidatesController {
           id: '1',
           jobId: '1',
           userId: 'uuid-string',
+          startTime: 1770000000,
+          endTime: 1770003600,
           createdAt: '2026-05-18T00:00:00Z',
           interview: {
             id: '1',
@@ -75,6 +92,36 @@ export class InterviewCandidatesController {
   })
   findAll() {
     return this.interviewCandidatesService.findAll();
+  }
+
+  @Patch(':id/time')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: '更新面試考生測驗時間',
+    description:
+      '更新指定面試考生的測驗開始與結束時間，startTime/endTime 使用 Unix timestamp seconds',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '更新成功',
+    schema: {
+      example: {
+        id: '1',
+        jobId: '1',
+        userId: 'uuid-string',
+        startTime: 1770000000,
+        endTime: 1770003600,
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: '時間格式或區間不合法' })
+  @ApiResponse({ status: 404, description: '記錄不存在' })
+  updateTime(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateInterviewCandidateTimeDto,
+  ) {
+    return this.interviewCandidatesService.updateTime(id, dto);
   }
 
   @Delete(':id')

@@ -1,18 +1,31 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { hasPrismaErrorCode } from '../prisma/prisma-errors.js';
-import { CreateInterviewCandidateDto } from './dto/interview-candidate.dto.js';
+import {
+  CreateInterviewCandidateDto,
+  UpdateInterviewCandidateTimeDto,
+} from './dto/interview-candidate.dto.js';
+
+type InterviewCandidateRecord = {
+  id: number;
+  jobId: number;
+  userId: string;
+  startTime: number | null;
+  endTime: number | null;
+};
 
 @Injectable()
 export class InterviewCandidatesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createInterviewCandidateDto: CreateInterviewCandidateDto) {
-    const { jobId, userId } = createInterviewCandidateDto;
+    const { jobId, userId, startTime, endTime } = createInterviewCandidateDto;
+    this.validateTimeRange(startTime, endTime);
 
     // Check if interview exists
     const interview = await this.prisma.interview.findUnique({
@@ -33,14 +46,12 @@ export class InterviewCandidatesService {
         data: {
           jobId,
           userId,
+          ...(startTime !== undefined ? { startTime } : {}),
+          ...(endTime !== undefined ? { endTime } : {}),
         },
       });
 
-      return {
-        id: candidate.id.toString(),
-        jobId: candidate.jobId.toString(),
-        userId: candidate.userId,
-      };
+      return this.formatCandidate(candidate);
     } catch (error) {
       if (hasPrismaErrorCode(error, 'P2002')) {
         throw new ConflictException(
@@ -68,6 +79,8 @@ export class InterviewCandidatesService {
       id: c.id.toString(),
       jobId: c.jobId.toString(),
       userId: c.userId,
+      startTime: c.startTime,
+      endTime: c.endTime,
       createdAt: c.createdAt,
       interview: c.interview
         ? {
@@ -80,6 +93,36 @@ export class InterviewCandidatesService {
     }));
   }
 
+  async updateTime(id: number, dto: UpdateInterviewCandidateTimeDto) {
+    const candidate = await this.prisma.interviewCandidate.findUnique({
+      where: { id },
+    });
+    if (!candidate) {
+      throw new NotFoundException(`InterviewCandidate #${id} not found.`);
+    }
+
+    const nextStartTime =
+      dto.startTime !== undefined ? dto.startTime : candidate.startTime;
+    const nextEndTime =
+      dto.endTime !== undefined ? dto.endTime : candidate.endTime;
+    this.validateTimeRange(nextStartTime, nextEndTime);
+
+    const data: { startTime?: number | null; endTime?: number | null } = {};
+    if (dto.startTime !== undefined) data.startTime = dto.startTime;
+    if (dto.endTime !== undefined) data.endTime = dto.endTime;
+
+    if (Object.keys(data).length === 0) {
+      return this.formatCandidate(candidate);
+    }
+
+    const updated = await this.prisma.interviewCandidate.update({
+      where: { id },
+      data,
+    });
+
+    return this.formatCandidate(updated);
+  }
+
   async remove(id: number) {
     const candidate = await this.prisma.interviewCandidate.findUnique({
       where: { id },
@@ -90,5 +133,30 @@ export class InterviewCandidatesService {
 
     await this.prisma.interviewCandidate.delete({ where: { id } });
     return;
+  }
+
+  private validateTimeRange(
+    startTime?: number | null,
+    endTime?: number | null,
+  ) {
+    if (startTime == null || endTime == null) {
+      return;
+    }
+
+    if (endTime < startTime) {
+      throw new BadRequestException(
+        'endTime must be greater than or equal to startTime.',
+      );
+    }
+  }
+
+  private formatCandidate(candidate: InterviewCandidateRecord) {
+    return {
+      id: candidate.id.toString(),
+      jobId: candidate.jobId.toString(),
+      userId: candidate.userId,
+      startTime: candidate.startTime,
+      endTime: candidate.endTime,
+    };
   }
 }

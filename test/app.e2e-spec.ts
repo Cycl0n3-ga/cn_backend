@@ -275,6 +275,11 @@ describe('Code Judge API (e2e)', () => {
           expect(res.body.items[0]).toHaveProperty('title');
           expect(res.body.items[0]).toHaveProperty('difficulty');
           expect(res.body.items[0]).toHaveProperty('acceptance_rate');
+          expect(res.body.items[0]).toHaveProperty('creator');
+          expect(res.body.items[0]).toHaveProperty('assignedCount');
+          expect(res.body.items[0]).toHaveProperty('submittedCount');
+          expect(res.body.items[0]).toHaveProperty('acceptedCount');
+          expect(res.body.items[0]).toHaveProperty('failedCount');
         }
       });
 
@@ -324,6 +329,11 @@ describe('Code Judge API (e2e)', () => {
           expect(res.body).toHaveProperty('title');
           expect(res.body).toHaveProperty('description');
           expect(res.body).toHaveProperty('difficulty');
+          expect(res.body).toHaveProperty('creator');
+          expect(res.body).toHaveProperty('assignedCount');
+          expect(res.body).toHaveProperty('submittedCount');
+          expect(res.body).toHaveProperty('acceptedCount');
+          expect(res.body).toHaveProperty('failedCount');
           expect(res.body).toHaveProperty('constraints');
           expect(res.body).toHaveProperty('sample_test_cases');
         }
@@ -398,6 +408,10 @@ describe('Code Judge API (e2e)', () => {
 
         expect(res.body).toHaveProperty('problem_id');
         expect(typeof res.body.problem_id).toBe('string');
+        expect(res.body.creator).toMatchObject({
+          username: 'admin',
+          email: 'admin@codejudge.dev',
+        });
         createdProblemId = res.body.problem_id;
       });
 
@@ -856,6 +870,15 @@ describe('Code Judge API (e2e)', () => {
           .get('/api/v1/interview-candidates')
           .expect(200);
         expect(Array.isArray(res.body)).toBe(true);
+      });
+    });
+
+    describe('PATCH /api/v1/interview-candidates/:id/time', () => {
+      it('should return 401 without auth token', async () => {
+        await request(app.getHttpServer())
+          .patch('/api/v1/interview-candidates/1/time')
+          .send({ startTime: 1770000000, endTime: 1770003600 })
+          .expect(401);
       });
     });
 

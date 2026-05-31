@@ -169,7 +169,7 @@ curl -X POST http://localhost:4100/api/v1/judge/run \
 - **Users** - 使用者管理、排名統計
 - **Leaderboard** - 排行榜功能
 - **Interviews** - 面試系統管理
-- **Interview-Candidates** - 面試候選人管理
+- **Interview-Candidates** - 面試候選人管理（含測驗 startTime/endTime Unix 時間）
 - **Internal** - 內部 API 介面（評測機通信）
 - **Health** - 健康檢查
 
@@ -251,6 +251,7 @@ npm run db:seed        # 灌入種子資料
 | PATCH | `/api/v1/interviews/:id` | 更改面試名稱 |
 | DELETE | `/api/v1/interviews/:id` | 刪除面試 |
 | POST | `/api/v1/interview-candidates` | 新增面試者 |
+| PATCH | `/api/v1/interview-candidates/:id/time` | 更新面試者測驗開始/結束時間 |
 | DELETE | `/api/v1/interview-candidates/:id` | 移除面試者 |
 
 ## 文件

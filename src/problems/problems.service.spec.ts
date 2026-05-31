@@ -36,6 +36,10 @@ describe('ProblemsService', () => {
       },
       assignment: {
         upsert: jest.fn(),
+        groupBy: jest.fn().mockResolvedValue([]),
+      },
+      submission: {
+        groupBy: jest.fn().mockResolvedValue([]),
       },
     };
 
@@ -73,7 +77,17 @@ describe('ProblemsService', () => {
     it('should map problem fields to snake_case API format', async () => {
       prisma.problem.count.mockResolvedValue(1);
       prisma.problem.findMany.mockResolvedValue([
-        { id: 1, title: 'Two Sum', difficulty: 'EASY', acceptanceRate: 0.49 },
+        {
+          id: 1,
+          title: 'Two Sum',
+          difficulty: 'EASY',
+          acceptanceRate: 0.49,
+          creator: {
+            id: 'admin-uuid',
+            username: 'admin',
+            email: 'admin@codejudge.dev',
+          },
+        },
       ]);
 
       const result = await service.findAll(1, 20);
@@ -83,6 +97,35 @@ describe('ProblemsService', () => {
         title: 'Two Sum',
         difficulty: 'EASY',
         acceptance_rate: '0.49',
+        creator: {
+          id: 'admin-uuid',
+          username: 'admin',
+          email: 'admin@codejudge.dev',
+        },
+      });
+    });
+
+    it('should include problem analytics counts', async () => {
+      prisma.problem.count.mockResolvedValue(1);
+      prisma.problem.findMany.mockResolvedValue([
+        { id: 1, title: 'Two Sum', difficulty: 'EASY', acceptanceRate: 0.49 },
+      ]);
+      prisma.assignment.groupBy.mockResolvedValue([
+        { problemId: 1, _count: { _all: 2 } },
+      ]);
+      prisma.submission.groupBy.mockResolvedValue([
+        { problemId: 1, status: 'ACCEPTED', _count: { _all: 1 } },
+        { problemId: 1, status: 'WRONG_ANSWER', _count: { _all: 3 } },
+        { problemId: 1, status: 'PENDING', _count: { _all: 1 } },
+      ]);
+
+      const result = await service.findAll(1, 20);
+
+      expect(result.items[0]).toMatchObject({
+        assignedCount: '2',
+        submittedCount: '5',
+        acceptedCount: '1',
+        failedCount: '3',
       });
     });
 
@@ -173,6 +216,11 @@ describe('ProblemsService', () => {
     it('should return problem details with sample test cases', async () => {
       prisma.problem.findFirst.mockResolvedValue({
         ...mockProblem,
+        creator: {
+          id: 'admin-uuid',
+          username: 'admin',
+          email: 'admin@codejudge.dev',
+        },
         testCases: [
           { input: '[2,7,11,15]\n9', output: '[0,1]' },
           { input: '[3,2,4]\n6', output: '[1,2]' },
@@ -186,6 +234,11 @@ describe('ProblemsService', () => {
       expect(result).toHaveProperty('description');
       expect(result).toHaveProperty('difficulty', 'EASY');
       expect(result).toHaveProperty('function_name', 'twoSum');
+      expect(result).toHaveProperty('creator', {
+        id: 'admin-uuid',
+        username: 'admin',
+        email: 'admin@codejudge.dev',
+      });
       expect(result).toHaveProperty('constraints');
       expect(result).toHaveProperty('sample_test_cases');
       expect(result.sample_test_cases).toHaveLength(2);
@@ -209,12 +262,36 @@ describe('ProblemsService', () => {
       prisma.problem.findFirst.mockResolvedValue({
         ...mockProblem,
         functionName: null,
+        creator: null,
         testCases: [],
       });
 
       const result = await service.findOne(1);
 
       expect(result.function_name).toBe('');
+    });
+
+    it('should include analytics counts in problem details', async () => {
+      prisma.problem.findFirst.mockResolvedValue({
+        ...mockProblem,
+        testCases: [],
+      });
+      prisma.assignment.groupBy.mockResolvedValue([
+        { problemId: 1, _count: { _all: 1 } },
+      ]);
+      prisma.submission.groupBy.mockResolvedValue([
+        { problemId: 1, status: 'ACCEPTED', _count: { _all: 2 } },
+        { problemId: 1, status: 'RUNTIME_ERROR', _count: { _all: 1 } },
+      ]);
+
+      const result = await service.findOne(1);
+
+      expect(result).toMatchObject({
+        assignedCount: '1',
+        submittedCount: '3',
+        acceptedCount: '2',
+        failedCount: '1',
+      });
     });
 
     it('should only fetch non-hidden test cases', async () => {
@@ -257,6 +334,11 @@ describe('ProblemsService', () => {
       prisma.problem.create.mockResolvedValue({
         id: 10,
         title: 'New Problem',
+        creator: {
+          id: 'admin-uuid',
+          username: 'admin',
+          email: 'admin@codejudge.dev',
+        },
         testCases: [{ input: '1', output: '1' }],
       });
 
@@ -264,11 +346,37 @@ describe('ProblemsService', () => {
         title: 'New Problem',
         description: 'Test description',
         difficulty: 'EASY',
+        creatorId: 'admin-uuid',
         testCases: [{ input: '1', output: '1' }],
       });
 
       expect(result).toHaveProperty('problem_id', '10');
       expect(result).toHaveProperty('title', 'New Problem');
+      expect(result).toHaveProperty('creator', {
+        id: 'admin-uuid',
+        username: 'admin',
+        email: 'admin@codejudge.dev',
+      });
+    });
+
+    it('should persist creatorId when creating a problem', async () => {
+      prisma.problem.create.mockResolvedValue({
+        id: 1,
+        title: 'Test',
+        creator: null,
+        testCases: [],
+      });
+
+      await service.create({
+        title: 'Test',
+        description: 'Desc',
+        difficulty: 'EASY',
+        creatorId: 'admin-uuid',
+        testCases: [],
+      });
+
+      const createCall = prisma.problem.create.mock.calls[0][0];
+      expect(createCall.data.creatorId).toBe('admin-uuid');
     });
 
     it('should default timeLimitMs to 1000 and memoryLimitMb to 256', async () => {

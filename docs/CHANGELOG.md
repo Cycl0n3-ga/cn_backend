@@ -53,6 +53,11 @@
   - 新增 Interview 表
   - 新增 InterviewCandidate 表
 
+#### 面試考生測驗時間 (2026-05-31 06:10:00)
+- `20260531061000_add_interview_candidate_times`
+  - InterviewCandidate: 新增 `startTime` / `endTime` Unix timestamp seconds 欄位
+  - API: 新增 `PATCH /api/v1/interview-candidates/:id/time`
+
 ### 測試涵蓋率
 - 單元測試: 主要服務和控制器
 - 整合測試: auth, users, problems, leaderboard
@@ -72,4 +77,3 @@
 - [API_SPECIFICATION.md](API_SPECIFICATION.md) - API詳細檔案
 - [BACKEND_ARCHITECTURE.md](BACKEND_ARCHITECTURE.md) - 架構設計
 - [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) - 資料庫模庫
-

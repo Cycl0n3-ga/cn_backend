@@ -490,15 +490,31 @@ src/interview-candidates/
 // POST /api/v1/interview-candidates
 {
   "jobId": 1,
-  "userId": "user-uuid"
+  "userId": "user-uuid",
+  "startTime": 1770000000,
+  "endTime": 1770003600
 }
 ```
+
+`startTime`、`endTime` 為選填 Unix timestamp seconds，用於記錄該考生在此面試測驗的開始與結束時間。
 
 #### 取得所有候選人列表
 
 ```typescript
 // GET /api/v1/interview-candidates
 ```
+
+#### 更新候選人測驗時間
+
+```typescript
+// PATCH /api/v1/interview-candidates/:id/time
+{
+  "startTime": 1770000000,
+  "endTime": 1770003600
+}
+```
+
+可只更新其中一個欄位；傳 `null` 可清除時間。
 
 #### 刪除候選人
 

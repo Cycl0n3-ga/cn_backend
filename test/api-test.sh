@@ -263,6 +263,12 @@ assert_status "POST /interview-candidates returns 201" "201" "$CANDIDATE_STATUS"
 
 CANDIDATE_ID=$(echo "$CANDIDATE_RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])" 2>/dev/null)
 
+UPDATE_CANDIDATE_TIME_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X PATCH "$BASE_URL/interview-candidates/$CANDIDATE_ID/time" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"startTime":1770000000,"endTime":1770003600}')
+assert_status "PATCH /interview-candidates/:id/time returns 200" "200" "$UPDATE_CANDIDATE_TIME_STATUS"
+
 # Delete candidate
 DEL_CANDIDATE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE "$BASE_URL/interview-candidates/$CANDIDATE_ID" \
   -H "Authorization: Bearer $TOKEN")

@@ -6,6 +6,29 @@ type ProblemFindAllWhere = {
   difficulty?: string;
 };
 
+const FAILED_SUBMISSION_STATUSES = [
+  'WRONG_ANSWER',
+  'TLE',
+  'MLE',
+  'RUNTIME_ERROR',
+  'COMPILE_ERROR',
+] as const;
+
+type FailedSubmissionStatus = (typeof FAILED_SUBMISSION_STATUSES)[number];
+
+type ProblemAnalytics = {
+  assignedCount: number;
+  submittedCount: number;
+  acceptedCount: number;
+  failedCount: number;
+};
+
+type ProblemCreator = {
+  id: string;
+  username: string;
+  email: string;
+} | null;
+
 @Injectable()
 export class ProblemsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -25,12 +48,20 @@ export class ProblemsService {
           title: true,
           difficulty: true,
           acceptanceRate: true,
+          creator: {
+            select: {
+              id: true,
+              username: true,
+              email: true,
+            },
+          },
         },
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { id: 'asc' },
       }),
     ]);
+    const analytics = await this.getProblemAnalytics(items.map((p) => p.id));
 
     return {
       total: total.toString(),
@@ -40,6 +71,8 @@ export class ProblemsService {
         title: p.title,
         difficulty: p.difficulty,
         acceptance_rate: p.acceptanceRate.toString(),
+        creator: this.formatCreator(p.creator),
+        ...this.formatAnalytics(analytics.get(p.id)),
       })),
     };
   }
@@ -48,6 +81,13 @@ export class ProblemsService {
     const problem = await this.prisma.problem.findFirst({
       where: { id, isDeleted: false },
       include: {
+        creator: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+          },
+        },
         testCases: {
           where: { isHidden: false },
           select: { input: true, output: true },
@@ -58,6 +98,7 @@ export class ProblemsService {
     if (!problem) {
       throw new NotFoundException(`Problem #${id} not found.`);
     }
+    const analytics = await this.getProblemAnalytics([problem.id]);
 
     return {
       problem_id: problem.id.toString(),
@@ -65,6 +106,8 @@ export class ProblemsService {
       description: problem.description,
       difficulty: problem.difficulty,
       function_name: problem.functionName || '',
+      creator: this.formatCreator(problem.creator),
+      ...this.formatAnalytics(analytics.get(problem.id)),
       constraints: {
         time_limit_ms: problem.timeLimitMs.toString(),
         memory_limit_mb: problem.memoryLimitMb.toString(),
@@ -78,6 +121,7 @@ export class ProblemsService {
     description: string;
     difficulty: string;
     functionName?: string;
+    creatorId?: string;
     timeLimitMs?: number;
     memoryLimitMb?: number;
     testCases: { input: string; output: string; isHidden?: boolean }[];
@@ -88,6 +132,7 @@ export class ProblemsService {
         description: data.description,
         difficulty: data.difficulty,
         functionName: data.functionName,
+        creatorId: data.creatorId,
         timeLimitMs: data.timeLimitMs || 1000,
         memoryLimitMb: data.memoryLimitMb || 256,
         testCases: {
@@ -98,10 +143,23 @@ export class ProblemsService {
           })),
         },
       },
-      include: { testCases: true },
+      include: {
+        testCases: true,
+        creator: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+          },
+        },
+      },
     });
 
-    return { problem_id: problem.id.toString(), title: problem.title };
+    return {
+      problem_id: problem.id.toString(),
+      title: problem.title,
+      creator: this.formatCreator(problem.creator),
+    };
   }
 
   async remove(id: number) {
@@ -145,6 +203,92 @@ export class ProblemsService {
       assignment_id: assignment.id.toString(),
       problem_id: problemId.toString(),
       assignee: assigneeUsername,
+    };
+  }
+
+  private async getProblemAnalytics(problemIds: number[]) {
+    const analytics = new Map<number, ProblemAnalytics>();
+    for (const problemId of problemIds) {
+      analytics.set(problemId, {
+        assignedCount: 0,
+        submittedCount: 0,
+        acceptedCount: 0,
+        failedCount: 0,
+      });
+    }
+
+    if (problemIds.length === 0) {
+      return analytics;
+    }
+
+    const [assignmentCounts, submissionStatusCounts] = await Promise.all([
+      this.prisma.assignment.groupBy({
+        by: ['problemId'],
+        where: { problemId: { in: problemIds } },
+        _count: { _all: true },
+      }),
+      this.prisma.submission.groupBy({
+        by: ['problemId', 'status'],
+        where: { problemId: { in: problemIds } },
+        _count: { _all: true },
+      }),
+    ]);
+
+    for (const row of assignmentCounts) {
+      const item = analytics.get(row.problemId);
+      if (item) {
+        item.assignedCount = row._count._all;
+      }
+    }
+
+    for (const row of submissionStatusCounts) {
+      const item = analytics.get(row.problemId);
+      if (!item) {
+        continue;
+      }
+
+      const count = row._count._all;
+      item.submittedCount += count;
+
+      if (row.status === 'ACCEPTED') {
+        item.acceptedCount += count;
+      } else if (
+        FAILED_SUBMISSION_STATUSES.includes(
+          row.status as FailedSubmissionStatus,
+        )
+      ) {
+        item.failedCount += count;
+      }
+    }
+
+    return analytics;
+  }
+
+  private formatAnalytics(analytics?: ProblemAnalytics) {
+    const value = analytics ?? {
+      assignedCount: 0,
+      submittedCount: 0,
+      acceptedCount: 0,
+      failedCount: 0,
+    };
+
+    return {
+      assignedCount: value.assignedCount.toString(),
+      submittedCount: value.submittedCount.toString(),
+      acceptedCount: value.acceptedCount.toString(),
+      failedCount: value.failedCount.toString(),
+    };
+  }
+
+  private formatCreator(creator: ProblemCreator) {
+    if (!creator) {
+      return null;
+    }
+
+    return {
+      id: creator.id,
+      username: creator.username,
+      email: creator.email,
     };
   }
 }

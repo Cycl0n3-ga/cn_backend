@@ -1,7 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { InterviewCandidatesController } from './interview-candidates.controller';
 import { InterviewCandidatesService } from './interview-candidates.service';
-import { NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 
 describe('InterviewCandidatesController', () => {
   let controller: InterviewCandidatesController;
@@ -11,6 +15,16 @@ describe('InterviewCandidatesController', () => {
     id: '1',
     jobId: '1',
     userId: 'user-uuid-1',
+    startTime: null,
+    endTime: null,
+  };
+
+  const mockUpdateTimeResult = {
+    id: '1',
+    jobId: '1',
+    userId: 'user-uuid-1',
+    startTime: 1770000000,
+    endTime: 1770003600,
   };
 
   const mockFindAllResult = [
@@ -18,6 +32,8 @@ describe('InterviewCandidatesController', () => {
       id: '1',
       jobId: '1',
       userId: 'user-uuid-1',
+      startTime: 1770000000,
+      endTime: 1770003600,
       createdAt: new Date('2026-01-01T00:00:00Z'),
       interview: {
         id: '1',
@@ -41,6 +57,7 @@ describe('InterviewCandidatesController', () => {
           useValue: {
             create: jest.fn(),
             findAll: jest.fn(),
+            updateTime: jest.fn(),
             remove: jest.fn(),
           },
         },
@@ -86,6 +103,20 @@ describe('InterviewCandidatesController', () => {
 
       expect(typeof result.id).toBe('string');
       expect(typeof result.jobId).toBe('string');
+    });
+
+    it('should pass optional time fields to service', async () => {
+      service.create.mockResolvedValue(mockUpdateTimeResult);
+      const dto = {
+        jobId: 1,
+        userId: 'user-uuid-1',
+        startTime: 1770000000,
+        endTime: 1770003600,
+      };
+
+      await controller.create(dto);
+
+      expect(service.create).toHaveBeenCalledWith(dto);
     });
 
     it('should propagate NotFoundException when interview not found', async () => {
@@ -151,6 +182,54 @@ describe('InterviewCandidatesController', () => {
       await controller.findAll();
 
       expect(service.findAll).toHaveBeenCalledWith();
+    });
+  });
+
+  // ── updateTime ───────────────────────────────────────────────────────
+  describe('updateTime', () => {
+    it('should update candidate time and return result', async () => {
+      service.updateTime.mockResolvedValue(mockUpdateTimeResult);
+
+      const result = await controller.updateTime(1, {
+        startTime: 1770000000,
+        endTime: 1770003600,
+      });
+
+      expect(result).toEqual(mockUpdateTimeResult);
+    });
+
+    it('should pass id and DTO to service', async () => {
+      service.updateTime.mockResolvedValue(mockUpdateTimeResult);
+      const dto = { startTime: 1770000000, endTime: 1770003600 };
+
+      await controller.updateTime(5, dto);
+
+      expect(service.updateTime).toHaveBeenCalledWith(5, dto);
+    });
+
+    it('should propagate BadRequestException from service', async () => {
+      service.updateTime.mockRejectedValue(
+        new BadRequestException(
+          'endTime must be greater than or equal to startTime.',
+        ),
+      );
+
+      await expect(
+        controller.updateTime(1, {
+          startTime: 1770003600,
+          endTime: 1770000000,
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should propagate NotFoundException from service', async () => {
+      service.updateTime.mockRejectedValue(
+        new NotFoundException('InterviewCandidate #999 not found.'),
+      );
+
+      await expect(
+        controller.updateTime(999, { startTime: 1770000000 }),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 

@@ -16,12 +16,26 @@ describe('ProblemsController', () => {
         title: 'Two Sum',
         difficulty: 'EASY',
         acceptance_rate: '0.49',
+        creator: {
+          id: 'admin-uuid',
+          username: 'admin',
+          email: 'admin@codejudge.dev',
+        },
+        assignedCount: '1',
+        submittedCount: '2',
+        acceptedCount: '1',
+        failedCount: '1',
       },
       {
         problem_id: '2',
         title: 'Add Two Numbers',
         difficulty: 'MEDIUM',
         acceptance_rate: '0.39',
+        creator: null,
+        assignedCount: '0',
+        submittedCount: '0',
+        acceptedCount: '0',
+        failedCount: '0',
       },
     ],
   };
@@ -32,11 +46,28 @@ describe('ProblemsController', () => {
     description: 'Given an array...',
     difficulty: 'EASY',
     function_name: 'twoSum',
+    creator: {
+      id: 'admin-uuid',
+      username: 'admin',
+      email: 'admin@codejudge.dev',
+    },
+    assignedCount: '1',
+    submittedCount: '2',
+    acceptedCount: '1',
+    failedCount: '1',
     constraints: { time_limit_ms: '1000', memory_limit_mb: '256' },
     sample_test_cases: [{ input: '[2,7]', output: '[0,1]' }],
   };
 
-  const mockCreateResult = { problem_id: '10', title: 'New Problem' };
+  const mockCreateResult = {
+    problem_id: '10',
+    title: 'New Problem',
+    creator: {
+      id: 'admin-uuid',
+      username: 'admin',
+      email: 'admin@codejudge.dev',
+    },
+  };
 
   const mockAssignResult = {
     message: 'Assignment created successfully.',
@@ -44,6 +75,7 @@ describe('ProblemsController', () => {
     problem_id: '1',
     assignee: 'alice',
   };
+  const mockRequest = { user: { id: 'admin-uuid' } };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -163,12 +195,15 @@ describe('ProblemsController', () => {
     it('should create problem and return result', async () => {
       service.create.mockResolvedValue(mockCreateResult);
 
-      const result = await controller.create({
-        title: 'New Problem',
-        description: 'Test description',
-        difficulty: 'EASY',
-        test_cases: [{ input: '1', output: '1' }],
-      });
+      const result = await controller.create(
+        {
+          title: 'New Problem',
+          description: 'Test description',
+          difficulty: 'EASY',
+          test_cases: [{ input: '1', output: '1' }],
+        },
+        mockRequest,
+      );
 
       expect(result).toEqual(mockCreateResult);
     });
@@ -176,24 +211,28 @@ describe('ProblemsController', () => {
     it('should map DTO fields to service parameters correctly', async () => {
       service.create.mockResolvedValue(mockCreateResult);
 
-      await controller.create({
-        title: 'Problem',
-        description: 'Desc',
-        difficulty: 'HARD',
-        function_name: 'solve',
-        time_limit_ms: 2000,
-        memory_limit_mb: 512,
-        test_cases: [
-          { input: '1', output: '2', is_hidden: true },
-          { input: '3', output: '4', is_hidden: false },
-        ],
-      });
+      await controller.create(
+        {
+          title: 'Problem',
+          description: 'Desc',
+          difficulty: 'HARD',
+          function_name: 'solve',
+          time_limit_ms: 2000,
+          memory_limit_mb: 512,
+          test_cases: [
+            { input: '1', output: '2', is_hidden: true },
+            { input: '3', output: '4', is_hidden: false },
+          ],
+        },
+        mockRequest,
+      );
 
       expect(service.create).toHaveBeenCalledWith({
         title: 'Problem',
         description: 'Desc',
         difficulty: 'HARD',
         functionName: 'solve',
+        creatorId: 'admin-uuid',
         timeLimitMs: 2000,
         memoryLimitMb: 512,
         testCases: [
@@ -206,12 +245,15 @@ describe('ProblemsController', () => {
     it('should default is_hidden to true when not provided', async () => {
       service.create.mockResolvedValue(mockCreateResult);
 
-      await controller.create({
-        title: 'T',
-        description: 'D',
-        difficulty: 'EASY',
-        test_cases: [{ input: '1', output: '1' }],
-      });
+      await controller.create(
+        {
+          title: 'T',
+          description: 'D',
+          difficulty: 'EASY',
+          test_cases: [{ input: '1', output: '1' }],
+        },
+        mockRequest,
+      );
 
       const call = service.create.mock.calls[0][0];
       expect(call.testCases[0].isHidden).toBe(true);

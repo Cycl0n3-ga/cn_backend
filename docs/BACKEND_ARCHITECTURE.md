@@ -153,9 +153,9 @@ src/
 ├── interview-candidates/      # 👥 面試候選人模組
 │   ├── interview-candidates.module.ts
 │   ├── interview-candidates.controller.ts
-│   ├── interview-candidates.controller.spec.ts  # 12 個測試 ⬅ 重寫
+│   ├── interview-candidates.controller.spec.ts  # 19 個測試
 │   ├── interview-candidates.service.ts
-│   ├── interview-candidates.service.spec.ts     # 10 個測試
+│   ├── interview-candidates.service.spec.ts     # 17 個測試
 │   └── dto/
 │       └── interview-candidate.dto.ts
 │
@@ -223,6 +223,8 @@ src/
 │ id (Auto)        │               │ id (Auto)            │
 │ jobRole          │               │ jobId ───────────────┤─▸ Interview.id
 │ examinerEmpId ───┤─▸ User.id     │ userId ──────────────┤─▸ User.id
+│                  │               │ startTime? (Unix sec)│
+│                  │               │ endTime? (Unix sec)  │
 │ createdAt        │               │ createdAt            │
 │ updatedAt        │               │ [UNIQUE: jobId+userId]│
 └──────────────────┘               └──────────────────────┘
@@ -539,12 +541,13 @@ docker compose down
 | 18 | `DELETE` | `/api/v1/interviews/:id` | 🔒 USER+ | 刪除面試 |
 | 19 | `POST` | `/api/v1/interview-candidates` | 🔒 USER+ | 新增面試候選人 |
 | 20 | `GET` | `/api/v1/interview-candidates` | ❌ | 取得所有面試考生列表 |
-| 21 | `DELETE` | `/api/v1/interview-candidates/:id` | 🔒 USER+ | 移除面試候選人 |
-| 22 | `POST` | `/api/v1/assignments` | 🔒 USER+ | 指派題目給考生 |
-| 23 | `GET` | `/api/v1/assignments` | ❌ | 取得題目指派列表 |
-| 24 | `GET` | `/api/v1/assignments/user/:userId` | ❌ | 取得特定使用者的指派 |
-| 25 | `GET` | `/api/v1/assignments/:id` | ❌ | 取得單一指派 |
-| 26 | `DELETE` | `/api/v1/assignments/:id` | 🔒 USER+ | 刪除題目指派 |
+| 21 | `PATCH` | `/api/v1/interview-candidates/:id/time` | 🔒 USER+ | 更新面試候選人測驗時間 |
+| 22 | `DELETE` | `/api/v1/interview-candidates/:id` | 🔒 USER+ | 移除面試候選人 |
+| 23 | `POST` | `/api/v1/assignments` | 🔒 USER+ | 指派題目給考生 |
+| 24 | `GET` | `/api/v1/assignments` | ❌ | 取得題目指派列表 |
+| 25 | `GET` | `/api/v1/assignments/user/:userId` | ❌ | 取得特定使用者的指派 |
+| 26 | `GET` | `/api/v1/assignments/:id` | ❌ | 取得單一指派 |
+| 27 | `DELETE` | `/api/v1/assignments/:id` | 🔒 USER+ | 刪除題目指派 |
 
 ---
 

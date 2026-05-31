@@ -180,7 +180,7 @@ cn_22_backend/
 - `Submission` - 程庫碼提交记錄
 - `Assignment` - 题目指派
 - `Interview` - 面試记錄
-- `InterviewCandidate` - 面試候選人
+- `InterviewCandidate` - 面試候選人與測驗開始/結束時間
 
 ## 关键配置檔案
 

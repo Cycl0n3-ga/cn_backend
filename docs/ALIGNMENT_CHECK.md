@@ -101,7 +101,7 @@
 | Submission | 12 | ✅ DATABASE_SCHEMA | ⭐⭐⭐ | 完整定義 |
 | Assignment | 4 | ✅ DATABASE_SCHEMA | ⭐⭐⭐ | 完整定義 |
 | Interview | 5 | ✅ DATABASE_SCHEMA | ⭐⭐⭐ | 完整定義 |
-| InterviewCandidate | 4 | ✅ DATABASE_SCHEMA | ⭐⭐⭐ | 完整定義 |
+| InterviewCandidate | 6 | ✅ DATABASE_SCHEMA | ⭐⭐⭐ | 完整定義 |
 
 **統計:** 7 個表，全部涵蓋 ✅
 
