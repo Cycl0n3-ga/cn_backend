@@ -9,6 +9,8 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
+  ForbiddenException,
+  Request,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -57,9 +59,12 @@ export class AssignmentsController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.EXAMINER, UserRole.QUESTIONER)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: '取得所有指派記錄',
-    description: '列出所有面試題目指派記錄',
+    description: '列出所有面試題目指派記錄。需要 EXAMINER 或 QUESTIONER 權限。',
   })
   @ApiResponse({ status: 200, description: '成功取得清單' })
   findAll() {
@@ -67,19 +72,31 @@ export class AssignmentsController {
   }
 
   @Get('user/:userId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: '取得特定考生的指派記錄',
-    description: '依使用者 ID 查詢被指派的所有題目',
+    description:
+      '依使用者 ID 查詢被指派的所有題目。CANDIDATE 僅可查詢自己的指派。',
   })
   @ApiResponse({ status: 200, description: '成功取得指派清單' })
-  findByUser(@Param('userId') userId: string) {
+  @ApiResponse({ status: 401, description: '未認證' })
+  @ApiResponse({ status: 403, description: '無權限' })
+  findByUser(
+    @Request() req: { user: { id: string; role: string } },
+    @Param('userId') userId: string,
+  ) {
+    this.assertCanReadUserAssignments(userId, req.user);
     return this.assignmentsService.findByUser(userId);
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.EXAMINER, UserRole.QUESTIONER)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: '取得單一指派記錄',
-    description: '以指派 ID 查詢詳情',
+    description: '以指派 ID 查詢詳情。需要 EXAMINER 或 QUESTIONER 權限。',
   })
   @ApiResponse({ status: 200, description: '成功取得指派' })
   @ApiResponse({ status: 404, description: '指派不存在' })
@@ -100,5 +117,21 @@ export class AssignmentsController {
   @ApiResponse({ status: 404, description: '指派不存在' })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.assignmentsService.remove(id);
+  }
+
+  private assertCanReadUserAssignments(
+    userId: string,
+    actor: { id: string; role: string },
+  ) {
+    if (
+      actor.id === userId ||
+      actor.role === 'ADMIN' ||
+      actor.role === 'EXAMINER' ||
+      actor.role === 'QUESTIONER'
+    ) {
+      return;
+    }
+
+    throw new ForbiddenException('Insufficient permissions.');
   }
 }

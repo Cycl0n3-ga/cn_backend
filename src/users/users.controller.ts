@@ -15,6 +15,9 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
+import { RolesGuard } from '../auth/roles.guard.js';
+import { Roles } from '../auth/roles.decorator.js';
+import { UserRole } from '../auth/user-role.js';
 import { UsersService } from './users.service.js';
 
 @ApiTags('Users')
@@ -23,11 +26,13 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.EXAMINER)
   @ApiBearerAuth()
   @ApiOperation({
     summary: '取得所有使用者',
-    description: '列出系統中所有使用者（不含密碼）。需要認證。',
+    description:
+      '列出系統中所有使用者（不含密碼）。需要 ADMIN 或 EXAMINER 權限。',
   })
   @ApiQuery({ name: 'page', required: false, example: 1 })
   @ApiQuery({ name: 'limit', required: false, example: 20 })

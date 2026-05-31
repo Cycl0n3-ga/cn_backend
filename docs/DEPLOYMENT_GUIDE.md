@@ -30,7 +30,7 @@ docker compose --env-file .deploy/deploy.env logs -f backend-api
 docker compose --env-file .deploy/deploy.env down
 ```
 
-`scripts/deploy.sh` 會自動產生 `.deploy/deploy.env`，其中包含 SQLite DB URL、JWT secret、internal API key、port 與 judge 暫存目錄設定。
+`scripts/deploy.sh` 會自動產生 `.deploy/deploy.env`，其中包含 SQLite DB URL、JWT secret、internal API key、`HOST_PORT` 與 judge 暫存目錄設定。Backend 會映射到 `HOST_PORT`（預設 `4100`），Caddy 另提供 80/443 反向代理。
 
 評測服務會透過 Docker socket 建立隔離的程式執行容器；請只在信任的主機上使用這份預設 Compose 設定。
 
@@ -62,7 +62,7 @@ docker build -t code-judge-backend:1.0.0 .
 docker run -d \
   --name code-judge-backend \
   -p 4100:4100 \
-  -e DATABASE_URL=file:./data/code_judge.db \
+  -e DATABASE_URL=file:/app/data/code_judge.db \
   -e JWT_SECRET=your-production-secret \
   -e JWT_EXPIRES_IN=86400 \
   -e INTERNAL_API_KEY=internal-key \
@@ -70,7 +70,9 @@ docker run -d \
   code-judge-backend:1.0.0
 ```
 
-### 多容器部署（應用+資料庫）
+### 多容器部署（應用 + 資料庫）
+
+> 目前 repository 內的 Prisma provider 與 migrations 為 SQLite。下方 PostgreSQL compose 範例是規劃/改造參考，不能直接套用現有 migrations；可直接運行的預設部署請使用本專案根目錄的 `docker-compose.yml` 或 `npm run deploy`。
 
 #### docker-compose.yml (生产配置)
 
@@ -197,7 +199,9 @@ npm run start:prod
 
 ## 資料庫部署
 
-### PostgreSQL部署
+### PostgreSQL 部署（規劃支援）
+
+> 目前 `prisma/schema.prisma` 與 `prisma/migrations` 是 SQLite 版本。切換 PostgreSQL 前，需先建立 PostgreSQL provider 與對應 migrations。
 
 #### 在服務器上安装PostgreSQL
 

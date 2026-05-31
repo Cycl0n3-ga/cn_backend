@@ -321,7 +321,7 @@ npm run test:load
 npm run test:stress
 ```
 
-**說明：** 壓力測試会逐步增加負載，找出系統的崩溃点
+**說明：** 壓力測試会逐步增加負載，找出系統的崩溃点。若要將報告寫回 `/stress-test-reports`，需在執行環境提供 `INTERNAL_API_KEY`。
 
 ### 效能測試脚本說明
 

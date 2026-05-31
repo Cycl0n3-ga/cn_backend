@@ -170,9 +170,9 @@ cn_22_backend/
 
 ## 資料庫模庫
 
-項目使用 Prisma ORM，支持：
-- **SQLite** (開發環境預設)
-- **PostgreSQL** (生产環境推荐)
+項目使用 Prisma ORM，目前可直接運行：
+- **SQLite** (開發與 Docker 部署預設)
+- **PostgreSQL** (規劃支援；需另行提供 provider/migrations)
 
 核心資料模型：
 - `User` - 使用者帳戶
@@ -182,6 +182,9 @@ cn_22_backend/
 - `Assignment` - 题目指派
 - `Interview` - 面試记錄
 - `InterviewCandidate` - 面試候選人與測驗開始/結束時間
+- `InterviewAssignment` - 面試題目指派
+- `StressTestReport` - 壓力測試報告
+- `HealthMetric` - 系統健康指標
 
 ## 关键配置檔案
 

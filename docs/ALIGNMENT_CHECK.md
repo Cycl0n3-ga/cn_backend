@@ -102,8 +102,11 @@
 | Assignment | 4 | ✅ DATABASE_SCHEMA | ⭐⭐⭐ | 完整定義 |
 | Interview | 5 | ✅ DATABASE_SCHEMA | ⭐⭐⭐ | 完整定義 |
 | InterviewCandidate | 6 | ✅ DATABASE_SCHEMA | ⭐⭐⭐ | 完整定義 |
+| InterviewAssignment | 5 | ✅ DATABASE_SCHEMA | ⭐⭐⭐ | 完整定義 |
+| StressTestReport | 18 | ✅ DATABASE_SCHEMA | ⭐⭐⭐ | 完整定義 |
+| HealthMetric | 9 | ✅ DATABASE_SCHEMA | ⭐⭐⭐ | 完整定義 |
 
-**統計:** 7 個表，全部涵蓋 ✅
+**統計:** 10 個表，全部涵蓋 ✅
 
 ### ✅ API 端點 vs 檔案對應
 
@@ -114,6 +117,7 @@
 | /problems | GET | ✅ API_SPECIFICATION | ✓ | 題目列表 |
 | /problems/:id | GET | ✅ API_SPECIFICATION | ✓ | 題目詳情 |
 | /problems | POST | ✅ API_SPECIFICATION | ✓ | 新增題目 |
+| /problems/:id | PATCH | ✅ API_SPECIFICATION | ✓ | 修改題目 |
 | /problems/:id | DELETE | ✅ API_SPECIFICATION | ✓ | 刪除題目 |
 | /problems/:id/assign | POST | ✅ API_SPECIFICATION | ✓ | 指派題目 |
 | /submissions | POST | ✅ API_SPECIFICATION | ✓ | 提交程式碼 |
@@ -137,8 +141,13 @@
 | /assignments/user/:userId | GET | ✅ API_SPECIFICATION | ✓ | 使用者指派列表 |
 | /assignments/:id | GET | ✅ API_SPECIFICATION | ✓ | 單一指派 |
 | /assignments/:id | DELETE | ✅ API_SPECIFICATION | ✓ | 刪除指派 |
+| /stress-test-reports | POST | ✅ API_SPECIFICATION | ✓ | 新增壓力測試報告 |
+| /stress-test-reports | GET | ✅ API_SPECIFICATION | ✓ | 壓測報告列表 |
+| /stress-test-reports/latest | GET | ✅ API_SPECIFICATION | ✓ | 最新壓測報告 |
+| /stress-test-reports/summary | GET | ✅ API_SPECIFICATION | ✓ | 壓測摘要 |
+| /stress-test-reports/dashboard | GET | ✅ API_SPECIFICATION | ✓ | 壓測 Dashboard |
 
-**統計:** 28 個主要端點，全部涵蓋 ✅
+**統計:** 34 個主要端點，全部涵蓋 ✅
 
 ---
 
@@ -180,9 +189,9 @@
 | 項目 | 涵蓋 | 百分比 | 狀態 |
 |------|------|--------|------|
 | **模組** | 9/9 | 100% | ✅ 完整 |
-| **資料表** | 7/7 | 100% | ✅ 完整 |
+| **資料表** | 10/10 | 100% | ✅ 完整 |
 | **命令** | 18/18 | 100% | ✅ 完整 |
-| **API 端點** | 14/14 | 100% | ✅ 完整 |
+| **API 端點** | 34/34 | 100% | ✅ 完整 |
 | **檔案** | 13/13 | 100% | ✅ 完整 |
 
 ---

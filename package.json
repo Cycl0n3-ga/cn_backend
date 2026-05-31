@@ -27,12 +27,12 @@
     "db:seed": "prisma db seed"
   },
   "dependencies": {
-    "@nestjs/common": "11.0.1",
-    "@nestjs/core": "11.0.1",
+    "@nestjs/common": "11.1.24",
+    "@nestjs/core": "11.1.24",
     "@nestjs/jwt": "11.0.2",
     "@nestjs/passport": "11.0.5",
-    "@nestjs/platform-express": "11.0.1",
-    "@nestjs/swagger": "11.4.2",
+    "@nestjs/platform-express": "11.1.24",
+    "@nestjs/swagger": "11.4.4",
     "@nestjs/throttler": "^6.5.0",
     "@prisma/adapter-better-sqlite3": "7.8.0",
     "@prisma/adapter-pg": "7.8.0",
@@ -41,6 +41,7 @@
     "better-sqlite3": "12.10.0",
     "class-transformer": "0.5.1",
     "class-validator": "0.15.1",
+    "dotenv": "17.4.2",
     "passport": "0.7.0",
     "passport-jwt": "4.0.1",
     "pg": "8.20.0",
@@ -52,9 +53,9 @@
   "devDependencies": {
     "@eslint/eslintrc": "3.2.0",
     "@eslint/js": "9.18.0",
-    "@nestjs/cli": "11.0.0",
-    "@nestjs/schematics": "11.0.0",
-    "@nestjs/testing": "11.0.1",
+    "@nestjs/cli": "11.0.21",
+    "@nestjs/schematics": "11.1.0",
+    "@nestjs/testing": "11.1.24",
     "@types/express": "5.0.0",
     "@types/jest": "29.5.14",
     "@types/node": "24.0.0",
@@ -62,7 +63,7 @@
     "@types/supertest": "7.2.0",
     "@types/uuid": "10.0.0",
     "autocannon": "8.0.0",
-    "eslint": "9.18.0",
+    "eslint": "9.39.4",
     "eslint-config-prettier": "10.0.1",
     "eslint-plugin-prettier": "5.2.2",
     "globals": "17.0.0",
@@ -114,5 +115,11 @@
         }
       ]
     ]
+  },
+  "overrides": {
+    "@hono/node-server": "1.19.13",
+    "hyperid": {
+      "uuid": "11.1.1"
+    }
   }
 }

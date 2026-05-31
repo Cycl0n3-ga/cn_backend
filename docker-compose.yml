@@ -5,15 +5,17 @@ services:
       dockerfile: Dockerfile
     container_name: code-judge-backend
     expose:
-      - "4100"
+      - '4100'
+    ports:
+      - '${HOST_PORT:-4100}:${PORT:-4100}'
     environment:
       # This repository currently runs on SQLite via Prisma driver adapter.
       # The DB file is persisted via the /app/data volume.
       DATABASE_URL: ${DATABASE_URL:-file:/app/data/code_judge.db}
       SQLITE_DB_FILE: ${SQLITE_DB_FILE:-/app/data/code_judge.db}
-      JWT_SECRET: ${JWT_SECRET:-production-secret-key-change-me}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required and must be at least 32 characters}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-86400}
-      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-internal-judge-worker-key-change-me}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:?INTERNAL_API_KEY is required}
       NODE_ENV: production
       PORT: ${PORT:-4100}
       JUDGE_CONCURRENCY: ${JUDGE_CONCURRENCY:-2}
@@ -25,12 +27,12 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${JUDGE_TMP_DIR:-/tmp/code-judge-workspaces}:${JUDGE_TMP_DIR:-/tmp/code-judge-workspaces}
     command: >
-      sh -c "DB_DIR=$${SQLITE_DB_FILE%/*} && mkdir -p \"$$DB_DIR\" && touch \"$$SQLITE_DB_FILE\" && npx prisma migrate deploy && if [ \"$$SEED_DB\" = \"true\" ]; then npx prisma db seed; fi && npm run start:prod"
+      sh -c "DB_DIR=$${SQLITE_DB_FILE%/*} && mkdir -p \"$$DB_DIR\" && touch \"$$SQLITE_DB_FILE\" && npx prisma migrate deploy --schema prisma/schema.prisma && if [ \"$$SEED_DB\" = \"true\" ]; then node dist/prisma/seed.js; fi && npm run start:prod"
     healthcheck:
       test:
         [
-          "CMD-SHELL",
-          "node -e \"fetch('http://127.0.0.1:' + (process.env.PORT || 4100) + '/api/v1/health').then(r => r.ok ? r.json() : Promise.reject(new Error('bad status'))).then(body => process.exit(body.status === 'UP' ? 0 : 1)).catch(() => process.exit(1))\"",
+          'CMD-SHELL',
+          'node -e "fetch(''http://127.0.0.1:'' + (process.env.PORT || 4100) + ''/api/v1/health'').then(r => r.ok ? r.json() : Promise.reject(new Error(''bad status''))).then(body => process.exit(body.status === ''UP'' ? 0 : 1)).catch(() => process.exit(1))"',
         ]
       interval: 10s
       timeout: 5s
@@ -43,8 +45,8 @@ services:
     container_name: code-judge-caddy
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - '80:80'
+      - '443:443'
     environment:
       DOMAIN_NAME: ${DOMAIN_NAME:-localhost}
     volumes:

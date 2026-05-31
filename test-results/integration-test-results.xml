@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="13" failures="0" errors="0" time="2.207">
+  <testsuite name="AuthService (integration)" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:21:29" time="1.487" tests="5">
+    <testcase classname="AuthService (integration) should login with seeded admin user" name="AuthService (integration) should login with seeded admin user" time="0.14">
+    </testcase>
+    <testcase classname="AuthService (integration) should signup then login successfully (and cleanup)" name="AuthService (integration) should signup then login successfully (and cleanup)" time="0.288">
+    </testcase>
+    <testcase classname="AuthService (integration) should throw ConflictException when username already exists" name="AuthService (integration) should throw ConflictException when username already exists" time="0.008">
+    </testcase>
+    <testcase classname="AuthService (integration) should throw UnauthorizedException for wrong password" name="AuthService (integration) should throw UnauthorizedException for wrong password" time="0.08">
+    </testcase>
+    <testcase classname="AuthService (integration) validateUserById should return non-sensitive fields only" name="AuthService (integration) validateUserById should return non-sensitive fields only" time="0.003">
+    </testcase>
+  </testsuite>
+  <testsuite name="ProblemsService (integration)" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:21:30" time="0.263" tests="4">
+    <testcase classname="ProblemsService (integration) findAll should return seeded problems with string numeric fields" name="ProblemsService (integration) findAll should return seeded problems with string numeric fields" time="0.031">
+    </testcase>
+    <testcase classname="ProblemsService (integration) findAll should filter by difficulty" name="ProblemsService (integration) findAll should filter by difficulty" time="0.004">
+    </testcase>
+    <testcase classname="ProblemsService (integration) findOne should exclude hidden testcases from sample_test_cases (seeded Two Sum)" name="ProblemsService (integration) findOne should exclude hidden testcases from sample_test_cases (seeded Two Sum)" time="0.005">
+    </testcase>
+    <testcase classname="ProblemsService (integration) findOne should throw NotFoundException for deleted/non-existent problems" name="ProblemsService (integration) findOne should throw NotFoundException for deleted/non-existent problems" time="0.01">
+    </testcase>
+  </testsuite>
+  <testsuite name="UsersService (integration)" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:21:31" time="0.26" tests="3">
+    <testcase classname="UsersService (integration) findAll should include seeded users and return numeric fields as strings" name="UsersService (integration) findAll should include seeded users and return numeric fields as strings" time="0.019">
+    </testcase>
+    <testcase classname="UsersService (integration) getSubmissionHistory should return seeded history for bob" name="UsersService (integration) getSubmissionHistory should return seeded history for bob" time="0.004">
+    </testcase>
+    <testcase classname="UsersService (integration) getSubmissionHistory should throw NotFoundException for non-existent user" name="UsersService (integration) getSubmissionHistory should throw NotFoundException for non-existent user" time="0.017">
+    </testcase>
+  </testsuite>
+  <testsuite name="LeaderboardService (integration)" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:21:31" time="0.151" tests="1">
+    <testcase classname="LeaderboardService (integration) getRankings should return seeded rankings in correct order (bob should be #1)" name="LeaderboardService (integration) getRankings should return seeded rankings in correct order (bob should be #1)" time="0.019">
+    </testcase>
+  </testsuite>
+</testsuites>

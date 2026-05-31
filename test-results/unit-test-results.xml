@@ -1,93 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="jest tests" tests="358" failures="0" errors="0" time="10.861">
-  <testsuite name="UsersController" errors="0" failures="0" skipped="0" timestamp="2026-05-31T12:40:57" time="7.338" tests="9">
-    <testcase classname="UsersController should be defined" name="UsersController should be defined" time="0.014">
-    </testcase>
-    <testcase classname="UsersController findAll should return all users with pagination" name="UsersController findAll should return all users with pagination" time="0.004">
-    </testcase>
-    <testcase classname="UsersController findAll should pass custom page and limit" name="UsersController findAll should pass custom page and limit" time="0.002">
-    </testcase>
-    <testcase classname="UsersController findAll should clamp limit to max 100" name="UsersController findAll should clamp limit to max 100" time="0.002">
-    </testcase>
-    <testcase classname="UsersController getSubmissions should return submission history for own user" name="UsersController getSubmissions should return submission history for own user" time="0.002">
-    </testcase>
-    <testcase classname="UsersController getSubmissions should allow ADMIN to view any user submissions" name="UsersController getSubmissions should allow ADMIN to view any user submissions" time="0.002">
-    </testcase>
-    <testcase classname="UsersController getSubmissions should throw ForbiddenException when viewing other user submissions" name="UsersController getSubmissions should throw ForbiddenException when viewing other user submissions" time="0.01">
-    </testcase>
-    <testcase classname="UsersController getSubmissions should propagate NotFoundException for unknown username" name="UsersController getSubmissions should propagate NotFoundException for unknown username" time="0.002">
-    </testcase>
-    <testcase classname="UsersController getSubmissions should use page=1 when page query param is not provided" name="UsersController getSubmissions should use page=1 when page query param is not provided" time="0.001">
+<testsuites name="jest tests" tests="363" failures="0" errors="0" time="8.746">
+  <testsuite name="AppModule" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:50:36" time="5.613" tests="1">
+    <testcase classname="AppModule should compile the module" name="AppModule should compile the module" time="0.039">
     </testcase>
   </testsuite>
-  <testsuite name="UsersService" errors="0" failures="0" skipped="0" timestamp="2026-05-31T12:41:04" time="0.307" tests="17">
-    <testcase classname="UsersService findAll should return all users in data array" name="UsersService findAll should return all users in data array" time="0.004">
+  <testsuite name="ProblemsController" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:50:41" time="0.285" tests="23">
+    <testcase classname="ProblemsController should be defined" name="ProblemsController should be defined" time="0.005">
     </testcase>
-    <testcase classname="UsersService findAll should map user fields correctly" name="UsersService findAll should map user fields correctly" time="0.002">
-    </testcase>
-    <testcase classname="UsersService findAll should return numeric fields as strings" name="UsersService findAll should return numeric fields as strings" time="0.001">
-    </testcase>
-    <testcase classname="UsersService findAll should not expose passwordHash" name="UsersService findAll should not expose passwordHash" time="0.002">
-    </testcase>
-    <testcase classname="UsersService findAll should return empty array when no users exist" name="UsersService findAll should return empty array when no users exist" time="0.001">
-    </testcase>
-    <testcase classname="UsersService findAll should include createdAt timestamp" name="UsersService findAll should include createdAt timestamp" time="0.002">
-    </testcase>
-    <testcase classname="UsersService getSubmissionHistory should return submission history with total and page" name="UsersService getSubmissionHistory should return submission history with total and page" time="0.001">
-    </testcase>
-    <testcase classname="UsersService getSubmissionHistory should return all required submission fields" name="UsersService getSubmissionHistory should return all required submission fields" time="0.004">
-    </testcase>
-    <testcase classname="UsersService getSubmissionHistory should return score as string" name="UsersService getSubmissionHistory should return score as string" time="0.002">
-    </testcase>
-    <testcase classname="UsersService getSubmissionHistory should return problem_id as string" name="UsersService getSubmissionHistory should return problem_id as string" time="0.001">
-    </testcase>
-    <testcase classname="UsersService getSubmissionHistory should return empty string for execution_result when userOutput is null" name="UsersService getSubmissionHistory should return empty string for execution_result when userOutput is null" time="0.001">
-    </testcase>
-    <testcase classname="UsersService getSubmissionHistory should look up user by username" name="UsersService getSubmissionHistory should look up user by username" time="0.001">
-    </testcase>
-    <testcase classname="UsersService getSubmissionHistory should use correct pagination (page, limit)" name="UsersService getSubmissionHistory should use correct pagination (page, limit)" time="0.001">
-    </testcase>
-    <testcase classname="UsersService getSubmissionHistory should return correct page number as string" name="UsersService getSubmissionHistory should return correct page number as string" time="0.001">
-    </testcase>
-    <testcase classname="UsersService getSubmissionHistory should throw NotFoundException for non-existent user" name="UsersService getSubmissionHistory should throw NotFoundException for non-existent user" time="0.01">
-    </testcase>
-    <testcase classname="UsersService getSubmissionHistory should throw NotFoundException with username in message" name="UsersService getSubmissionHistory should throw NotFoundException with username in message" time="0.003">
-    </testcase>
-    <testcase classname="UsersService getSubmissionHistory should default page to 1 and limit to 20" name="UsersService getSubmissionHistory should default page to 1 and limit to 20" time="0.001">
-    </testcase>
-  </testsuite>
-  <testsuite name="ProblemsController" errors="0" failures="0" skipped="0" timestamp="2026-05-31T12:40:57" time="8.017" tests="23">
-    <testcase classname="ProblemsController should be defined" name="ProblemsController should be defined" time="0.014">
-    </testcase>
-    <testcase classname="ProblemsController findAll should return paginated problem list" name="ProblemsController findAll should return paginated problem list" time="0.004">
+    <testcase classname="ProblemsController findAll should return paginated problem list" name="ProblemsController findAll should return paginated problem list" time="0.003">
     </testcase>
     <testcase classname="ProblemsController findAll should pass parsed page and limit to service" name="ProblemsController findAll should pass parsed page and limit to service" time="0.003">
     </testcase>
-    <testcase classname="ProblemsController findAll should default page to 1 when not provided" name="ProblemsController findAll should default page to 1 when not provided" time="0.002">
+    <testcase classname="ProblemsController findAll should default page to 1 when not provided" name="ProblemsController findAll should default page to 1 when not provided" time="0.004">
     </testcase>
     <testcase classname="ProblemsController findAll should default limit to 20 when not provided" name="ProblemsController findAll should default limit to 20 when not provided" time="0.002">
     </testcase>
     <testcase classname="ProblemsController findAll should pass difficulty filter to service" name="ProblemsController findAll should pass difficulty filter to service" time="0.002">
     </testcase>
-    <testcase classname="ProblemsController findAll should handle undefined difficulty" name="ProblemsController findAll should handle undefined difficulty" time="0.002">
+    <testcase classname="ProblemsController findAll should handle undefined difficulty" name="ProblemsController findAll should handle undefined difficulty" time="0.001">
     </testcase>
     <testcase classname="ProblemsController findOne should return problem details" name="ProblemsController findOne should return problem details" time="0.002">
     </testcase>
-    <testcase classname="ProblemsController findOne should pass problem ID directly to service" name="ProblemsController findOne should pass problem ID directly to service" time="0.002">
+    <testcase classname="ProblemsController findOne should pass problem ID directly to service" name="ProblemsController findOne should pass problem ID directly to service" time="0.009">
     </testcase>
-    <testcase classname="ProblemsController findOne should propagate NotFoundException from service" name="ProblemsController findOne should propagate NotFoundException from service" time="0.016">
+    <testcase classname="ProblemsController findOne should propagate NotFoundException from service" name="ProblemsController findOne should propagate NotFoundException from service" time="0.014">
     </testcase>
     <testcase classname="ProblemsController findOne should propagate error message correctly" name="ProblemsController findOne should propagate error message correctly" time="0.002">
     </testcase>
-    <testcase classname="ProblemsController create should create problem and return result" name="ProblemsController create should create problem and return result" time="0.002">
+    <testcase classname="ProblemsController create should create problem and return result" name="ProblemsController create should create problem and return result" time="0.001">
     </testcase>
-    <testcase classname="ProblemsController create should map DTO fields to service parameters correctly" name="ProblemsController create should map DTO fields to service parameters correctly" time="0.002">
+    <testcase classname="ProblemsController create should map DTO fields to service parameters correctly" name="ProblemsController create should map DTO fields to service parameters correctly" time="0.003">
     </testcase>
-    <testcase classname="ProblemsController create should default is_hidden to true when not provided" name="ProblemsController create should default is_hidden to true when not provided" time="0.001">
+    <testcase classname="ProblemsController create should default is_hidden to true when not provided" name="ProblemsController create should default is_hidden to true when not provided" time="0.002">
     </testcase>
-    <testcase classname="ProblemsController update should update problem and return result" name="ProblemsController update should update problem and return result" time="0.002">
+    <testcase classname="ProblemsController update should update problem and return result" name="ProblemsController update should update problem and return result" time="0.001">
     </testcase>
-    <testcase classname="ProblemsController update should map test cases DTO to service format" name="ProblemsController update should map test cases DTO to service format" time="0.002">
+    <testcase classname="ProblemsController update should map test cases DTO to service format" name="ProblemsController update should map test cases DTO to service format" time="0.001">
     </testcase>
     <testcase classname="ProblemsController update should propagate NotFoundException from service" name="ProblemsController update should propagate NotFoundException from service" time="0.002">
     </testcase>
@@ -97,468 +45,34 @@
     </testcase>
     <testcase classname="ProblemsController assign should assign problem and return result" name="ProblemsController assign should assign problem and return result" time="0.001">
     </testcase>
-    <testcase classname="ProblemsController assign should pass problem ID and assignee_username to service" name="ProblemsController assign should pass problem ID and assignee_username to service" time="0.002">
+    <testcase classname="ProblemsController assign should pass problem ID and assignee_username to service" name="ProblemsController assign should pass problem ID and assignee_username to service" time="0.001">
     </testcase>
-    <testcase classname="ProblemsController assign should propagate NotFoundException when problem not found" name="ProblemsController assign should propagate NotFoundException when problem not found" time="0.001">
+    <testcase classname="ProblemsController assign should propagate NotFoundException when problem not found" name="ProblemsController assign should propagate NotFoundException when problem not found" time="0.002">
     </testcase>
-    <testcase classname="ProblemsController assign should propagate NotFoundException when user not found" name="ProblemsController assign should propagate NotFoundException when user not found" time="0.001">
-    </testcase>
-  </testsuite>
-  <testsuite name="ProblemsService" errors="0" failures="0" skipped="0" timestamp="2026-05-31T12:41:05" time="0.253" tests="34">
-    <testcase classname="ProblemsService findAll should return paginated problem list with total and page" name="ProblemsService findAll should return paginated problem list with total and page" time="0.008">
-    </testcase>
-    <testcase classname="ProblemsService findAll should map problem fields to snake_case API format" name="ProblemsService findAll should map problem fields to snake_case API format" time="0.002">
-    </testcase>
-    <testcase classname="ProblemsService findAll should include problem analytics counts" name="ProblemsService findAll should include problem analytics counts" time="0.001">
-    </testcase>
-    <testcase classname="ProblemsService findAll should return all numeric fields as strings" name="ProblemsService findAll should return all numeric fields as strings" time="0.001">
-    </testcase>
-    <testcase classname="ProblemsService findAll should filter by difficulty (EASY)" name="ProblemsService findAll should filter by difficulty (EASY)" time="0.001">
-    </testcase>
-    <testcase classname="ProblemsService findAll should accept lowercase difficulty and uppercase it" name="ProblemsService findAll should accept lowercase difficulty and uppercase it" time="0.006">
-    </testcase>
-    <testcase classname="ProblemsService findAll should apply correct pagination offset" name="ProblemsService findAll should apply correct pagination offset" time="0.001">
-    </testcase>
-    <testcase classname="ProblemsService findAll should only query non-deleted problems" name="ProblemsService findAll should only query non-deleted problems" time="0.001">
-    </testcase>
-    <testcase classname="ProblemsService findAll should return empty items array when no problems" name="ProblemsService findAll should return empty items array when no problems" time="0.002">
-    </testcase>
-    <testcase classname="ProblemsService findOne should return problem details with sample test cases" name="ProblemsService findOne should return problem details with sample test cases" time="0.002">
-    </testcase>
-    <testcase classname="ProblemsService findOne should return constraints as strings" name="ProblemsService findOne should return constraints as strings" time="0.003">
-    </testcase>
-    <testcase classname="ProblemsService findOne should return function_name as empty string when null" name="ProblemsService findOne should return function_name as empty string when null" time="0.006">
-    </testcase>
-    <testcase classname="ProblemsService findOne should include analytics counts in problem details" name="ProblemsService findOne should include analytics counts in problem details" time="0.003">
-    </testcase>
-    <testcase classname="ProblemsService findOne should only fetch non-hidden test cases" name="ProblemsService findOne should only fetch non-hidden test cases" time="0.002">
-    </testcase>
-    <testcase classname="ProblemsService findOne should throw NotFoundException for non-existent problem" name="ProblemsService findOne should throw NotFoundException for non-existent problem" time="0.027">
-    </testcase>
-    <testcase classname="ProblemsService findOne should throw NotFoundException with problem ID in message" name="ProblemsService findOne should throw NotFoundException with problem ID in message" time="0.002">
-    </testcase>
-    <testcase classname="ProblemsService create should create a problem and return problem_id and title" name="ProblemsService create should create a problem and return problem_id and title" time="0.011">
-    </testcase>
-    <testcase classname="ProblemsService create should persist creatorId when creating a problem" name="ProblemsService create should persist creatorId when creating a problem" time="0.001">
-    </testcase>
-    <testcase classname="ProblemsService create should default timeLimitMs to 1000 and memoryLimitMb to 256" name="ProblemsService create should default timeLimitMs to 1000 and memoryLimitMb to 256" time="0.001">
-    </testcase>
-    <testcase classname="ProblemsService create should use provided timeLimitMs and memoryLimitMb" name="ProblemsService create should use provided timeLimitMs and memoryLimitMb" time="0.001">
-    </testcase>
-    <testcase classname="ProblemsService create should default test case isHidden to true" name="ProblemsService create should default test case isHidden to true" time="0">
-    </testcase>
-    <testcase classname="ProblemsService create should allow setting isHidden to false" name="ProblemsService create should allow setting isHidden to false" time="0.002">
-    </testcase>
-    <testcase classname="ProblemsService update should update problem details and return format" name="ProblemsService update should update problem details and return format" time="0.001">
-    </testcase>
-    <testcase classname="ProblemsService update should replace test cases if testCases are provided" name="ProblemsService update should replace test cases if testCases are provided" time="0.002">
-    </testcase>
-    <testcase classname="ProblemsService update should throw NotFoundException if problem does not exist or is deleted" name="ProblemsService update should throw NotFoundException if problem does not exist or is deleted" time="0.001">
-    </testcase>
-    <testcase classname="ProblemsService remove should soft-delete a problem (set isDeleted=true)" name="ProblemsService remove should soft-delete a problem (set isDeleted=true)" time="0.001">
-    </testcase>
-    <testcase classname="ProblemsService remove should throw NotFoundException for non-existent problem" name="ProblemsService remove should throw NotFoundException for non-existent problem" time="0.001">
-    </testcase>
-    <testcase classname="ProblemsService remove should check existence by id before deleting" name="ProblemsService remove should check existence by id before deleting" time="0.001">
-    </testcase>
-    <testcase classname="ProblemsService assign should assign problem to user and return assignment info" name="ProblemsService assign should assign problem to user and return assignment info" time="0.007">
-    </testcase>
-    <testcase classname="ProblemsService assign should return all numeric IDs as strings" name="ProblemsService assign should return all numeric IDs as strings" time="0.01">
-    </testcase>
-    <testcase classname="ProblemsService assign should throw NotFoundException if problem does not exist or is deleted" name="ProblemsService assign should throw NotFoundException if problem does not exist or is deleted" time="0.002">
-    </testcase>
-    <testcase classname="ProblemsService assign should throw NotFoundException if user does not exist" name="ProblemsService assign should throw NotFoundException if user does not exist" time="0.001">
-    </testcase>
-    <testcase classname="ProblemsService assign should throw BadRequestException if assignee is not a candidate" name="ProblemsService assign should throw BadRequestException if assignee is not a candidate" time="0.006">
-    </testcase>
-    <testcase classname="ProblemsService assign should use upsert to avoid duplicate assignments" name="ProblemsService assign should use upsert to avoid duplicate assignments" time="0.001">
+    <testcase classname="ProblemsController assign should propagate NotFoundException when user not found" name="ProblemsController assign should propagate NotFoundException when user not found" time="0.004">
     </testcase>
   </testsuite>
-  <testsuite name="AssignmentsController" errors="0" failures="0" skipped="0" timestamp="2026-05-31T12:41:05" time="0.349" tests="20">
-    <testcase classname="AssignmentsController should be defined" name="AssignmentsController should be defined" time="0.009">
+  <testsuite name="UsersController" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:50:41" time="0.182" tests="9">
+    <testcase classname="UsersController should be defined" name="UsersController should be defined" time="0.005">
     </testcase>
-    <testcase classname="AssignmentsController create should create an assignment and return result" name="AssignmentsController create should create an assignment and return result" time="0.004">
+    <testcase classname="UsersController findAll should return all users with pagination" name="UsersController findAll should return all users with pagination" time="0.001">
     </testcase>
-    <testcase classname="AssignmentsController create should pass DTO directly to service" name="AssignmentsController create should pass DTO directly to service" time="0.004">
+    <testcase classname="UsersController findAll should pass custom page and limit" name="UsersController findAll should pass custom page and limit" time="0.002">
     </testcase>
-    <testcase classname="AssignmentsController create should propagate NotFoundException when interview not found" name="AssignmentsController create should propagate NotFoundException when interview not found" time="0.025">
+    <testcase classname="UsersController findAll should clamp limit to max 100" name="UsersController findAll should clamp limit to max 100" time="0.001">
     </testcase>
-    <testcase classname="AssignmentsController create should propagate NotFoundException when user not found" name="AssignmentsController create should propagate NotFoundException when user not found" time="0.005">
+    <testcase classname="UsersController getSubmissions should return submission history for own user" name="UsersController getSubmissions should return submission history for own user" time="0.006">
     </testcase>
-    <testcase classname="AssignmentsController create should propagate NotFoundException when problem not found" name="AssignmentsController create should propagate NotFoundException when problem not found" time="0.002">
+    <testcase classname="UsersController getSubmissions should allow ADMIN to view any user submissions" name="UsersController getSubmissions should allow ADMIN to view any user submissions" time="0.002">
     </testcase>
-    <testcase classname="AssignmentsController create should propagate ConflictException for duplicate assignment" name="AssignmentsController create should propagate ConflictException for duplicate assignment" time="0.015">
+    <testcase classname="UsersController getSubmissions should throw ForbiddenException when viewing other user submissions" name="UsersController getSubmissions should throw ForbiddenException when viewing other user submissions" time="0.008">
     </testcase>
-    <testcase classname="AssignmentsController findAll should return all assignments" name="AssignmentsController findAll should return all assignments" time="0.003">
+    <testcase classname="UsersController getSubmissions should propagate NotFoundException for unknown username" name="UsersController getSubmissions should propagate NotFoundException for unknown username" time="0.001">
     </testcase>
-    <testcase classname="AssignmentsController findAll should return empty array when no assignments exist" name="AssignmentsController findAll should return empty array when no assignments exist" time="0.004">
-    </testcase>
-    <testcase classname="AssignmentsController findAll should call service.findAll without arguments" name="AssignmentsController findAll should call service.findAll without arguments" time="0.001">
-    </testcase>
-    <testcase classname="AssignmentsController findOne should return a single assignment" name="AssignmentsController findOne should return a single assignment" time="0.006">
-    </testcase>
-    <testcase classname="AssignmentsController findOne should pass ID to service" name="AssignmentsController findOne should pass ID to service" time="0.005">
-    </testcase>
-    <testcase classname="AssignmentsController findOne should propagate NotFoundException for non-existent assignment" name="AssignmentsController findOne should propagate NotFoundException for non-existent assignment" time="0.002">
-    </testcase>
-    <testcase classname="AssignmentsController findByUser should return assignments for a user" name="AssignmentsController findByUser should return assignments for a user" time="0.002">
-    </testcase>
-    <testcase classname="AssignmentsController findByUser should pass userId to service" name="AssignmentsController findByUser should pass userId to service" time="0.002">
-    </testcase>
-    <testcase classname="AssignmentsController findByUser should return empty array when user has no assignments" name="AssignmentsController findByUser should return empty array when user has no assignments" time="0.006">
-    </testcase>
-    <testcase classname="AssignmentsController remove should call service.remove with correct id" name="AssignmentsController remove should call service.remove with correct id" time="0.005">
-    </testcase>
-    <testcase classname="AssignmentsController remove should not throw for existing assignment" name="AssignmentsController remove should not throw for existing assignment" time="0.001">
-    </testcase>
-    <testcase classname="AssignmentsController remove should propagate NotFoundException for non-existent assignment" name="AssignmentsController remove should propagate NotFoundException for non-existent assignment" time="0.006">
-    </testcase>
-    <testcase classname="AssignmentsController remove should propagate error message correctly" name="AssignmentsController remove should propagate error message correctly" time="0.002">
+    <testcase classname="UsersController getSubmissions should use page=1 when page query param is not provided" name="UsersController getSubmissions should use page=1 when page query param is not provided" time="0.002">
     </testcase>
   </testsuite>
-  <testsuite name="AppModule" errors="0" failures="0" skipped="0" timestamp="2026-05-31T12:41:04" time="1.005" tests="1">
-    <testcase classname="AppModule should compile the module" name="AppModule should compile the module" time="0.025">
-    </testcase>
-  </testsuite>
-  <testsuite name="InterviewsController" errors="0" failures="0" skipped="0" timestamp="2026-05-31T12:41:05" time="0.462" tests="15">
-    <testcase classname="InterviewsController should be defined" name="InterviewsController should be defined" time="0.004">
-    </testcase>
-    <testcase classname="InterviewsController create should create interview and return result" name="InterviewsController create should create interview and return result" time="0.008">
-    </testcase>
-    <testcase classname="InterviewsController create should pass DTO directly to service" name="InterviewsController create should pass DTO directly to service" time="0.001">
-    </testcase>
-    <testcase classname="InterviewsController create should pass candidate and problem counts to service" name="InterviewsController create should pass candidate and problem counts to service" time="0.001">
-    </testcase>
-    <testcase classname="InterviewsController create should return id as string" name="InterviewsController create should return id as string" time="0.001">
-    </testcase>
-    <testcase classname="InterviewsController findAll should return all interviews" name="InterviewsController findAll should return all interviews" time="0.005">
-    </testcase>
-    <testcase classname="InterviewsController findAll should call service.findAll once" name="InterviewsController findAll should call service.findAll once" time="0.002">
-    </testcase>
-    <testcase classname="InterviewsController findAll should return empty array when no interviews" name="InterviewsController findAll should return empty array when no interviews" time="0.003">
-    </testcase>
-    <testcase classname="InterviewsController update should update interview and return result" name="InterviewsController update should update interview and return result" time="0.001">
-    </testcase>
-    <testcase classname="InterviewsController update should pass id and DTO to service" name="InterviewsController update should pass id and DTO to service" time="0.001">
-    </testcase>
-    <testcase classname="InterviewsController update should propagate NotFoundException from service" name="InterviewsController update should propagate NotFoundException from service" time="0.011">
-    </testcase>
-    <testcase classname="InterviewsController update should propagate error message correctly" name="InterviewsController update should propagate error message correctly" time="0.002">
-    </testcase>
-    <testcase classname="InterviewsController remove should call service.remove with correct id" name="InterviewsController remove should call service.remove with correct id" time="0.002">
-    </testcase>
-    <testcase classname="InterviewsController remove should propagate NotFoundException from service" name="InterviewsController remove should propagate NotFoundException from service" time="0.002">
-    </testcase>
-    <testcase classname="InterviewsController remove should not throw for existing interview" name="InterviewsController remove should not throw for existing interview" time="0.003">
-    </testcase>
-  </testsuite>
-  <testsuite name="InterviewCandidatesController" errors="0" failures="0" skipped="0" timestamp="2026-05-31T12:41:05" time="0.422" tests="21">
-    <testcase classname="InterviewCandidatesController should be defined" name="InterviewCandidatesController should be defined" time="0.004">
-    </testcase>
-    <testcase classname="InterviewCandidatesController create should create candidate and return result" name="InterviewCandidatesController create should create candidate and return result" time="0.002">
-    </testcase>
-    <testcase classname="InterviewCandidatesController create should pass DTO directly to service" name="InterviewCandidatesController create should pass DTO directly to service" time="0.002">
-    </testcase>
-    <testcase classname="InterviewCandidatesController create should return id and jobId as strings" name="InterviewCandidatesController create should return id and jobId as strings" time="0.005">
-    </testcase>
-    <testcase classname="InterviewCandidatesController create should pass optional time fields to service" name="InterviewCandidatesController create should pass optional time fields to service" time="0.001">
-    </testcase>
-    <testcase classname="InterviewCandidatesController create should propagate NotFoundException when interview not found" name="InterviewCandidatesController create should propagate NotFoundException when interview not found" time="0.01">
-    </testcase>
-    <testcase classname="InterviewCandidatesController create should propagate NotFoundException when user not found" name="InterviewCandidatesController create should propagate NotFoundException when user not found" time="0.01">
-    </testcase>
-    <testcase classname="InterviewCandidatesController create should propagate ConflictException for duplicate candidate" name="InterviewCandidatesController create should propagate ConflictException for duplicate candidate" time="0.002">
-    </testcase>
-    <testcase classname="InterviewCandidatesController create should propagate ConflictException with correct message" name="InterviewCandidatesController create should propagate ConflictException with correct message" time="0.002">
-    </testcase>
-    <testcase classname="InterviewCandidatesController findAll should return all candidates" name="InterviewCandidatesController findAll should return all candidates" time="0.001">
-    </testcase>
-    <testcase classname="InterviewCandidatesController findAll should call service.findAll" name="InterviewCandidatesController findAll should call service.findAll" time="0.002">
-    </testcase>
-    <testcase classname="InterviewCandidatesController getTimeStatus should return candidate time status" name="InterviewCandidatesController getTimeStatus should return candidate time status" time="0.002">
-    </testcase>
-    <testcase classname="InterviewCandidatesController getTimeStatus should propagate NotFoundException from service" name="InterviewCandidatesController getTimeStatus should propagate NotFoundException from service" time="0.001">
-    </testcase>
-    <testcase classname="InterviewCandidatesController updateTime should update candidate time and return result" name="InterviewCandidatesController updateTime should update candidate time and return result" time="0.001">
-    </testcase>
-    <testcase classname="InterviewCandidatesController updateTime should pass id and DTO to service" name="InterviewCandidatesController updateTime should pass id and DTO to service" time="0.002">
-    </testcase>
-    <testcase classname="InterviewCandidatesController updateTime should propagate BadRequestException from service" name="InterviewCandidatesController updateTime should propagate BadRequestException from service" time="0.001">
-    </testcase>
-    <testcase classname="InterviewCandidatesController updateTime should propagate NotFoundException from service" name="InterviewCandidatesController updateTime should propagate NotFoundException from service" time="0.001">
-    </testcase>
-    <testcase classname="InterviewCandidatesController remove should call service.remove with correct id" name="InterviewCandidatesController remove should call service.remove with correct id" time="0.001">
-    </testcase>
-    <testcase classname="InterviewCandidatesController remove should propagate NotFoundException for non-existent candidate" name="InterviewCandidatesController remove should propagate NotFoundException for non-existent candidate" time="0.002">
-    </testcase>
-    <testcase classname="InterviewCandidatesController remove should not throw for existing candidate" name="InterviewCandidatesController remove should not throw for existing candidate" time="0.002">
-    </testcase>
-    <testcase classname="InterviewCandidatesController remove should propagate error message correctly" name="InterviewCandidatesController remove should propagate error message correctly" time="0.001">
-    </testcase>
-  </testsuite>
-  <testsuite name="InterviewsService" errors="0" failures="0" skipped="0" timestamp="2026-05-31T12:41:06" time="0.232" tests="16">
-    <testcase classname="InterviewsService create should create an interview and return id, jobRole, examinerEmpId" name="InterviewsService create should create an interview and return id, jobRole, examinerEmpId" time="0.005">
-    </testcase>
-    <testcase classname="InterviewsService create should return id as string" name="InterviewsService create should return id as string" time="0.002">
-    </testcase>
-    <testcase classname="InterviewsService create should pass correct data to prisma" name="InterviewsService create should pass correct data to prisma" time="0.001">
-    </testcase>
-    <testcase classname="InterviewsService create should create an interview candidate and assign problems by difficulty counts" name="InterviewsService create should create an interview candidate and assign problems by difficulty counts" time="0.008">
-    </testcase>
-    <testcase classname="InterviewsService create should create a candidate without assignments when candidateUserId has no counts" name="InterviewsService create should create a candidate without assignments when candidateUserId has no counts" time="0.002">
-    </testcase>
-    <testcase classname="InterviewsService create should throw BadRequestException when problem counts are provided without candidateUserId" name="InterviewsService create should throw BadRequestException when problem counts are provided without candidateUserId" time="0.014">
-    </testcase>
-    <testcase classname="InterviewsService create should throw NotFoundException when candidate user does not exist" name="InterviewsService create should throw NotFoundException when candidate user does not exist" time="0.005">
-    </testcase>
-    <testcase classname="InterviewsService create should throw BadRequestException when there are not enough problems for a requested difficulty" name="InterviewsService create should throw BadRequestException when there are not enough problems for a requested difficulty" time="0.004">
-    </testcase>
-    <testcase classname="InterviewsService findAll should return all interviews" name="InterviewsService findAll should return all interviews" time="0.006">
-    </testcase>
-    <testcase classname="InterviewsService findAll should return empty array when no interviews" name="InterviewsService findAll should return empty array when no interviews" time="0.001">
-    </testcase>
-    <testcase classname="InterviewsService findAll should return IDs as strings" name="InterviewsService findAll should return IDs as strings" time="0.001">
-    </testcase>
-    <testcase classname="InterviewsService update should update and return updated interview" name="InterviewsService update should update and return updated interview" time="0.002">
-    </testcase>
-    <testcase classname="InterviewsService update should throw NotFoundException for non-existent interview" name="InterviewsService update should throw NotFoundException for non-existent interview" time="0.002">
-    </testcase>
-    <testcase classname="InterviewsService update should throw with correct message" name="InterviewsService update should throw with correct message" time="0.001">
-    </testcase>
-    <testcase classname="InterviewsService remove should delete an existing interview" name="InterviewsService remove should delete an existing interview" time="0.001">
-    </testcase>
-    <testcase classname="InterviewsService remove should throw NotFoundException for non-existent interview" name="InterviewsService remove should throw NotFoundException for non-existent interview" time="0.004">
-    </testcase>
-  </testsuite>
-  <testsuite name="AuthController" errors="0" failures="0" skipped="0" timestamp="2026-05-31T12:41:06" time="0.411" tests="9">
-    <testcase classname="AuthController should be defined" name="AuthController should be defined" time="0.004">
-    </testcase>
-    <testcase classname="AuthController login should return token for valid credentials" name="AuthController login should return token for valid credentials" time="0.001">
-    </testcase>
-    <testcase classname="AuthController login should return CANDIDATE role in token response" name="AuthController login should return CANDIDATE role in token response" time="0.001">
-    </testcase>
-    <testcase classname="AuthController login should propagate UnauthorizedException from service" name="AuthController login should propagate UnauthorizedException from service" time="0.01">
-    </testcase>
-    <testcase classname="AuthController login should pass passwordSha256 directly to service (not plaintext)" name="AuthController login should pass passwordSha256 directly to service (not plaintext)" time="0.001">
-    </testcase>
-    <testcase classname="AuthController signup should create user and return user info (without password)" name="AuthController signup should create user and return user info (without password)" time="0.004">
-    </testcase>
-    <testcase classname="AuthController signup should pass all fields to service including passwordSha256" name="AuthController signup should pass all fields to service including passwordSha256" time="0.001">
-    </testcase>
-    <testcase classname="AuthController signup should signup without optional role field" name="AuthController signup should signup without optional role field" time="0.001">
-    </testcase>
-    <testcase classname="AuthController signup should propagate ConflictException for duplicate user" name="AuthController signup should propagate ConflictException for duplicate user" time="0.011">
-    </testcase>
-  </testsuite>
-  <testsuite name="SubmissionsController" errors="0" failures="0" skipped="0" timestamp="2026-05-31T12:41:06" time="0.294" tests="10">
-    <testcase classname="SubmissionsController should be defined" name="SubmissionsController should be defined" time="0.005">
-    </testcase>
-    <testcase classname="SubmissionsController create should create submission and return PENDING status" name="SubmissionsController create should create submission and return PENDING status" time="0.002">
-    </testcase>
-    <testcase classname="SubmissionsController create should pass req.user.id to service as userId" name="SubmissionsController create should pass req.user.id to service as userId" time="0.001">
-    </testcase>
-    <testcase classname="SubmissionsController create should map DTO fields to service parameter names" name="SubmissionsController create should map DTO fields to service parameter names" time="0.002">
-    </testcase>
-    <testcase classname="SubmissionsController create should propagate NotFoundException for non-existent problem" name="SubmissionsController create should propagate NotFoundException for non-existent problem" time="0.008">
-    </testcase>
-    <testcase classname="SubmissionsController create should propagate error message correctly" name="SubmissionsController create should propagate error message correctly" time="0.002">
-    </testcase>
-    <testcase classname="SubmissionsController findOne should return submission details" name="SubmissionsController findOne should return submission details" time="0.002">
-    </testcase>
-    <testcase classname="SubmissionsController findOne should pass submission ID directly to service" name="SubmissionsController findOne should pass submission ID directly to service" time="0.001">
-    </testcase>
-    <testcase classname="SubmissionsController findOne should propagate NotFoundException for non-existent submission" name="SubmissionsController findOne should propagate NotFoundException for non-existent submission" time="0.001">
-    </testcase>
-    <testcase classname="SubmissionsController findOne should return all expected fields" name="SubmissionsController findOne should return all expected fields" time="0.002">
-    </testcase>
-  </testsuite>
-  <testsuite name="HealthController" errors="0" failures="0" skipped="0" timestamp="2026-05-31T12:41:06" time="0.153" tests="9">
-    <testcase classname="HealthController should be defined" name="HealthController should be defined" time="0.004">
-    </testcase>
-    <testcase classname="HealthController check should return UP status when database is healthy" name="HealthController check should return UP status when database is healthy" time="0.003">
-    </testcase>
-    <testcase classname="HealthController check should return all required health fields" name="HealthController check should return all required health fields" time="0.001">
-    </testcase>
-    <testcase classname="HealthController check should include judge_queue in services" name="HealthController check should include judge_queue in services" time="0.001">
-    </testcase>
-    <testcase classname="HealthController check should return queue_depth as string" name="HealthController check should return queue_depth as string" time="0.001">
-    </testcase>
-    <testcase classname="HealthController check should return uptime as string ending with &quot;s&quot;" name="HealthController check should return uptime as string ending with &quot;s&quot;" time="0.002">
-    </testcase>
-    <testcase classname="HealthController check should return timestamp as ISO 8601 string" name="HealthController check should return timestamp as ISO 8601 string" time="0.001">
-    </testcase>
-    <testcase classname="HealthController check should count pending/compiling/running submissions as queue_depth" name="HealthController check should count pending/compiling/running submissions as queue_depth" time="0.001">
-    </testcase>
-    <testcase classname="HealthController check should return DOWN status when database fails" name="HealthController check should return DOWN status when database fails" time="0.001">
-    </testcase>
-  </testsuite>
-  <testsuite name="StressTestReportsController" errors="0" failures="0" skipped="0" timestamp="2026-05-31T12:41:06" time="0.145" tests="2">
-    <testcase classname="StressTestReportsController should fallback to default limit when query limit is invalid" name="StressTestReportsController should fallback to default limit when query limit is invalid" time="0.003">
-    </testcase>
-    <testcase classname="StressTestReportsController should clamp query limit to 100 when value is too large" name="StressTestReportsController should clamp query limit to 100 when value is too large" time="0.001">
-    </testcase>
-  </testsuite>
-  <testsuite name="AssignmentsService" errors="0" failures="0" skipped="0" timestamp="2026-05-31T12:41:06" time="0.172" tests="24">
-    <testcase classname="AssignmentsService should be defined" name="AssignmentsService should be defined" time="0.005">
-    </testcase>
-    <testcase classname="AssignmentsService create should create an assignment and return formatted result" name="AssignmentsService create should create an assignment and return formatted result" time="0.002">
-    </testcase>
-    <testcase classname="AssignmentsService create should return id, jobId, problemId as strings (API contract)" name="AssignmentsService create should return id, jobId, problemId as strings (API contract)" time="0.004">
-    </testcase>
-    <testcase classname="AssignmentsService create should throw NotFoundException when interview does not exist" name="AssignmentsService create should throw NotFoundException when interview does not exist" time="0.009">
-    </testcase>
-    <testcase classname="AssignmentsService create should throw NotFoundException with interview ID in message" name="AssignmentsService create should throw NotFoundException with interview ID in message" time="0.001">
-    </testcase>
-    <testcase classname="AssignmentsService create should throw NotFoundException when user does not exist" name="AssignmentsService create should throw NotFoundException when user does not exist" time="0.002">
-    </testcase>
-    <testcase classname="AssignmentsService create should throw NotFoundException when problem does not exist" name="AssignmentsService create should throw NotFoundException when problem does not exist" time="0.001">
-    </testcase>
-    <testcase classname="AssignmentsService create should throw BadRequestException when user is not a candidate" name="AssignmentsService create should throw BadRequestException when user is not a candidate" time="0.001">
-    </testcase>
-    <testcase classname="AssignmentsService create should throw NotFoundException with problem ID in message" name="AssignmentsService create should throw NotFoundException with problem ID in message" time="0.001">
-    </testcase>
-    <testcase classname="AssignmentsService create should throw ConflictException on duplicate assignment (P2002)" name="AssignmentsService create should throw ConflictException on duplicate assignment (P2002)" time="0.001">
-    </testcase>
-    <testcase classname="AssignmentsService create should re-throw unknown database errors" name="AssignmentsService create should re-throw unknown database errors" time="0.001">
-    </testcase>
-    <testcase classname="AssignmentsService findAll should return all assignments formatted" name="AssignmentsService findAll should return all assignments formatted" time="0.002">
-    </testcase>
-    <testcase classname="AssignmentsService findAll should return an empty array when no assignments exist" name="AssignmentsService findAll should return an empty array when no assignments exist" time="0.001">
-    </testcase>
-    <testcase classname="AssignmentsService findAll should return all assignments with correct fields" name="AssignmentsService findAll should return all assignments with correct fields" time="0.012">
-    </testcase>
-    <testcase classname="AssignmentsService findOne should return a single assignment by ID" name="AssignmentsService findOne should return a single assignment by ID" time="0.001">
-    </testcase>
-    <testcase classname="AssignmentsService findOne should throw NotFoundException for non-existent assignment" name="AssignmentsService findOne should throw NotFoundException for non-existent assignment" time="0.002">
-    </testcase>
-    <testcase classname="AssignmentsService findOne should throw NotFoundException with assignment ID in message" name="AssignmentsService findOne should throw NotFoundException with assignment ID in message" time="0.001">
-    </testcase>
-    <testcase classname="AssignmentsService findByUser should return all assignments for a specific user" name="AssignmentsService findByUser should return all assignments for a specific user" time="0.001">
-    </testcase>
-    <testcase classname="AssignmentsService findByUser should return empty array when user has no assignments" name="AssignmentsService findByUser should return empty array when user has no assignments" time="0.001">
-    </testcase>
-    <testcase classname="AssignmentsService findByUser should query with correct userId filter" name="AssignmentsService findByUser should query with correct userId filter" time="0.001">
-    </testcase>
-    <testcase classname="AssignmentsService remove should delete an assignment successfully" name="AssignmentsService remove should delete an assignment successfully" time="0.001">
-    </testcase>
-    <testcase classname="AssignmentsService remove should throw NotFoundException when assignment does not exist" name="AssignmentsService remove should throw NotFoundException when assignment does not exist" time="0.001">
-    </testcase>
-    <testcase classname="AssignmentsService remove should throw NotFoundException with correct message" name="AssignmentsService remove should throw NotFoundException with correct message" time="0.002">
-    </testcase>
-    <testcase classname="AssignmentsService remove should not call delete when assignment not found" name="AssignmentsService remove should not call delete when assignment not found" time="0.001">
-    </testcase>
-  </testsuite>
-  <testsuite name="SubmissionsService" errors="0" failures="0" skipped="0" timestamp="2026-05-31T12:41:06" time="0.232" tests="20">
-    <testcase classname="SubmissionsService create should create a submission and return PENDING status immediately" name="SubmissionsService create should create a submission and return PENDING status immediately" time="0.004">
-    </testcase>
-    <testcase classname="SubmissionsService create should create submission with PENDING status in DB" name="SubmissionsService create should create submission with PENDING status in DB" time="0.001">
-    </testcase>
-    <testcase classname="SubmissionsService create should verify problem exists before creating submission" name="SubmissionsService create should verify problem exists before creating submission" time="0.001">
-    </testcase>
-    <testcase classname="SubmissionsService create should throw NotFoundException for non-existent problem" name="SubmissionsService create should throw NotFoundException for non-existent problem" time="0.011">
-    </testcase>
-    <testcase classname="SubmissionsService create should throw NotFoundException with problem ID in message" name="SubmissionsService create should throw NotFoundException with problem ID in message" time="0.003">
-    </testcase>
-    <testcase classname="SubmissionsService create should support all declared languages" name="SubmissionsService create should support all declared languages" time="0.002">
-    </testcase>
-    <testcase classname="SubmissionsService findOne should return submission details for ACCEPTED submission" name="SubmissionsService findOne should return submission details for ACCEPTED submission" time="0.002">
-    </testcase>
-    <testcase classname="SubmissionsService findOne should return all required fields with correct snake_case naming" name="SubmissionsService findOne should return all required fields with correct snake_case naming" time="0.012">
-    </testcase>
-    <testcase classname="SubmissionsService findOne should return numeric values as strings (per API contract)" name="SubmissionsService findOne should return numeric values as strings (per API contract)" time="0.002">
-    </testcase>
-    <testcase classname="SubmissionsService findOne should return default metrics 0 when null in DB" name="SubmissionsService findOne should return default metrics 0 when null in DB" time="0.001">
-    </testcase>
-    <testcase classname="SubmissionsService findOne should return empty string for user_answer when userOutput is null" name="SubmissionsService findOne should return empty string for user_answer when userOutput is null" time="0.002">
-    </testcase>
-    <testcase classname="SubmissionsService findOne should return PENDING status correctly" name="SubmissionsService findOne should return PENDING status correctly" time="0.002">
-    </testcase>
-    <testcase classname="SubmissionsService findOne should return WRONG_ANSWER status correctly" name="SubmissionsService findOne should return WRONG_ANSWER status correctly" time="0.001">
-    </testcase>
-    <testcase classname="SubmissionsService findOne should throw NotFoundException for non-existent submission" name="SubmissionsService findOne should throw NotFoundException for non-existent submission" time="0.001">
-    </testcase>
-    <testcase classname="SubmissionsService findOne should throw NotFoundException with submission ID in message" name="SubmissionsService findOne should throw NotFoundException with submission ID in message" time="0.001">
-    </testcase>
-    <testcase classname="SubmissionsService runJudgeForSubmission (mock worker) should process statuses and finalize as ACCEPTED, then update user stats on first AC" name="SubmissionsService runJudgeForSubmission (mock worker) should process statuses and finalize as ACCEPTED, then update user stats on first AC" time="0.002">
-    </testcase>
-    <testcase classname="SubmissionsService runJudgeForSubmission (mock worker) should not update user stats if there was a previous ACCEPTED submission" name="SubmissionsService runJudgeForSubmission (mock worker) should not update user stats if there was a previous ACCEPTED submission" time="0.001">
-    </testcase>
-    <testcase classname="SubmissionsService runJudgeForSubmission (mock worker) should not update user stats for non-ACCEPTED outcomes" name="SubmissionsService runJudgeForSubmission (mock worker) should not update user stats for non-ACCEPTED outcomes" time="0.002">
-    </testcase>
-    <testcase classname="SubmissionsService runJudgeForSubmission (mock worker) should map INTERNAL_ERROR to RUNTIME_ERROR" name="SubmissionsService runJudgeForSubmission (mock worker) should map INTERNAL_ERROR to RUNTIME_ERROR" time="0.001">
-    </testcase>
-    <testcase classname="SubmissionsService runJudgeForSubmission (mock worker) should skip stats update when submission cannot be reloaded" name="SubmissionsService runJudgeForSubmission (mock worker) should skip stats update when submission cannot be reloaded" time="0.001">
-    </testcase>
-  </testsuite>
-  <testsuite name="InterviewCandidatesService" errors="0" failures="0" skipped="0" timestamp="2026-05-31T12:41:07" time="0.197" tests="23">
-    <testcase classname="InterviewCandidatesService create should add a candidate to an interview" name="InterviewCandidatesService create should add a candidate to an interview" time="0.007">
-    </testcase>
-    <testcase classname="InterviewCandidatesService create should return id and jobId as strings" name="InterviewCandidatesService create should return id and jobId as strings" time="0.001">
-    </testcase>
-    <testcase classname="InterviewCandidatesService create should store optional Unix start and end times" name="InterviewCandidatesService create should store optional Unix start and end times" time="0.003">
-    </testcase>
-    <testcase classname="InterviewCandidatesService create should throw BadRequestException when endTime is before startTime" name="InterviewCandidatesService create should throw BadRequestException when endTime is before startTime" time="0.023">
-    </testcase>
-    <testcase classname="InterviewCandidatesService create should throw NotFoundException when interview does not exist" name="InterviewCandidatesService create should throw NotFoundException when interview does not exist" time="0.002">
-    </testcase>
-    <testcase classname="InterviewCandidatesService create should throw NotFoundException when user does not exist" name="InterviewCandidatesService create should throw NotFoundException when user does not exist" time="0.001">
-    </testcase>
-    <testcase classname="InterviewCandidatesService create should throw BadRequestException when user is not a candidate" name="InterviewCandidatesService create should throw BadRequestException when user is not a candidate" time="0.002">
-    </testcase>
-    <testcase classname="InterviewCandidatesService create should throw ConflictException when candidate already added (P2002)" name="InterviewCandidatesService create should throw ConflictException when candidate already added (P2002)" time="0.001">
-    </testcase>
-    <testcase classname="InterviewCandidatesService create should re-throw unknown errors" name="InterviewCandidatesService create should re-throw unknown errors" time="0.001">
-    </testcase>
-    <testcase classname="InterviewCandidatesService findAll should return all candidates formatted" name="InterviewCandidatesService findAll should return all candidates formatted" time="0.002">
-    </testcase>
-    <testcase classname="InterviewCandidatesService findAll should return empty array when no candidates exist" name="InterviewCandidatesService findAll should return empty array when no candidates exist" time="0.001">
-    </testcase>
-    <testcase classname="InterviewCandidatesService updateTime should update candidate Unix start and end times" name="InterviewCandidatesService updateTime should update candidate Unix start and end times" time="0.002">
-    </testcase>
-    <testcase classname="InterviewCandidatesService updateTime should clear candidate times when null is provided" name="InterviewCandidatesService updateTime should clear candidate times when null is provided" time="0.003">
-    </testcase>
-    <testcase classname="InterviewCandidatesService updateTime should throw NotFoundException when candidate does not exist" name="InterviewCandidatesService updateTime should throw NotFoundException when candidate does not exist" time="0.001">
-    </testcase>
-    <testcase classname="InterviewCandidatesService updateTime should throw BadRequestException when updated endTime is before startTime" name="InterviewCandidatesService updateTime should throw BadRequestException when updated endTime is before startTime" time="0.001">
-    </testcase>
-    <testcase classname="InterviewCandidatesService getTimeStatus should return server time and remaining time for in-progress interview" name="InterviewCandidatesService getTimeStatus should return server time and remaining time for in-progress interview" time="0.004">
-    </testcase>
-    <testcase classname="InterviewCandidatesService getTimeStatus should return NOT_SCHEDULED when times are missing" name="InterviewCandidatesService getTimeStatus should return NOT_SCHEDULED when times are missing" time="0.001">
-    </testcase>
-    <testcase classname="InterviewCandidatesService getTimeStatus should allow candidate actor to read own time status" name="InterviewCandidatesService getTimeStatus should allow candidate actor to read own time status" time="0.001">
-    </testcase>
-    <testcase classname="InterviewCandidatesService getTimeStatus should throw ForbiddenException when candidate actor reads another candidate status" name="InterviewCandidatesService getTimeStatus should throw ForbiddenException when candidate actor reads another candidate status" time="0.001">
-    </testcase>
-    <testcase classname="InterviewCandidatesService getTimeStatus should throw NotFoundException when candidate does not exist" name="InterviewCandidatesService getTimeStatus should throw NotFoundException when candidate does not exist" time="0.002">
-    </testcase>
-    <testcase classname="InterviewCandidatesService remove should delete a candidate record" name="InterviewCandidatesService remove should delete a candidate record" time="0.007">
-    </testcase>
-    <testcase classname="InterviewCandidatesService remove should throw NotFoundException for non-existent candidate" name="InterviewCandidatesService remove should throw NotFoundException for non-existent candidate" time="0.004">
-    </testcase>
-    <testcase classname="InterviewCandidatesService remove should throw NotFoundException with correct message" name="InterviewCandidatesService remove should throw NotFoundException with correct message" time="0.002">
-    </testcase>
-  </testsuite>
-  <testsuite name="InternalController" errors="0" failures="0" skipped="0" timestamp="2026-05-31T12:41:07" time="0.157" tests="9">
-    <testcase classname="InternalController should be defined" name="InternalController should be defined" time="0.004">
-    </testcase>
-    <testcase classname="InternalController getTestCases should return all test cases (including hidden) for valid problem" name="InternalController getTestCases should return all test cases (including hidden) for valid problem" time="0.002">
-    </testcase>
-    <testcase classname="InternalController getTestCases should return all numeric fields as strings" name="InternalController getTestCases should return all numeric fields as strings" time="0.001">
-    </testcase>
-    <testcase classname="InternalController getTestCases should include both visible and hidden test cases" name="InternalController getTestCases should include both visible and hidden test cases" time="0.001">
-    </testcase>
-    <testcase classname="InternalController getTestCases should query without isHidden filter (all test cases for judge)" name="InternalController getTestCases should query without isHidden filter (all test cases for judge)" time="0.002">
-    </testcase>
-    <testcase classname="InternalController getTestCases should return correct test case structure (input, output only)" name="InternalController getTestCases should return correct test case structure (input, output only)" time="0.001">
-    </testcase>
-    <testcase classname="InternalController getTestCases should throw NotFoundException for non-existent problem" name="InternalController getTestCases should throw NotFoundException for non-existent problem" time="0.008">
-    </testcase>
-    <testcase classname="InternalController getTestCases should throw NotFoundException for deleted problem" name="InternalController getTestCases should throw NotFoundException for deleted problem" time="0.001">
-    </testcase>
-    <testcase classname="InternalController getTestCases should throw NotFoundException with problem ID in message" name="InternalController getTestCases should throw NotFoundException with problem ID in message" time="0.002">
-    </testcase>
-  </testsuite>
-  <testsuite name="LeaderboardController" errors="0" failures="0" skipped="0" timestamp="2026-05-31T12:41:07" time="0.202" tests="9">
+  <testsuite name="LeaderboardController" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:50:42" time="0.147" tests="9">
     <testcase classname="LeaderboardController should be defined" name="LeaderboardController should be defined" time="0.004">
     </testcase>
     <testcase classname="LeaderboardController getRankings should return rankings data" name="LeaderboardController getRankings should return rankings data" time="0.001">
@@ -573,149 +87,555 @@
     </testcase>
     <testcase classname="LeaderboardController getRankings should return data array" name="LeaderboardController getRankings should return data array" time="0.001">
     </testcase>
-    <testcase classname="LeaderboardController getRankings should return all required ranking fields" name="LeaderboardController getRankings should return all required ranking fields" time="0.008">
+    <testcase classname="LeaderboardController getRankings should return all required ranking fields" name="LeaderboardController getRankings should return all required ranking fields" time="0.001">
     </testcase>
     <testcase classname="LeaderboardController getRankings should handle page=1 limit=10 correctly" name="LeaderboardController getRankings should handle page=1 limit=10 correctly" time="0.001">
     </testcase>
   </testsuite>
-  <testsuite name="JudgeService" errors="0" failures="0" skipped="0" timestamp="2026-05-31T12:41:07" time="0.136" tests="17">
-    <testcase classname="JudgeService should be defined" name="JudgeService should be defined" time="0.004">
+  <testsuite name="AssignmentsController" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:50:42" time="0.284" tests="21">
+    <testcase classname="AssignmentsController should be defined" name="AssignmentsController should be defined" time="0.02">
     </testcase>
-    <testcase classname="JudgeService run() with unsupported language should return INTERNAL_ERROR for java" name="JudgeService run() with unsupported language should return INTERNAL_ERROR for java" time="0.002">
+    <testcase classname="AssignmentsController create should create an assignment and return result" name="AssignmentsController create should create an assignment and return result" time="0.004">
+    </testcase>
+    <testcase classname="AssignmentsController create should pass DTO directly to service" name="AssignmentsController create should pass DTO directly to service" time="0.002">
+    </testcase>
+    <testcase classname="AssignmentsController create should propagate NotFoundException when interview not found" name="AssignmentsController create should propagate NotFoundException when interview not found" time="0.012">
+    </testcase>
+    <testcase classname="AssignmentsController create should propagate NotFoundException when user not found" name="AssignmentsController create should propagate NotFoundException when user not found" time="0.002">
+    </testcase>
+    <testcase classname="AssignmentsController create should propagate NotFoundException when problem not found" name="AssignmentsController create should propagate NotFoundException when problem not found" time="0.002">
+    </testcase>
+    <testcase classname="AssignmentsController create should propagate ConflictException for duplicate assignment" name="AssignmentsController create should propagate ConflictException for duplicate assignment" time="0.002">
+    </testcase>
+    <testcase classname="AssignmentsController findAll should return all assignments" name="AssignmentsController findAll should return all assignments" time="0.001">
+    </testcase>
+    <testcase classname="AssignmentsController findAll should return empty array when no assignments exist" name="AssignmentsController findAll should return empty array when no assignments exist" time="0.002">
+    </testcase>
+    <testcase classname="AssignmentsController findAll should call service.findAll without arguments" name="AssignmentsController findAll should call service.findAll without arguments" time="0.001">
+    </testcase>
+    <testcase classname="AssignmentsController findOne should return a single assignment" name="AssignmentsController findOne should return a single assignment" time="0.001">
+    </testcase>
+    <testcase classname="AssignmentsController findOne should pass ID to service" name="AssignmentsController findOne should pass ID to service" time="0.001">
+    </testcase>
+    <testcase classname="AssignmentsController findOne should propagate NotFoundException for non-existent assignment" name="AssignmentsController findOne should propagate NotFoundException for non-existent assignment" time="0.001">
+    </testcase>
+    <testcase classname="AssignmentsController findByUser should return assignments for a user" name="AssignmentsController findByUser should return assignments for a user" time="0.003">
+    </testcase>
+    <testcase classname="AssignmentsController findByUser should pass userId to service" name="AssignmentsController findByUser should pass userId to service" time="0.002">
+    </testcase>
+    <testcase classname="AssignmentsController findByUser should return empty array when user has no assignments" name="AssignmentsController findByUser should return empty array when user has no assignments" time="0.001">
+    </testcase>
+    <testcase classname="AssignmentsController findByUser should reject candidates reading another user assignments" name="AssignmentsController findByUser should reject candidates reading another user assignments" time="0.004">
+    </testcase>
+    <testcase classname="AssignmentsController remove should call service.remove with correct id" name="AssignmentsController remove should call service.remove with correct id" time="0.001">
+    </testcase>
+    <testcase classname="AssignmentsController remove should not throw for existing assignment" name="AssignmentsController remove should not throw for existing assignment" time="0.009">
+    </testcase>
+    <testcase classname="AssignmentsController remove should propagate NotFoundException for non-existent assignment" name="AssignmentsController remove should propagate NotFoundException for non-existent assignment" time="0.002">
+    </testcase>
+    <testcase classname="AssignmentsController remove should propagate error message correctly" name="AssignmentsController remove should propagate error message correctly" time="0.009">
+    </testcase>
+  </testsuite>
+  <testsuite name="InterviewsController" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:50:42" time="0.215" tests="15">
+    <testcase classname="InterviewsController should be defined" name="InterviewsController should be defined" time="0.004">
+    </testcase>
+    <testcase classname="InterviewsController create should create interview and return result" name="InterviewsController create should create interview and return result" time="0.001">
+    </testcase>
+    <testcase classname="InterviewsController create should pass DTO directly to service" name="InterviewsController create should pass DTO directly to service" time="0.002">
+    </testcase>
+    <testcase classname="InterviewsController create should pass candidate and problem counts to service" name="InterviewsController create should pass candidate and problem counts to service" time="0.001">
+    </testcase>
+    <testcase classname="InterviewsController create should return id as string" name="InterviewsController create should return id as string" time="0.002">
+    </testcase>
+    <testcase classname="InterviewsController findAll should return all interviews" name="InterviewsController findAll should return all interviews" time="0.003">
+    </testcase>
+    <testcase classname="InterviewsController findAll should call service.findAll once" name="InterviewsController findAll should call service.findAll once" time="0.002">
+    </testcase>
+    <testcase classname="InterviewsController findAll should return empty array when no interviews" name="InterviewsController findAll should return empty array when no interviews" time="0.001">
+    </testcase>
+    <testcase classname="InterviewsController update should update interview and return result" name="InterviewsController update should update interview and return result" time="0.002">
+    </testcase>
+    <testcase classname="InterviewsController update should pass id and DTO to service" name="InterviewsController update should pass id and DTO to service" time="0.001">
+    </testcase>
+    <testcase classname="InterviewsController update should propagate NotFoundException from service" name="InterviewsController update should propagate NotFoundException from service" time="0.006">
+    </testcase>
+    <testcase classname="InterviewsController update should propagate error message correctly" name="InterviewsController update should propagate error message correctly" time="0.001">
+    </testcase>
+    <testcase classname="InterviewsController remove should call service.remove with correct id" name="InterviewsController remove should call service.remove with correct id" time="0.002">
+    </testcase>
+    <testcase classname="InterviewsController remove should propagate NotFoundException from service" name="InterviewsController remove should propagate NotFoundException from service" time="0.001">
+    </testcase>
+    <testcase classname="InterviewsController remove should not throw for existing interview" name="InterviewsController remove should not throw for existing interview" time="0.002">
+    </testcase>
+  </testsuite>
+  <testsuite name="AuthController" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:50:42" time="0.223" tests="9">
+    <testcase classname="AuthController should be defined" name="AuthController should be defined" time="0.004">
+    </testcase>
+    <testcase classname="AuthController login should return token for valid credentials" name="AuthController login should return token for valid credentials" time="0.002">
+    </testcase>
+    <testcase classname="AuthController login should return CANDIDATE role in token response" name="AuthController login should return CANDIDATE role in token response" time="0.001">
+    </testcase>
+    <testcase classname="AuthController login should propagate UnauthorizedException from service" name="AuthController login should propagate UnauthorizedException from service" time="0.006">
+    </testcase>
+    <testcase classname="AuthController login should pass passwordSha256 directly to service (not plaintext)" name="AuthController login should pass passwordSha256 directly to service (not plaintext)" time="0.001">
+    </testcase>
+    <testcase classname="AuthController signup should create user and return user info (without password)" name="AuthController signup should create user and return user info (without password)" time="0.004">
+    </testcase>
+    <testcase classname="AuthController signup should pass all fields to service including passwordSha256" name="AuthController signup should pass all fields to service including passwordSha256" time="0.002">
+    </testcase>
+    <testcase classname="AuthController signup should signup without optional role field" name="AuthController signup should signup without optional role field" time="0.001">
+    </testcase>
+    <testcase classname="AuthController signup should propagate ConflictException for duplicate user" name="AuthController signup should propagate ConflictException for duplicate user" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="HealthController" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:50:36" time="7.084" tests="11">
+    <testcase classname="HealthController should be defined" name="HealthController should be defined" time="0.013">
+    </testcase>
+    <testcase classname="HealthController check should return UP status when database is healthy" name="HealthController check should return UP status when database is healthy" time="0.002">
+    </testcase>
+    <testcase classname="HealthController check should return all required health fields" name="HealthController check should return all required health fields" time="0.002">
+    </testcase>
+    <testcase classname="HealthController check should include judge_queue in services" name="HealthController check should include judge_queue in services" time="0.002">
+    </testcase>
+    <testcase classname="HealthController check should return queue_depth as string" name="HealthController check should return queue_depth as string" time="0.004">
+    </testcase>
+    <testcase classname="HealthController check should return uptime as string ending with &quot;s&quot;" name="HealthController check should return uptime as string ending with &quot;s&quot;" time="0.009">
+    </testcase>
+    <testcase classname="HealthController check should return timestamp as ISO 8601 string" name="HealthController check should return timestamp as ISO 8601 string" time="0.003">
+    </testcase>
+    <testcase classname="HealthController check should count pending/compiling/running submissions as queue_depth" name="HealthController check should count pending/compiling/running submissions as queue_depth" time="0.002">
+    </testcase>
+    <testcase classname="HealthController check should return DOWN status when database fails" name="HealthController check should return DOWN status when database fails" time="0.002">
+    </testcase>
+    <testcase classname="HealthController getStats should return all required system stats fields" name="HealthController getStats should return all required system stats fields" time="0.004">
+    </testcase>
+    <testcase classname="HealthController getDashboard should return HTML string with status dashboard" name="HealthController getDashboard should return HTML string with status dashboard" time="0.002">
+    </testcase>
+  </testsuite>
+  <testsuite name="StressTestReportsService" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:50:43" time="0.138" tests="2">
+    <testcase classname="StressTestReportsService should aggregate summary by endpoint" name="StressTestReportsService should aggregate summary by endpoint" time="0.005">
+    </testcase>
+    <testcase classname="StressTestReportsService should fetch reports with descending order and limit" name="StressTestReportsService should fetch reports with descending order and limit" time="0.002">
+    </testcase>
+  </testsuite>
+  <testsuite name="InterviewCandidatesController" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:50:43" time="0.246" tests="21">
+    <testcase classname="InterviewCandidatesController should be defined" name="InterviewCandidatesController should be defined" time="0.006">
+    </testcase>
+    <testcase classname="InterviewCandidatesController create should create candidate and return result" name="InterviewCandidatesController create should create candidate and return result" time="0.002">
+    </testcase>
+    <testcase classname="InterviewCandidatesController create should pass DTO directly to service" name="InterviewCandidatesController create should pass DTO directly to service" time="0.001">
+    </testcase>
+    <testcase classname="InterviewCandidatesController create should return id and jobId as strings" name="InterviewCandidatesController create should return id and jobId as strings" time="0.002">
+    </testcase>
+    <testcase classname="InterviewCandidatesController create should pass optional time fields to service" name="InterviewCandidatesController create should pass optional time fields to service" time="0.004">
+    </testcase>
+    <testcase classname="InterviewCandidatesController create should propagate NotFoundException when interview not found" name="InterviewCandidatesController create should propagate NotFoundException when interview not found" time="0.012">
+    </testcase>
+    <testcase classname="InterviewCandidatesController create should propagate NotFoundException when user not found" name="InterviewCandidatesController create should propagate NotFoundException when user not found" time="0.001">
+    </testcase>
+    <testcase classname="InterviewCandidatesController create should propagate ConflictException for duplicate candidate" name="InterviewCandidatesController create should propagate ConflictException for duplicate candidate" time="0.001">
+    </testcase>
+    <testcase classname="InterviewCandidatesController create should propagate ConflictException with correct message" name="InterviewCandidatesController create should propagate ConflictException with correct message" time="0.009">
+    </testcase>
+    <testcase classname="InterviewCandidatesController findAll should return all candidates" name="InterviewCandidatesController findAll should return all candidates" time="0.002">
+    </testcase>
+    <testcase classname="InterviewCandidatesController findAll should call service.findAll" name="InterviewCandidatesController findAll should call service.findAll" time="0.001">
+    </testcase>
+    <testcase classname="InterviewCandidatesController getTimeStatus should return candidate time status" name="InterviewCandidatesController getTimeStatus should return candidate time status" time="0.002">
+    </testcase>
+    <testcase classname="InterviewCandidatesController getTimeStatus should propagate NotFoundException from service" name="InterviewCandidatesController getTimeStatus should propagate NotFoundException from service" time="0.001">
+    </testcase>
+    <testcase classname="InterviewCandidatesController updateTime should update candidate time and return result" name="InterviewCandidatesController updateTime should update candidate time and return result" time="0.002">
+    </testcase>
+    <testcase classname="InterviewCandidatesController updateTime should pass id and DTO to service" name="InterviewCandidatesController updateTime should pass id and DTO to service" time="0.001">
+    </testcase>
+    <testcase classname="InterviewCandidatesController updateTime should propagate BadRequestException from service" name="InterviewCandidatesController updateTime should propagate BadRequestException from service" time="0.002">
+    </testcase>
+    <testcase classname="InterviewCandidatesController updateTime should propagate NotFoundException from service" name="InterviewCandidatesController updateTime should propagate NotFoundException from service" time="0.001">
+    </testcase>
+    <testcase classname="InterviewCandidatesController remove should call service.remove with correct id" name="InterviewCandidatesController remove should call service.remove with correct id" time="0.001">
+    </testcase>
+    <testcase classname="InterviewCandidatesController remove should propagate NotFoundException for non-existent candidate" name="InterviewCandidatesController remove should propagate NotFoundException for non-existent candidate" time="0.002">
+    </testcase>
+    <testcase classname="InterviewCandidatesController remove should not throw for existing candidate" name="InterviewCandidatesController remove should not throw for existing candidate" time="0.004">
+    </testcase>
+    <testcase classname="InterviewCandidatesController remove should propagate error message correctly" name="InterviewCandidatesController remove should propagate error message correctly" time="0.002">
+    </testcase>
+  </testsuite>
+  <testsuite name="InterviewsService" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:50:43" time="0.184" tests="16">
+    <testcase classname="InterviewsService create should create an interview and return id, jobRole, examinerEmpId" name="InterviewsService create should create an interview and return id, jobRole, examinerEmpId" time="0.004">
+    </testcase>
+    <testcase classname="InterviewsService create should return id as string" name="InterviewsService create should return id as string" time="0.001">
+    </testcase>
+    <testcase classname="InterviewsService create should pass correct data to prisma" name="InterviewsService create should pass correct data to prisma" time="0.003">
+    </testcase>
+    <testcase classname="InterviewsService create should create an interview candidate and assign problems by difficulty counts" name="InterviewsService create should create an interview candidate and assign problems by difficulty counts" time="0.006">
+    </testcase>
+    <testcase classname="InterviewsService create should create a candidate without assignments when candidateUserId has no counts" name="InterviewsService create should create a candidate without assignments when candidateUserId has no counts" time="0.002">
+    </testcase>
+    <testcase classname="InterviewsService create should throw BadRequestException when problem counts are provided without candidateUserId" name="InterviewsService create should throw BadRequestException when problem counts are provided without candidateUserId" time="0.023">
+    </testcase>
+    <testcase classname="InterviewsService create should throw NotFoundException when candidate user does not exist" name="InterviewsService create should throw NotFoundException when candidate user does not exist" time="0.001">
+    </testcase>
+    <testcase classname="InterviewsService create should throw BadRequestException when there are not enough problems for a requested difficulty" name="InterviewsService create should throw BadRequestException when there are not enough problems for a requested difficulty" time="0.004">
+    </testcase>
+    <testcase classname="InterviewsService findAll should return all interviews" name="InterviewsService findAll should return all interviews" time="0.001">
+    </testcase>
+    <testcase classname="InterviewsService findAll should return empty array when no interviews" name="InterviewsService findAll should return empty array when no interviews" time="0.003">
+    </testcase>
+    <testcase classname="InterviewsService findAll should return IDs as strings" name="InterviewsService findAll should return IDs as strings" time="0.003">
+    </testcase>
+    <testcase classname="InterviewsService update should update and return updated interview" name="InterviewsService update should update and return updated interview" time="0.005">
+    </testcase>
+    <testcase classname="InterviewsService update should throw NotFoundException for non-existent interview" name="InterviewsService update should throw NotFoundException for non-existent interview" time="0.001">
+    </testcase>
+    <testcase classname="InterviewsService update should throw with correct message" name="InterviewsService update should throw with correct message" time="0.004">
+    </testcase>
+    <testcase classname="InterviewsService remove should delete an existing interview" name="InterviewsService remove should delete an existing interview" time="0.004">
+    </testcase>
+    <testcase classname="InterviewsService remove should throw NotFoundException for non-existent interview" name="InterviewsService remove should throw NotFoundException for non-existent interview" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="SubmissionsController" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:50:43" time="0.396" tests="10">
+    <testcase classname="SubmissionsController should be defined" name="SubmissionsController should be defined" time="0.005">
+    </testcase>
+    <testcase classname="SubmissionsController create should create submission and return PENDING status" name="SubmissionsController create should create submission and return PENDING status" time="0.001">
+    </testcase>
+    <testcase classname="SubmissionsController create should pass req.user.id to service as userId" name="SubmissionsController create should pass req.user.id to service as userId" time="0.005">
+    </testcase>
+    <testcase classname="SubmissionsController create should map DTO fields to service parameter names" name="SubmissionsController create should map DTO fields to service parameter names" time="0.002">
+    </testcase>
+    <testcase classname="SubmissionsController create should propagate NotFoundException for non-existent problem" name="SubmissionsController create should propagate NotFoundException for non-existent problem" time="0.013">
+    </testcase>
+    <testcase classname="SubmissionsController create should propagate error message correctly" name="SubmissionsController create should propagate error message correctly" time="0.002">
+    </testcase>
+    <testcase classname="SubmissionsController findOne should return submission details" name="SubmissionsController findOne should return submission details" time="0.001">
+    </testcase>
+    <testcase classname="SubmissionsController findOne should pass submission ID directly to service" name="SubmissionsController findOne should pass submission ID directly to service" time="0.002">
+    </testcase>
+    <testcase classname="SubmissionsController findOne should propagate NotFoundException for non-existent submission" name="SubmissionsController findOne should propagate NotFoundException for non-existent submission" time="0.001">
+    </testcase>
+    <testcase classname="SubmissionsController findOne should return all expected fields" name="SubmissionsController findOne should return all expected fields" time="0.008">
+    </testcase>
+  </testsuite>
+  <testsuite name="ProblemsService" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:50:43" time="0.191" tests="34">
+    <testcase classname="ProblemsService findAll should return paginated problem list with total and page" name="ProblemsService findAll should return paginated problem list with total and page" time="0.005">
+    </testcase>
+    <testcase classname="ProblemsService findAll should map problem fields to snake_case API format" name="ProblemsService findAll should map problem fields to snake_case API format" time="0.002">
+    </testcase>
+    <testcase classname="ProblemsService findAll should include problem analytics counts" name="ProblemsService findAll should include problem analytics counts" time="0.001">
+    </testcase>
+    <testcase classname="ProblemsService findAll should return all numeric fields as strings" name="ProblemsService findAll should return all numeric fields as strings" time="0.002">
+    </testcase>
+    <testcase classname="ProblemsService findAll should filter by difficulty (EASY)" name="ProblemsService findAll should filter by difficulty (EASY)" time="0.002">
+    </testcase>
+    <testcase classname="ProblemsService findAll should accept lowercase difficulty and uppercase it" name="ProblemsService findAll should accept lowercase difficulty and uppercase it" time="0.001">
+    </testcase>
+    <testcase classname="ProblemsService findAll should apply correct pagination offset" name="ProblemsService findAll should apply correct pagination offset" time="0.001">
+    </testcase>
+    <testcase classname="ProblemsService findAll should only query non-deleted problems" name="ProblemsService findAll should only query non-deleted problems" time="0.009">
+    </testcase>
+    <testcase classname="ProblemsService findAll should return empty items array when no problems" name="ProblemsService findAll should return empty items array when no problems" time="0.003">
+    </testcase>
+    <testcase classname="ProblemsService findOne should return problem details with sample test cases" name="ProblemsService findOne should return problem details with sample test cases" time="0.002">
+    </testcase>
+    <testcase classname="ProblemsService findOne should return constraints as strings" name="ProblemsService findOne should return constraints as strings" time="0.001">
+    </testcase>
+    <testcase classname="ProblemsService findOne should return function_name as empty string when null" name="ProblemsService findOne should return function_name as empty string when null" time="0.001">
+    </testcase>
+    <testcase classname="ProblemsService findOne should include analytics counts in problem details" name="ProblemsService findOne should include analytics counts in problem details" time="0.002">
+    </testcase>
+    <testcase classname="ProblemsService findOne should only fetch non-hidden test cases" name="ProblemsService findOne should only fetch non-hidden test cases" time="0.001">
+    </testcase>
+    <testcase classname="ProblemsService findOne should throw NotFoundException for non-existent problem" name="ProblemsService findOne should throw NotFoundException for non-existent problem" time="0.021">
+    </testcase>
+    <testcase classname="ProblemsService findOne should throw NotFoundException with problem ID in message" name="ProblemsService findOne should throw NotFoundException with problem ID in message" time="0.004">
+    </testcase>
+    <testcase classname="ProblemsService create should create a problem and return problem_id and title" name="ProblemsService create should create a problem and return problem_id and title" time="0.003">
+    </testcase>
+    <testcase classname="ProblemsService create should persist creatorId when creating a problem" name="ProblemsService create should persist creatorId when creating a problem" time="0.001">
+    </testcase>
+    <testcase classname="ProblemsService create should default timeLimitMs to 1000 and memoryLimitMb to 256" name="ProblemsService create should default timeLimitMs to 1000 and memoryLimitMb to 256" time="0.003">
+    </testcase>
+    <testcase classname="ProblemsService create should use provided timeLimitMs and memoryLimitMb" name="ProblemsService create should use provided timeLimitMs and memoryLimitMb" time="0.001">
+    </testcase>
+    <testcase classname="ProblemsService create should default test case isHidden to true" name="ProblemsService create should default test case isHidden to true" time="0.001">
+    </testcase>
+    <testcase classname="ProblemsService create should allow setting isHidden to false" name="ProblemsService create should allow setting isHidden to false" time="0.001">
+    </testcase>
+    <testcase classname="ProblemsService update should update problem details and return format" name="ProblemsService update should update problem details and return format" time="0.002">
+    </testcase>
+    <testcase classname="ProblemsService update should replace test cases if testCases are provided" name="ProblemsService update should replace test cases if testCases are provided" time="0.004">
+    </testcase>
+    <testcase classname="ProblemsService update should throw NotFoundException if problem does not exist or is deleted" name="ProblemsService update should throw NotFoundException if problem does not exist or is deleted" time="0.002">
+    </testcase>
+    <testcase classname="ProblemsService remove should soft-delete a problem (set isDeleted=true)" name="ProblemsService remove should soft-delete a problem (set isDeleted=true)" time="0.001">
+    </testcase>
+    <testcase classname="ProblemsService remove should throw NotFoundException for non-existent problem" name="ProblemsService remove should throw NotFoundException for non-existent problem" time="0.001">
+    </testcase>
+    <testcase classname="ProblemsService remove should check existence by id before deleting" name="ProblemsService remove should check existence by id before deleting" time="0.001">
+    </testcase>
+    <testcase classname="ProblemsService assign should assign problem to user and return assignment info" name="ProblemsService assign should assign problem to user and return assignment info" time="0.002">
+    </testcase>
+    <testcase classname="ProblemsService assign should return all numeric IDs as strings" name="ProblemsService assign should return all numeric IDs as strings" time="0.001">
+    </testcase>
+    <testcase classname="ProblemsService assign should throw NotFoundException if problem does not exist or is deleted" name="ProblemsService assign should throw NotFoundException if problem does not exist or is deleted" time="0.001">
+    </testcase>
+    <testcase classname="ProblemsService assign should throw NotFoundException if user does not exist" name="ProblemsService assign should throw NotFoundException if user does not exist" time="0.004">
+    </testcase>
+    <testcase classname="ProblemsService assign should throw BadRequestException if assignee is not a candidate" name="ProblemsService assign should throw BadRequestException if assignee is not a candidate" time="0.001">
+    </testcase>
+    <testcase classname="ProblemsService assign should use upsert to avoid duplicate assignments" name="ProblemsService assign should use upsert to avoid duplicate assignments" time="0.003">
+    </testcase>
+  </testsuite>
+  <testsuite name="JudgeService" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:50:43" time="0.13" tests="17">
+    <testcase classname="JudgeService should be defined" name="JudgeService should be defined" time="0.003">
+    </testcase>
+    <testcase classname="JudgeService run() with unsupported language should return INTERNAL_ERROR for java" name="JudgeService run() with unsupported language should return INTERNAL_ERROR for java" time="0.001">
     </testcase>
     <testcase classname="JudgeService run() with unsupported language should preserve expectedOutput in result" name="JudgeService run() with unsupported language should preserve expectedOutput in result" time="0.001">
     </testcase>
-    <testcase classname="JudgeService run() with unsupported language should return empty stdout/stderr for unsupported language" name="JudgeService run() with unsupported language should return empty stdout/stderr for unsupported language" time="0.001">
+    <testcase classname="JudgeService run() with unsupported language should return empty stdout/stderr for unsupported language" name="JudgeService run() with unsupported language should return empty stdout/stderr for unsupported language" time="0.003">
     </testcase>
-    <testcase classname="JudgeService run() with supported languages should run python3 with the python image" name="JudgeService run() with supported languages should run python3 with the python image" time="0.013">
+    <testcase classname="JudgeService run() with supported languages should run python3 with the python image" name="JudgeService run() with supported languages should run python3 with the python image" time="0.007">
     </testcase>
     <testcase classname="JudgeService run() with supported languages should compile and run C++ with gcc image" name="JudgeService run() with supported languages should compile and run C++ with gcc image" time="0.001">
     </testcase>
-    <testcase classname="JudgeService run() with supported languages should compile and run C with gcc image" name="JudgeService run() with supported languages should compile and run C with gcc image" time="0.001">
+    <testcase classname="JudgeService run() with supported languages should compile and run C with gcc image" name="JudgeService run() with supported languages should compile and run C with gcc image" time="0.002">
     </testcase>
     <testcase classname="JudgeService run() with javascript should return ACCEPTED when stdout matches expectedOutput" name="JudgeService run() with javascript should return ACCEPTED when stdout matches expectedOutput" time="0.001">
     </testcase>
-    <testcase classname="JudgeService run() with javascript should return WRONG_ANSWER when stdout does not match" name="JudgeService run() with javascript should return WRONG_ANSWER when stdout does not match" time="0.001">
+    <testcase classname="JudgeService run() with javascript should return WRONG_ANSWER when stdout does not match" name="JudgeService run() with javascript should return WRONG_ANSWER when stdout does not match" time="0.002">
     </testcase>
     <testcase classname="JudgeService run() with javascript should return RUNTIME_ERROR on non-zero exit code" name="JudgeService run() with javascript should return RUNTIME_ERROR on non-zero exit code" time="0.001">
     </testcase>
     <testcase classname="JudgeService run() with javascript should return TIME_LIMIT_EXCEEDED when process is killed via SIGTERM" name="JudgeService run() with javascript should return TIME_LIMIT_EXCEEDED when process is killed via SIGTERM" time="0.001">
     </testcase>
-    <testcase classname="JudgeService run() with javascript should return INTERNAL_ERROR when docker command is not found (ENOENT)" name="JudgeService run() with javascript should return INTERNAL_ERROR when docker command is not found (ENOENT)" time="0.001">
+    <testcase classname="JudgeService run() with javascript should return INTERNAL_ERROR when docker command is not found (ENOENT)" name="JudgeService run() with javascript should return INTERNAL_ERROR when docker command is not found (ENOENT)" time="0.002">
     </testcase>
     <testcase classname="JudgeService run() with javascript should include stdout and stderr from docker in the result" name="JudgeService run() with javascript should include stdout and stderr from docker in the result" time="0.001">
     </testcase>
-    <testcase classname="JudgeService run() with javascript should normalise trailing whitespace / CRLF for comparison" name="JudgeService run() with javascript should normalise trailing whitespace / CRLF for comparison" time="0.003">
+    <testcase classname="JudgeService run() with javascript should normalise trailing whitespace / CRLF for comparison" name="JudgeService run() with javascript should normalise trailing whitespace / CRLF for comparison" time="0.002">
     </testcase>
-    <testcase classname="JudgeService run() with javascript should clean up the temp workdir even when docker fails" name="JudgeService run() with javascript should clean up the temp workdir even when docker fails" time="0.002">
+    <testcase classname="JudgeService run() with javascript should clean up the temp workdir even when docker fails" name="JudgeService run() with javascript should clean up the temp workdir even when docker fails" time="0.001">
     </testcase>
     <testcase classname="JudgeService run() with javascript should write both submission.js and runner.js to the workdir" name="JudgeService run() with javascript should write both submission.js and runner.js to the workdir" time="0.001">
     </testcase>
     <testcase classname="JudgeService run() with javascript should send the input string to docker stdin" name="JudgeService run() with javascript should send the input string to docker stdin" time="0.001">
     </testcase>
   </testsuite>
-  <testsuite name="LeaderboardService" errors="0" failures="0" skipped="0" timestamp="2026-05-31T12:41:07" time="0.113" tests="8">
-    <testcase classname="LeaderboardService getRankings should return paginated rankings sorted by rating desc" name="LeaderboardService getRankings should return paginated rankings sorted by rating desc" time="0.004">
+  <testsuite name="InterviewCandidatesService" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:50:43" time="0.172" tests="23">
+    <testcase classname="InterviewCandidatesService create should add a candidate to an interview" name="InterviewCandidatesService create should add a candidate to an interview" time="0.008">
     </testcase>
-    <testcase classname="LeaderboardService getRankings should return all numeric values as strings" name="LeaderboardService getRankings should return all numeric values as strings" time="0.001">
+    <testcase classname="InterviewCandidatesService create should return id and jobId as strings" name="InterviewCandidatesService create should return id and jobId as strings" time="0.002">
     </testcase>
-    <testcase classname="LeaderboardService getRankings should calculate correct ranks for page 2" name="LeaderboardService getRankings should calculate correct ranks for page 2" time="0.001">
+    <testcase classname="InterviewCandidatesService create should store optional Unix start and end times" name="InterviewCandidatesService create should store optional Unix start and end times" time="0.002">
     </testcase>
-    <testcase classname="LeaderboardService getRankings should calculate correct offset for page 3, limit 5" name="LeaderboardService getRankings should calculate correct offset for page 3, limit 5" time="0.002">
+    <testcase classname="InterviewCandidatesService create should throw BadRequestException when endTime is before startTime" name="InterviewCandidatesService create should throw BadRequestException when endTime is before startTime" time="0.018">
     </testcase>
-    <testcase classname="LeaderboardService getRankings should only count CANDIDATE role (not staff roles)" name="LeaderboardService getRankings should only count CANDIDATE role (not staff roles)" time="0.001">
+    <testcase classname="InterviewCandidatesService create should throw NotFoundException when interview does not exist" name="InterviewCandidatesService create should throw NotFoundException when interview does not exist" time="0.001">
     </testcase>
-    <testcase classname="LeaderboardService getRankings should apply correct pagination skip/take" name="LeaderboardService getRankings should apply correct pagination skip/take" time="0.001">
+    <testcase classname="InterviewCandidatesService create should throw NotFoundException when user does not exist" name="InterviewCandidatesService create should throw NotFoundException when user does not exist" time="0.001">
     </testcase>
-    <testcase classname="LeaderboardService getRankings should return empty data array when no users" name="LeaderboardService getRankings should return empty data array when no users" time="0.001">
+    <testcase classname="InterviewCandidatesService create should throw BadRequestException when user is not a candidate" name="InterviewCandidatesService create should throw BadRequestException when user is not a candidate" time="0.001">
     </testcase>
-    <testcase classname="LeaderboardService getRankings should default page to 1 and limit to 20" name="LeaderboardService getRankings should default page to 1 and limit to 20" time="0.001">
+    <testcase classname="InterviewCandidatesService create should throw ConflictException when candidate already added (P2002)" name="InterviewCandidatesService create should throw ConflictException when candidate already added (P2002)" time="0.001">
+    </testcase>
+    <testcase classname="InterviewCandidatesService create should re-throw unknown errors" name="InterviewCandidatesService create should re-throw unknown errors" time="0.001">
+    </testcase>
+    <testcase classname="InterviewCandidatesService findAll should return all candidates formatted" name="InterviewCandidatesService findAll should return all candidates formatted" time="0.003">
+    </testcase>
+    <testcase classname="InterviewCandidatesService findAll should return empty array when no candidates exist" name="InterviewCandidatesService findAll should return empty array when no candidates exist" time="0.002">
+    </testcase>
+    <testcase classname="InterviewCandidatesService updateTime should update candidate Unix start and end times" name="InterviewCandidatesService updateTime should update candidate Unix start and end times" time="0.001">
+    </testcase>
+    <testcase classname="InterviewCandidatesService updateTime should clear candidate times when null is provided" name="InterviewCandidatesService updateTime should clear candidate times when null is provided" time="0.001">
+    </testcase>
+    <testcase classname="InterviewCandidatesService updateTime should throw NotFoundException when candidate does not exist" name="InterviewCandidatesService updateTime should throw NotFoundException when candidate does not exist" time="0.001">
+    </testcase>
+    <testcase classname="InterviewCandidatesService updateTime should throw BadRequestException when updated endTime is before startTime" name="InterviewCandidatesService updateTime should throw BadRequestException when updated endTime is before startTime" time="0.001">
+    </testcase>
+    <testcase classname="InterviewCandidatesService getTimeStatus should return server time and remaining time for in-progress interview" name="InterviewCandidatesService getTimeStatus should return server time and remaining time for in-progress interview" time="0.004">
+    </testcase>
+    <testcase classname="InterviewCandidatesService getTimeStatus should return NOT_SCHEDULED when times are missing" name="InterviewCandidatesService getTimeStatus should return NOT_SCHEDULED when times are missing" time="0.001">
+    </testcase>
+    <testcase classname="InterviewCandidatesService getTimeStatus should allow candidate actor to read own time status" name="InterviewCandidatesService getTimeStatus should allow candidate actor to read own time status" time="0.007">
+    </testcase>
+    <testcase classname="InterviewCandidatesService getTimeStatus should throw ForbiddenException when candidate actor reads another candidate status" name="InterviewCandidatesService getTimeStatus should throw ForbiddenException when candidate actor reads another candidate status" time="0.001">
+    </testcase>
+    <testcase classname="InterviewCandidatesService getTimeStatus should throw NotFoundException when candidate does not exist" name="InterviewCandidatesService getTimeStatus should throw NotFoundException when candidate does not exist" time="0.001">
+    </testcase>
+    <testcase classname="InterviewCandidatesService remove should delete a candidate record" name="InterviewCandidatesService remove should delete a candidate record" time="0.001">
+    </testcase>
+    <testcase classname="InterviewCandidatesService remove should throw NotFoundException for non-existent candidate" name="InterviewCandidatesService remove should throw NotFoundException for non-existent candidate" time="0.002">
+    </testcase>
+    <testcase classname="InterviewCandidatesService remove should throw NotFoundException with correct message" name="InterviewCandidatesService remove should throw NotFoundException with correct message" time="0.001">
     </testcase>
   </testsuite>
-  <testsuite name="AuthService" errors="0" failures="0" skipped="0" timestamp="2026-05-31T12:40:57" time="10.419" tests="24">
-    <testcase classname="AuthService login should return token for valid SHA-256 credentials" name="AuthService login should return token for valid SHA-256 credentials" time="0.161">
+  <testsuite name="InternalController" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:50:43" time="0.185" tests="9">
+    <testcase classname="InternalController should be defined" name="InternalController should be defined" time="0.005">
     </testcase>
-    <testcase classname="AuthService login should include correct JWT payload (sub, username, role)" name="AuthService login should include correct JWT payload (sub, username, role)" time="0.139">
+    <testcase classname="InternalController getTestCases should return all test cases (including hidden) for valid problem" name="InternalController getTestCases should return all test cases (including hidden) for valid problem" time="0.003">
     </testcase>
-    <testcase classname="AuthService login should return expires_in as string (not number)" name="AuthService login should return expires_in as string (not number)" time="0.154">
+    <testcase classname="InternalController getTestCases should return all numeric fields as strings" name="InternalController getTestCases should return all numeric fields as strings" time="0.001">
     </testcase>
-    <testcase classname="AuthService login should look up user by username" name="AuthService login should look up user by username" time="0.175">
+    <testcase classname="InternalController getTestCases should include both visible and hidden test cases" name="InternalController getTestCases should include both visible and hidden test cases" time="0.001">
     </testcase>
-    <testcase classname="AuthService login should throw UnauthorizedException when user not found" name="AuthService login should throw UnauthorizedException when user not found" time="0.095">
+    <testcase classname="InternalController getTestCases should query without isHidden filter (all test cases for judge)" name="InternalController getTestCases should query without isHidden filter (all test cases for judge)" time="0.002">
     </testcase>
-    <testcase classname="AuthService login should throw UnauthorizedException for wrong SHA-256 password" name="AuthService login should throw UnauthorizedException for wrong SHA-256 password" time="0.137">
+    <testcase classname="InternalController getTestCases should return correct test case structure (input, output only)" name="InternalController getTestCases should return correct test case structure (input, output only)" time="0.001">
     </testcase>
-    <testcase classname="AuthService login should throw UnauthorizedException if plain password (not sha256) is used" name="AuthService login should throw UnauthorizedException if plain password (not sha256) is used" time="0.137">
+    <testcase classname="InternalController getTestCases should throw NotFoundException for non-existent problem" name="InternalController getTestCases should throw NotFoundException for non-existent problem" time="0.011">
     </testcase>
-    <testcase classname="AuthService login should throw UnauthorizedException with generic message (no info leak)" name="AuthService login should throw UnauthorizedException with generic message (no info leak)" time="0.079">
+    <testcase classname="InternalController getTestCases should throw NotFoundException for deleted problem" name="InternalController getTestCases should throw NotFoundException for deleted problem" time="0.002">
     </testcase>
-    <testcase classname="AuthService login should handle ADMIN role correctly" name="AuthService login should handle ADMIN role correctly" time="0.171">
+    <testcase classname="InternalController getTestCases should throw NotFoundException with problem ID in message" name="InternalController getTestCases should throw NotFoundException with problem ID in message" time="0.002">
     </testcase>
-    <testcase classname="AuthService signup should create a new user with sha256 password" name="AuthService signup should create a new user with sha256 password" time="0.288">
+  </testsuite>
+  <testsuite name="AssignmentsService" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:50:43" time="0.162" tests="24">
+    <testcase classname="AssignmentsService should be defined" name="AssignmentsService should be defined" time="0.004">
     </testcase>
-    <testcase classname="AuthService signup should call prisma.user.create with a bcrypt hash (not plain sha256)" name="AuthService signup should call prisma.user.create with a bcrypt hash (not plain sha256)" time="0.21">
+    <testcase classname="AssignmentsService create should create an assignment and return formatted result" name="AssignmentsService create should create an assignment and return formatted result" time="0.002">
     </testcase>
-    <testcase classname="AuthService signup should return user without passwordHash field" name="AuthService signup should return user without passwordHash field" time="0.158">
+    <testcase classname="AssignmentsService create should return id, jobId, problemId as strings (API contract)" name="AssignmentsService create should return id, jobId, problemId as strings (API contract)" time="0.001">
     </testcase>
-    <testcase classname="AuthService signup should default role to CANDIDATE if not specified" name="AuthService signup should default role to CANDIDATE if not specified" time="0.149">
+    <testcase classname="AssignmentsService create should throw NotFoundException when interview does not exist" name="AssignmentsService create should throw NotFoundException when interview does not exist" time="0.011">
     </testcase>
-    <testcase classname="AuthService signup should create candidate account without email" name="AuthService signup should create candidate account without email" time="0.165">
+    <testcase classname="AssignmentsService create should throw NotFoundException with interview ID in message" name="AssignmentsService create should throw NotFoundException with interview ID in message" time="0.002">
     </testcase>
-    <testcase classname="AuthService signup should always force role to CANDIDATE regardless of input" name="AuthService signup should always force role to CANDIDATE regardless of input" time="0.213">
+    <testcase classname="AssignmentsService create should throw NotFoundException when user does not exist" name="AssignmentsService create should throw NotFoundException when user does not exist" time="0.001">
     </testcase>
-    <testcase classname="AuthService signup should ignore role=QUESTIONER and force CANDIDATE" name="AuthService signup should ignore role=QUESTIONER and force CANDIDATE" time="0.164">
+    <testcase classname="AssignmentsService create should throw NotFoundException when problem does not exist" name="AssignmentsService create should throw NotFoundException when problem does not exist" time="0.001">
     </testcase>
-    <testcase classname="AuthService signup should allow signup without email for CANDIDATE (even with role=EXAMINER)" name="AuthService signup should allow signup without email for CANDIDATE (even with role=EXAMINER)" time="0.154">
+    <testcase classname="AssignmentsService create should throw BadRequestException when user is not a candidate" name="AssignmentsService create should throw BadRequestException when user is not a candidate" time="0.001">
+    </testcase>
+    <testcase classname="AssignmentsService create should throw NotFoundException with problem ID in message" name="AssignmentsService create should throw NotFoundException with problem ID in message" time="0.002">
+    </testcase>
+    <testcase classname="AssignmentsService create should throw ConflictException on duplicate assignment (P2002)" name="AssignmentsService create should throw ConflictException on duplicate assignment (P2002)" time="0.001">
+    </testcase>
+    <testcase classname="AssignmentsService create should re-throw unknown database errors" name="AssignmentsService create should re-throw unknown database errors" time="0.002">
+    </testcase>
+    <testcase classname="AssignmentsService findAll should return all assignments formatted" name="AssignmentsService findAll should return all assignments formatted" time="0.002">
+    </testcase>
+    <testcase classname="AssignmentsService findAll should return an empty array when no assignments exist" name="AssignmentsService findAll should return an empty array when no assignments exist" time="0.002">
+    </testcase>
+    <testcase classname="AssignmentsService findAll should return all assignments with correct fields" name="AssignmentsService findAll should return all assignments with correct fields" time="0.012">
+    </testcase>
+    <testcase classname="AssignmentsService findOne should return a single assignment by ID" name="AssignmentsService findOne should return a single assignment by ID" time="0.001">
+    </testcase>
+    <testcase classname="AssignmentsService findOne should throw NotFoundException for non-existent assignment" name="AssignmentsService findOne should throw NotFoundException for non-existent assignment" time="0.002">
+    </testcase>
+    <testcase classname="AssignmentsService findOne should throw NotFoundException with assignment ID in message" name="AssignmentsService findOne should throw NotFoundException with assignment ID in message" time="0.001">
+    </testcase>
+    <testcase classname="AssignmentsService findByUser should return all assignments for a specific user" name="AssignmentsService findByUser should return all assignments for a specific user" time="0.002">
+    </testcase>
+    <testcase classname="AssignmentsService findByUser should return empty array when user has no assignments" name="AssignmentsService findByUser should return empty array when user has no assignments" time="0.001">
+    </testcase>
+    <testcase classname="AssignmentsService findByUser should query with correct userId filter" name="AssignmentsService findByUser should query with correct userId filter" time="0.001">
+    </testcase>
+    <testcase classname="AssignmentsService remove should delete an assignment successfully" name="AssignmentsService remove should delete an assignment successfully" time="0.002">
+    </testcase>
+    <testcase classname="AssignmentsService remove should throw NotFoundException when assignment does not exist" name="AssignmentsService remove should throw NotFoundException when assignment does not exist" time="0.001">
+    </testcase>
+    <testcase classname="AssignmentsService remove should throw NotFoundException with correct message" name="AssignmentsService remove should throw NotFoundException with correct message" time="0.001">
+    </testcase>
+    <testcase classname="AssignmentsService remove should not call delete when assignment not found" name="AssignmentsService remove should not call delete when assignment not found" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="AuthService" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:50:36" time="8.024" tests="24">
+    <testcase classname="AuthService login should return token for valid SHA-256 credentials" name="AuthService login should return token for valid SHA-256 credentials" time="0.22">
+    </testcase>
+    <testcase classname="AuthService login should include correct JWT payload (sub, username, role)" name="AuthService login should include correct JWT payload (sub, username, role)" time="0.223">
+    </testcase>
+    <testcase classname="AuthService login should return expires_in as string (not number)" name="AuthService login should return expires_in as string (not number)" time="0.153">
+    </testcase>
+    <testcase classname="AuthService login should look up user by username" name="AuthService login should look up user by username" time="0.156">
+    </testcase>
+    <testcase classname="AuthService login should throw UnauthorizedException when user not found" name="AuthService login should throw UnauthorizedException when user not found" time="0.084">
+    </testcase>
+    <testcase classname="AuthService login should throw UnauthorizedException for wrong SHA-256 password" name="AuthService login should throw UnauthorizedException for wrong SHA-256 password" time="0.151">
+    </testcase>
+    <testcase classname="AuthService login should throw UnauthorizedException if plain password (not sha256) is used" name="AuthService login should throw UnauthorizedException if plain password (not sha256) is used" time="0.145">
+    </testcase>
+    <testcase classname="AuthService login should throw UnauthorizedException with generic message (no info leak)" name="AuthService login should throw UnauthorizedException with generic message (no info leak)" time="0.075">
+    </testcase>
+    <testcase classname="AuthService login should handle ADMIN role correctly" name="AuthService login should handle ADMIN role correctly" time="0.138">
+    </testcase>
+    <testcase classname="AuthService signup should create a new user with sha256 password" name="AuthService signup should create a new user with sha256 password" time="0.144">
+    </testcase>
+    <testcase classname="AuthService signup should call prisma.user.create with a bcrypt hash (not plain sha256)" name="AuthService signup should call prisma.user.create with a bcrypt hash (not plain sha256)" time="0.168">
+    </testcase>
+    <testcase classname="AuthService signup should return user without passwordHash field" name="AuthService signup should return user without passwordHash field" time="0.141">
+    </testcase>
+    <testcase classname="AuthService signup should default role to CANDIDATE if not specified" name="AuthService signup should default role to CANDIDATE if not specified" time="0.138">
+    </testcase>
+    <testcase classname="AuthService signup should create candidate account without email" name="AuthService signup should create candidate account without email" time="0.137">
+    </testcase>
+    <testcase classname="AuthService signup should always force role to CANDIDATE regardless of input" name="AuthService signup should always force role to CANDIDATE regardless of input" time="0.152">
+    </testcase>
+    <testcase classname="AuthService signup should ignore role=QUESTIONER and force CANDIDATE" name="AuthService signup should ignore role=QUESTIONER and force CANDIDATE" time="0.139">
+    </testcase>
+    <testcase classname="AuthService signup should allow signup without email for CANDIDATE (even with role=EXAMINER)" name="AuthService signup should allow signup without email for CANDIDATE (even with role=EXAMINER)" time="0.146">
     </testcase>
     <testcase classname="AuthService signup should throw ConflictException for duplicate username" name="AuthService signup should throw ConflictException for duplicate username" time="0.083">
     </testcase>
     <testcase classname="AuthService signup should throw ConflictException for duplicate email" name="AuthService signup should throw ConflictException for duplicate email" time="0.07">
     </testcase>
-    <testcase classname="AuthService signup should check both username and email for conflicts via OR query" name="AuthService signup should check both username and email for conflicts via OR query" time="0.146">
+    <testcase classname="AuthService signup should check both username and email for conflicts via OR query" name="AuthService signup should check both username and email for conflicts via OR query" time="0.14">
     </testcase>
-    <testcase classname="AuthService validateUserById should return user info for valid ID" name="AuthService validateUserById should return user info for valid ID" time="0.073">
+    <testcase classname="AuthService validateUserById should return user info for valid ID" name="AuthService validateUserById should return user info for valid ID" time="0.069">
     </testcase>
-    <testcase classname="AuthService validateUserById should not return passwordHash" name="AuthService validateUserById should not return passwordHash" time="0.075">
+    <testcase classname="AuthService validateUserById should not return passwordHash" name="AuthService validateUserById should not return passwordHash" time="0.074">
     </testcase>
-    <testcase classname="AuthService validateUserById should return null for invalid ID" name="AuthService validateUserById should return null for invalid ID" time="0.073">
+    <testcase classname="AuthService validateUserById should return null for invalid ID" name="AuthService validateUserById should return null for invalid ID" time="0.072">
     </testcase>
-    <testcase classname="AuthService validateUserById should query by user id" name="AuthService validateUserById should query by user id" time="0.07">
-    </testcase>
-  </testsuite>
-  <testsuite name="StressTestReportsService" errors="0" failures="0" skipped="0" timestamp="2026-05-31T12:41:07" time="0.109" tests="2">
-    <testcase classname="StressTestReportsService should aggregate summary by endpoint" name="StressTestReportsService should aggregate summary by endpoint" time="0.005">
-    </testcase>
-    <testcase classname="StressTestReportsService should fetch reports with descending order and limit" name="StressTestReportsService should fetch reports with descending order and limit" time="0.001">
+    <testcase classname="AuthService validateUserById should query by user id" name="AuthService validateUserById should query by user id" time="0.071">
     </testcase>
   </testsuite>
-  <testsuite name="JwtStrategy" errors="0" failures="0" skipped="0" timestamp="2026-05-31T12:41:07" time="0.127" tests="7">
-    <testcase classname="JwtStrategy should be defined" name="JwtStrategy should be defined" time="0.003">
+  <testsuite name="UsersService" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:50:43" time="0.162" tests="17">
+    <testcase classname="UsersService findAll should return all users in data array" name="UsersService findAll should return all users in data array" time="0.004">
     </testcase>
-    <testcase classname="JwtStrategy validate should return user object for valid payload" name="JwtStrategy validate should return user object for valid payload" time="0">
+    <testcase classname="UsersService findAll should map user fields correctly" name="UsersService findAll should map user fields correctly" time="0.001">
     </testcase>
-    <testcase classname="JwtStrategy validate should call authService.validateUserById with payload.sub" name="JwtStrategy validate should call authService.validateUserById with payload.sub" time="0">
+    <testcase classname="UsersService findAll should return numeric fields as strings" name="UsersService findAll should return numeric fields as strings" time="0.002">
     </testcase>
-    <testcase classname="JwtStrategy validate should throw UnauthorizedException when user not found (null)" name="JwtStrategy validate should throw UnauthorizedException when user not found (null)" time="0.004">
+    <testcase classname="UsersService findAll should not expose passwordHash" name="UsersService findAll should not expose passwordHash" time="0.001">
     </testcase>
-    <testcase classname="JwtStrategy validate should throw UnauthorizedException when user not found (undefined)" name="JwtStrategy validate should throw UnauthorizedException when user not found (undefined)" time="0">
+    <testcase classname="UsersService findAll should return empty array when no users exist" name="UsersService findAll should return empty array when no users exist" time="0.001">
     </testcase>
-    <testcase classname="JwtStrategy validate should return ADMIN user correctly" name="JwtStrategy validate should return ADMIN user correctly" time="0">
+    <testcase classname="UsersService findAll should include createdAt timestamp" name="UsersService findAll should include createdAt timestamp" time="0.001">
     </testcase>
-    <testcase classname="JwtStrategy validate should not return passwordHash in user object" name="JwtStrategy validate should not return passwordHash in user object" time="0.008">
+    <testcase classname="UsersService getSubmissionHistory should return submission history with total and page" name="UsersService getSubmissionHistory should return submission history with total and page" time="0.008">
+    </testcase>
+    <testcase classname="UsersService getSubmissionHistory should return all required submission fields" name="UsersService getSubmissionHistory should return all required submission fields" time="0.009">
+    </testcase>
+    <testcase classname="UsersService getSubmissionHistory should return score as string" name="UsersService getSubmissionHistory should return score as string" time="0.002">
+    </testcase>
+    <testcase classname="UsersService getSubmissionHistory should return problem_id as string" name="UsersService getSubmissionHistory should return problem_id as string" time="0.006">
+    </testcase>
+    <testcase classname="UsersService getSubmissionHistory should return empty string for execution_result when userOutput is null" name="UsersService getSubmissionHistory should return empty string for execution_result when userOutput is null" time="0.001">
+    </testcase>
+    <testcase classname="UsersService getSubmissionHistory should look up user by username" name="UsersService getSubmissionHistory should look up user by username" time="0.001">
+    </testcase>
+    <testcase classname="UsersService getSubmissionHistory should use correct pagination (page, limit)" name="UsersService getSubmissionHistory should use correct pagination (page, limit)" time="0.001">
+    </testcase>
+    <testcase classname="UsersService getSubmissionHistory should return correct page number as string" name="UsersService getSubmissionHistory should return correct page number as string" time="0.001">
+    </testcase>
+    <testcase classname="UsersService getSubmissionHistory should throw NotFoundException for non-existent user" name="UsersService getSubmissionHistory should throw NotFoundException for non-existent user" time="0.008">
+    </testcase>
+    <testcase classname="UsersService getSubmissionHistory should throw NotFoundException with username in message" name="UsersService getSubmissionHistory should throw NotFoundException with username in message" time="0.001">
+    </testcase>
+    <testcase classname="UsersService getSubmissionHistory should default page to 1 and limit to 20" name="UsersService getSubmissionHistory should default page to 1 and limit to 20" time="0.001">
     </testcase>
   </testsuite>
-  <testsuite name="JudgeQueueService" errors="0" failures="0" skipped="0" timestamp="2026-05-31T12:41:07" time="0.104" tests="4">
-    <testcase classname="JudgeQueueService should be defined" name="JudgeQueueService should be defined" time="0.004">
+  <testsuite name="StressTestReportsController" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:50:43" time="0.158" tests="2">
+    <testcase classname="StressTestReportsController should fallback to default limit when query limit is invalid" name="StressTestReportsController should fallback to default limit when query limit is invalid" time="0.004">
     </testcase>
-    <testcase classname="JudgeQueueService should enqueue and execute tasks" name="JudgeQueueService should enqueue and execute tasks" time="0.001">
-    </testcase>
-    <testcase classname="JudgeQueueService should handle errors during execution" name="JudgeQueueService should handle errors during execution" time="0.004">
-    </testcase>
-    <testcase classname="JudgeQueueService should return correct stats" name="JudgeQueueService should return correct stats" time="0.002">
+    <testcase classname="StressTestReportsController should clamp query limit to 100 when value is too large" name="StressTestReportsController should clamp query limit to 100 when value is too large" time="0.002">
     </testcase>
   </testsuite>
-  <testsuite name="RolesGuard" errors="0" failures="0" skipped="0" timestamp="2026-05-31T12:41:07" time="0.129" tests="13">
-    <testcase classname="RolesGuard should be defined" name="RolesGuard should be defined" time="0">
+  <testsuite name="RolesGuard" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:50:44" time="0.098" tests="13">
+    <testcase classname="RolesGuard should be defined" name="RolesGuard should be defined" time="0.001">
     </testcase>
     <testcase classname="RolesGuard should return true when no roles are required" name="RolesGuard should return true when no roles are required" time="0.001">
     </testcase>
@@ -725,9 +645,9 @@
     </testcase>
     <testcase classname="RolesGuard should return true when user has the required CANDIDATE role" name="RolesGuard should return true when user has the required CANDIDATE role" time="0">
     </testcase>
-    <testcase classname="RolesGuard should return true when ADMIN accesses any role-protected endpoint" name="RolesGuard should return true when ADMIN accesses any role-protected endpoint" time="0">
+    <testcase classname="RolesGuard should return true when ADMIN accesses any role-protected endpoint" name="RolesGuard should return true when ADMIN accesses any role-protected endpoint" time="0.001">
     </testcase>
-    <testcase classname="RolesGuard should return true when user role matches one of multiple required roles" name="RolesGuard should return true when user role matches one of multiple required roles" time="0.001">
+    <testcase classname="RolesGuard should return true when user role matches one of multiple required roles" name="RolesGuard should return true when user role matches one of multiple required roles" time="0">
     </testcase>
     <testcase classname="RolesGuard should throw ForbiddenException when user role does not match" name="RolesGuard should throw ForbiddenException when user role does not match" time="0.005">
     </testcase>
@@ -735,39 +655,129 @@
     </testcase>
     <testcase classname="RolesGuard should throw ForbiddenException when user is undefined" name="RolesGuard should throw ForbiddenException when user is undefined" time="0.001">
     </testcase>
-    <testcase classname="RolesGuard should throw ForbiddenException when user is null" name="RolesGuard should throw ForbiddenException when user is null" time="0.001">
+    <testcase classname="RolesGuard should throw ForbiddenException when user is null" name="RolesGuard should throw ForbiddenException when user is null" time="0">
     </testcase>
-    <testcase classname="RolesGuard should throw ForbiddenException when user has no role property" name="RolesGuard should throw ForbiddenException when user has no role property" time="0.002">
+    <testcase classname="RolesGuard should throw ForbiddenException when user has no role property" name="RolesGuard should throw ForbiddenException when user has no role property" time="0.001">
     </testcase>
     <testcase classname="RolesGuard should use reflector.getAllAndOverride with handler and class" name="RolesGuard should use reflector.getAllAndOverride with handler and class" time="0.001">
     </testcase>
   </testsuite>
-  <testsuite name="PrismaService" errors="0" failures="0" skipped="0" timestamp="2026-05-31T12:41:07" time="0.085" tests="3">
-    <testcase classname="PrismaService should be defined" name="PrismaService should be defined" time="0.005">
+  <testsuite name="SubmissionsService" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:50:44" time="0.224" tests="22">
+    <testcase classname="SubmissionsService create should create a submission and return PENDING status immediately" name="SubmissionsService create should create a submission and return PENDING status immediately" time="0.007">
     </testcase>
-    <testcase classname="PrismaService should call $connect on module init" name="PrismaService should call $connect on module init" time="0.002">
+    <testcase classname="SubmissionsService create should create submission with PENDING status in DB" name="SubmissionsService create should create submission with PENDING status in DB" time="0.002">
     </testcase>
-    <testcase classname="PrismaService should call $disconnect on module destroy" name="PrismaService should call $disconnect on module destroy" time="0.001">
+    <testcase classname="SubmissionsService create should verify problem exists before creating submission" name="SubmissionsService create should verify problem exists before creating submission" time="0.002">
+    </testcase>
+    <testcase classname="SubmissionsService create should throw NotFoundException for non-existent problem" name="SubmissionsService create should throw NotFoundException for non-existent problem" time="0.016">
+    </testcase>
+    <testcase classname="SubmissionsService create should throw NotFoundException with problem ID in message" name="SubmissionsService create should throw NotFoundException with problem ID in message" time="0.002">
+    </testcase>
+    <testcase classname="SubmissionsService create should support all declared languages" name="SubmissionsService create should support all declared languages" time="0.002">
+    </testcase>
+    <testcase classname="SubmissionsService findOne should return submission details for ACCEPTED submission" name="SubmissionsService findOne should return submission details for ACCEPTED submission" time="0.002">
+    </testcase>
+    <testcase classname="SubmissionsService findOne should return all required fields with correct snake_case naming" name="SubmissionsService findOne should return all required fields with correct snake_case naming" time="0.007">
+    </testcase>
+    <testcase classname="SubmissionsService findOne should return numeric values as strings (per API contract)" name="SubmissionsService findOne should return numeric values as strings (per API contract)" time="0.002">
+    </testcase>
+    <testcase classname="SubmissionsService findOne should return default metrics 0 when null in DB" name="SubmissionsService findOne should return default metrics 0 when null in DB" time="0.002">
+    </testcase>
+    <testcase classname="SubmissionsService findOne should return empty string for user_answer when userOutput is null" name="SubmissionsService findOne should return empty string for user_answer when userOutput is null" time="0.001">
+    </testcase>
+    <testcase classname="SubmissionsService findOne should return PENDING status correctly" name="SubmissionsService findOne should return PENDING status correctly" time="0.002">
+    </testcase>
+    <testcase classname="SubmissionsService findOne should return WRONG_ANSWER status correctly" name="SubmissionsService findOne should return WRONG_ANSWER status correctly" time="0.001">
+    </testcase>
+    <testcase classname="SubmissionsService findOne should allow EXAMINER to read any submission" name="SubmissionsService findOne should allow EXAMINER to read any submission" time="0.001">
+    </testcase>
+    <testcase classname="SubmissionsService findOne should throw ForbiddenException when another candidate reads the submission" name="SubmissionsService findOne should throw ForbiddenException when another candidate reads the submission" time="0.001">
+    </testcase>
+    <testcase classname="SubmissionsService findOne should throw NotFoundException for non-existent submission" name="SubmissionsService findOne should throw NotFoundException for non-existent submission" time="0.001">
+    </testcase>
+    <testcase classname="SubmissionsService findOne should throw NotFoundException with submission ID in message" name="SubmissionsService findOne should throw NotFoundException with submission ID in message" time="0.004">
+    </testcase>
+    <testcase classname="SubmissionsService runJudgeForSubmission (mock worker) should process statuses and finalize as ACCEPTED, then update user stats on first AC" name="SubmissionsService runJudgeForSubmission (mock worker) should process statuses and finalize as ACCEPTED, then update user stats on first AC" time="0.005">
+    </testcase>
+    <testcase classname="SubmissionsService runJudgeForSubmission (mock worker) should not update user stats if there was a previous ACCEPTED submission" name="SubmissionsService runJudgeForSubmission (mock worker) should not update user stats if there was a previous ACCEPTED submission" time="0.002">
+    </testcase>
+    <testcase classname="SubmissionsService runJudgeForSubmission (mock worker) should not update user stats for non-ACCEPTED outcomes" name="SubmissionsService runJudgeForSubmission (mock worker) should not update user stats for non-ACCEPTED outcomes" time="0.005">
+    </testcase>
+    <testcase classname="SubmissionsService runJudgeForSubmission (mock worker) should map INTERNAL_ERROR to RUNTIME_ERROR" name="SubmissionsService runJudgeForSubmission (mock worker) should map INTERNAL_ERROR to RUNTIME_ERROR" time="0.003">
+    </testcase>
+    <testcase classname="SubmissionsService runJudgeForSubmission (mock worker) should skip stats update when submission cannot be reloaded" name="SubmissionsService runJudgeForSubmission (mock worker) should skip stats update when submission cannot be reloaded" time="0.001">
     </testcase>
   </testsuite>
-  <testsuite name="InternalAuthGuard" errors="0" failures="0" skipped="0" timestamp="2026-05-31T12:41:07" time="0.073" tests="9">
-    <testcase classname="InternalAuthGuard should be defined" name="InternalAuthGuard should be defined" time="0.001">
+  <testsuite name="LeaderboardService" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:50:44" time="0.171" tests="8">
+    <testcase classname="LeaderboardService getRankings should return paginated rankings sorted by rating desc" name="LeaderboardService getRankings should return paginated rankings sorted by rating desc" time="0.005">
+    </testcase>
+    <testcase classname="LeaderboardService getRankings should return all numeric values as strings" name="LeaderboardService getRankings should return all numeric values as strings" time="0.007">
+    </testcase>
+    <testcase classname="LeaderboardService getRankings should calculate correct ranks for page 2" name="LeaderboardService getRankings should calculate correct ranks for page 2" time="0.001">
+    </testcase>
+    <testcase classname="LeaderboardService getRankings should calculate correct offset for page 3, limit 5" name="LeaderboardService getRankings should calculate correct offset for page 3, limit 5" time="0.007">
+    </testcase>
+    <testcase classname="LeaderboardService getRankings should only count CANDIDATE role (not staff roles)" name="LeaderboardService getRankings should only count CANDIDATE role (not staff roles)" time="0.002">
+    </testcase>
+    <testcase classname="LeaderboardService getRankings should apply correct pagination skip/take" name="LeaderboardService getRankings should apply correct pagination skip/take" time="0.005">
+    </testcase>
+    <testcase classname="LeaderboardService getRankings should return empty data array when no users" name="LeaderboardService getRankings should return empty data array when no users" time="0.001">
+    </testcase>
+    <testcase classname="LeaderboardService getRankings should default page to 1 and limit to 20" name="LeaderboardService getRankings should default page to 1 and limit to 20" time="0.006">
+    </testcase>
+  </testsuite>
+  <testsuite name="JwtStrategy" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:50:44" time="0.126" tests="7">
+    <testcase classname="JwtStrategy should be defined" name="JwtStrategy should be defined" time="0.001">
+    </testcase>
+    <testcase classname="JwtStrategy validate should return user object for valid payload" name="JwtStrategy validate should return user object for valid payload" time="0.006">
+    </testcase>
+    <testcase classname="JwtStrategy validate should call authService.validateUserById with payload.sub" name="JwtStrategy validate should call authService.validateUserById with payload.sub" time="0">
+    </testcase>
+    <testcase classname="JwtStrategy validate should throw UnauthorizedException when user not found (null)" name="JwtStrategy validate should throw UnauthorizedException when user not found (null)" time="0.009">
+    </testcase>
+    <testcase classname="JwtStrategy validate should throw UnauthorizedException when user not found (undefined)" name="JwtStrategy validate should throw UnauthorizedException when user not found (undefined)" time="0.001">
+    </testcase>
+    <testcase classname="JwtStrategy validate should return ADMIN user correctly" name="JwtStrategy validate should return ADMIN user correctly" time="0">
+    </testcase>
+    <testcase classname="JwtStrategy validate should not return passwordHash in user object" name="JwtStrategy validate should not return passwordHash in user object" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="PrismaService" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:50:44" time="0.151" tests="3">
+    <testcase classname="PrismaService should be defined" name="PrismaService should be defined" time="0.014">
+    </testcase>
+    <testcase classname="PrismaService should call $connect on module init" name="PrismaService should call $connect on module init" time="0.021">
+    </testcase>
+    <testcase classname="PrismaService should call $disconnect on module destroy" name="PrismaService should call $disconnect on module destroy" time="0.002">
+    </testcase>
+  </testsuite>
+  <testsuite name="JudgeQueueService" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:50:44" time="0.252" tests="4">
+    <testcase classname="JudgeQueueService should be defined" name="JudgeQueueService should be defined" time="0.004">
+    </testcase>
+    <testcase classname="JudgeQueueService should enqueue and execute tasks" name="JudgeQueueService should enqueue and execute tasks" time="0.007">
+    </testcase>
+    <testcase classname="JudgeQueueService should handle errors during execution" name="JudgeQueueService should handle errors during execution" time="0.005">
+    </testcase>
+    <testcase classname="JudgeQueueService should return correct stats" name="JudgeQueueService should return correct stats" time="0.007">
+    </testcase>
+  </testsuite>
+  <testsuite name="InternalAuthGuard" errors="0" failures="0" skipped="0" timestamp="2026-05-31T13:50:44" time="0.136" tests="9">
+    <testcase classname="InternalAuthGuard should be defined" name="InternalAuthGuard should be defined" time="0.002">
     </testcase>
     <testcase classname="InternalAuthGuard should return true when API key matches" name="InternalAuthGuard should return true when API key matches" time="0.001">
     </testcase>
-    <testcase classname="InternalAuthGuard should throw UnauthorizedException when API key does not match" name="InternalAuthGuard should throw UnauthorizedException when API key does not match" time="0.003">
+    <testcase classname="InternalAuthGuard should throw UnauthorizedException when API key does not match" name="InternalAuthGuard should throw UnauthorizedException when API key does not match" time="0.014">
     </testcase>
-    <testcase classname="InternalAuthGuard should throw UnauthorizedException with correct message" name="InternalAuthGuard should throw UnauthorizedException with correct message" time="0.001">
+    <testcase classname="InternalAuthGuard should throw UnauthorizedException with correct message" name="InternalAuthGuard should throw UnauthorizedException with correct message" time="0.002">
     </testcase>
-    <testcase classname="InternalAuthGuard should throw UnauthorizedException when API key header is missing" name="InternalAuthGuard should throw UnauthorizedException when API key header is missing" time="0">
+    <testcase classname="InternalAuthGuard should throw UnauthorizedException when API key header is missing" name="InternalAuthGuard should throw UnauthorizedException when API key header is missing" time="0.002">
     </testcase>
-    <testcase classname="InternalAuthGuard should throw UnauthorizedException when INTERNAL_API_KEY env is not set" name="InternalAuthGuard should throw UnauthorizedException when INTERNAL_API_KEY env is not set" time="0.001">
+    <testcase classname="InternalAuthGuard should throw UnauthorizedException when INTERNAL_API_KEY env is not set" name="InternalAuthGuard should throw UnauthorizedException when INTERNAL_API_KEY env is not set" time="0.002">
     </testcase>
-    <testcase classname="InternalAuthGuard should throw UnauthorizedException when both env and header are empty strings" name="InternalAuthGuard should throw UnauthorizedException when both env and header are empty strings" time="0">
+    <testcase classname="InternalAuthGuard should throw UnauthorizedException when both env and header are empty strings" name="InternalAuthGuard should throw UnauthorizedException when both env and header are empty strings" time="0.003">
     </testcase>
-    <testcase classname="InternalAuthGuard should read key from x-internal-api-key header (lowercase)" name="InternalAuthGuard should read key from x-internal-api-key header (lowercase)" time="0.001">
+    <testcase classname="InternalAuthGuard should read key from x-internal-api-key header (lowercase)" name="InternalAuthGuard should read key from x-internal-api-key header (lowercase)" time="0.002">
     </testcase>
-    <testcase classname="InternalAuthGuard should be case-sensitive for the API key value" name="InternalAuthGuard should be case-sensitive for the API key value" time="0">
+    <testcase classname="InternalAuthGuard should be case-sensitive for the API key value" name="InternalAuthGuard should be case-sensitive for the API key value" time="0.001">
     </testcase>
   </testsuite>
 </testsuites>

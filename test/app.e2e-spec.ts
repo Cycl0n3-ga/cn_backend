@@ -542,6 +542,7 @@ describe('Code Judge API (e2e)', () => {
         while (true) {
           const poll = await request(app.getHttpServer())
             .get(`/api/v1/submissions/${id}`)
+            .set('Authorization', `Bearer ${aliceToken}`)
             .expect(200);
 
           const status = poll.body.status as string;
@@ -562,9 +563,16 @@ describe('Code Judge API (e2e)', () => {
     });
 
     describe('GET /api/v1/submissions/:id', () => {
+      it('should return 401 without auth token', async () => {
+        await request(app.getHttpServer())
+          .get('/api/v1/submissions/non-existent-uuid')
+          .expect(401);
+      });
+
       it('should return 404 for non-existent submission', async () => {
         await request(app.getHttpServer())
           .get('/api/v1/submissions/non-existent-uuid')
+          .set('Authorization', `Bearer ${adminToken}`)
           .expect(404);
       });
     });
@@ -614,6 +622,13 @@ describe('Code Judge API (e2e)', () => {
         if (res.body.data.length > 0) {
           expect(res.body.data[0]).not.toHaveProperty('passwordHash');
         }
+      });
+
+      it('should reject candidates from listing all users', async () => {
+        await request(app.getHttpServer())
+          .get('/api/v1/users')
+          .set('Authorization', `Bearer ${aliceToken}`)
+          .expect(403);
       });
     });
 
@@ -924,9 +939,16 @@ describe('Code Judge API (e2e)', () => {
 
   describe('Assignments', () => {
     describe('GET /api/v1/assignments', () => {
-      it('should return assignments list without auth', async () => {
+      it('should return 401 without auth', async () => {
+        await request(app.getHttpServer())
+          .get('/api/v1/assignments')
+          .expect(401);
+      });
+
+      it('should return assignments list with privileged auth', async () => {
         const res = await request(app.getHttpServer())
           .get('/api/v1/assignments')
+          .set('Authorization', `Bearer ${adminToken}`)
           .expect(200);
         expect(Array.isArray(res.body)).toBe(true);
       });

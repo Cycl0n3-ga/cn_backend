@@ -1,6 +1,15 @@
-import { Controller, Get, Post, Body, Query, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Query,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import type { Response } from 'express';
 import { StressTestReportsService } from './stress-test-reports.service.js';
+import { InternalAuthGuard } from '../internal/internal-auth.guard.js';
 import {
   CreateStressTestReportDto,
   StressTestReportDto,
@@ -12,6 +21,7 @@ export class StressTestReportsController {
   constructor(private readonly service: StressTestReportsService) {}
 
   @Post()
+  @UseGuards(InternalAuthGuard)
   async createReport(
     @Body() dto: CreateStressTestReportDto,
   ): Promise<StressTestReportDto> {
