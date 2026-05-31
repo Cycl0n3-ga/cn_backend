@@ -29,6 +29,7 @@ describe('InterviewsService', () => {
         findUnique: jest.fn(),
         update: jest.fn(),
         delete: jest.fn(),
+        count: jest.fn(),
       },
       interviewCandidate: {
         create: jest.fn(),
@@ -60,9 +61,8 @@ describe('InterviewsService', () => {
       prisma.user.findUnique.mockResolvedValue(mockExaminer);
       prisma.interview.create.mockResolvedValue(mockInterview);
 
-      const result = await service.create({
+      const result = await service.create('user-uuid-1', {
         jobRole: 'Backend Developer',
-        examinerEmpId: 'user-uuid-1',
       });
 
       expect(result).toHaveProperty('id', '1');
@@ -74,9 +74,8 @@ describe('InterviewsService', () => {
       prisma.user.findUnique.mockResolvedValue(mockExaminer);
       prisma.interview.create.mockResolvedValue(mockInterview);
 
-      const result = await service.create({
+      const result = await service.create('uid', {
         jobRole: 'Test',
-        examinerEmpId: 'uid',
       });
 
       expect(typeof result.id).toBe('string');
@@ -89,9 +88,8 @@ describe('InterviewsService', () => {
       });
       prisma.interview.create.mockResolvedValue(mockInterview);
 
-      await service.create({
+      await service.create('examiner-uuid', {
         jobRole: 'Frontend Dev',
-        examinerEmpId: 'examiner-uuid',
       });
 
       expect(prisma.interview.create).toHaveBeenCalledWith({
@@ -152,9 +150,8 @@ describe('InterviewsService', () => {
           problem: mediumProblem,
         });
 
-      const result = await service.create({
+      const result = await service.create('user-uuid-1', {
         jobRole: 'Backend Developer',
-        examinerEmpId: 'user-uuid-1',
         candidateUserId: 'candidate-uuid',
         problemCounts: { easy: 2, medium: 1, hard: 0 },
       });
@@ -165,14 +162,10 @@ describe('InterviewsService', () => {
       expect(prisma.problem.findMany).toHaveBeenNthCalledWith(1, {
         where: { difficulty: 'EASY', isDeleted: false },
         select: { id: true, title: true, difficulty: true },
-        orderBy: { id: 'asc' },
-        take: 2,
       });
       expect(prisma.problem.findMany).toHaveBeenNthCalledWith(2, {
         where: { difficulty: 'MEDIUM', isDeleted: false },
         select: { id: true, title: true, difficulty: true },
-        orderBy: { id: 'asc' },
-        take: 1,
       });
       expect(prisma.$transaction).toHaveBeenCalledTimes(1);
       expect(prisma.interviewCandidate.create).toHaveBeenCalledWith({
@@ -203,9 +196,8 @@ describe('InterviewsService', () => {
         userId: 'candidate-uuid',
       });
 
-      const result = await service.create({
+      const result = await service.create('user-uuid-1', {
         jobRole: 'Backend Developer',
-        examinerEmpId: 'user-uuid-1',
         candidateUserId: 'candidate-uuid',
       });
 
@@ -221,9 +213,8 @@ describe('InterviewsService', () => {
 
     it('should throw BadRequestException when problem counts are provided without candidateUserId', async () => {
       await expect(
-        service.create({
+        service.create('user-uuid-1', {
           jobRole: 'Backend Developer',
-          examinerEmpId: 'user-uuid-1',
           problemCounts: { easy: 1, medium: 0, hard: 0 },
         }),
       ).rejects.toThrow(BadRequestException);
@@ -235,9 +226,8 @@ describe('InterviewsService', () => {
       prisma.user.findUnique.mockResolvedValue(null);
 
       await expect(
-        service.create({
+        service.create('user-uuid-1', {
           jobRole: 'Backend Developer',
-          examinerEmpId: 'user-uuid-1',
           candidateUserId: 'missing-user',
           problemCounts: { easy: 1, medium: 0, hard: 0 },
         }),
@@ -257,9 +247,8 @@ describe('InterviewsService', () => {
       ]);
 
       await expect(
-        service.create({
+        service.create('user-uuid-1', {
           jobRole: 'Backend Developer',
-          examinerEmpId: 'user-uuid-1',
           candidateUserId: 'candidate-uuid',
           problemCounts: { easy: 2, medium: 0, hard: 0 },
         }),
@@ -272,29 +261,34 @@ describe('InterviewsService', () => {
   // ── findAll ───────────────────────────────────────────────────────────
   describe('findAll', () => {
     it('should return all interviews', async () => {
+      prisma.interview.count.mockResolvedValue(1);
       prisma.interview.findMany.mockResolvedValue([mockInterview]);
 
-      const result = await service.findAll();
+      const result = await service.findAll(1, 20);
 
-      expect(result).toHaveLength(1);
-      expect(result[0]).toHaveProperty('id', '1');
-      expect(result[0]).toHaveProperty('jobRole', 'Backend Developer');
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0]).toHaveProperty('id', '1');
+      expect(result.data[0]).toHaveProperty('jobRole', 'Backend Developer');
+      expect(result.total).toBe(1);
     });
 
     it('should return empty array when no interviews', async () => {
+      prisma.interview.count.mockResolvedValue(0);
       prisma.interview.findMany.mockResolvedValue([]);
 
-      const result = await service.findAll();
+      const result = await service.findAll(1, 20);
 
-      expect(result).toHaveLength(0);
+      expect(result.data).toHaveLength(0);
+      expect(result.total).toBe(0);
     });
 
     it('should return IDs as strings', async () => {
+      prisma.interview.count.mockResolvedValue(1);
       prisma.interview.findMany.mockResolvedValue([mockInterview]);
 
-      const result = await service.findAll();
+      const result = await service.findAll(1, 20);
 
-      expect(typeof result[0].id).toBe('string');
+      expect(typeof result.data[0].id).toBe('string');
     });
   });
 
@@ -316,7 +310,7 @@ describe('InterviewsService', () => {
     });
 
     it('should throw NotFoundException for non-existent interview', async () => {
-      prisma.interview.findUnique.mockResolvedValue(null);
+      prisma.interview.update.mockRejectedValue(Object.assign(new Error(), { code: 'P2025' }));
 
       await expect(service.update(999, { jobRole: 'Test' })).rejects.toThrow(
         NotFoundException,
@@ -324,7 +318,7 @@ describe('InterviewsService', () => {
     });
 
     it('should throw with correct message', async () => {
-      prisma.interview.findUnique.mockResolvedValue(null);
+      prisma.interview.update.mockRejectedValue(Object.assign(new Error(), { code: 'P2025' }));
 
       await expect(service.update(5, { jobRole: 'Test' })).rejects.toThrow(
         'Interview #5 not found.',
@@ -345,7 +339,7 @@ describe('InterviewsService', () => {
     });
 
     it('should throw NotFoundException for non-existent interview', async () => {
-      prisma.interview.findUnique.mockResolvedValue(null);
+      prisma.interview.delete.mockRejectedValue(Object.assign(new Error(), { code: 'P2025' }));
 
       await expect(service.remove(999)).rejects.toThrow(NotFoundException);
     });

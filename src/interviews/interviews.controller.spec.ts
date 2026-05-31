@@ -53,21 +53,23 @@ describe('InterviewsController', () => {
     it('should create interview and return result', async () => {
       service.create.mockResolvedValue(mockCreateResult);
 
-      const result = await controller.create({
-        jobRole: 'Backend Developer',
-        examinerEmpId: 'user-uuid-1',
-      });
+      const result = await controller.create(
+        { user: { id: 'user-uuid-1' } } as any,
+        {
+          jobRole: 'Backend Developer',
+        }
+      );
 
       expect(result).toEqual(mockCreateResult);
     });
 
     it('should pass DTO directly to service', async () => {
       service.create.mockResolvedValue(mockCreateResult);
-      const dto = { jobRole: 'Frontend Dev', examinerEmpId: 'examiner-uuid' };
+      const dto = { jobRole: 'Frontend Dev' };
 
-      await controller.create(dto);
+      await controller.create({ user: { id: 'examiner-uuid' } } as any, dto);
 
-      expect(service.create).toHaveBeenCalledWith(dto);
+      expect(service.create).toHaveBeenCalledWith('examiner-uuid', dto);
     });
 
     it('should pass candidate and problem counts to service', async () => {
@@ -84,18 +86,20 @@ describe('InterviewsController', () => {
         problemCounts: { easy: 2, medium: 1, hard: 0 },
       };
 
-      await controller.create(dto);
+      await controller.create({ user: { id: 'user-uuid-1' } } as any, dto);
 
-      expect(service.create).toHaveBeenCalledWith(dto);
+      expect(service.create).toHaveBeenCalledWith('user-uuid-1', dto);
     });
 
     it('should return id as string', async () => {
       service.create.mockResolvedValue(mockCreateResult);
 
-      const result = await controller.create({
-        jobRole: 'Test',
-        examinerEmpId: 'uid',
-      });
+      const result = await controller.create(
+        { user: { id: 'uid' } } as any,
+        {
+          jobRole: 'Test',
+        }
+      );
 
       expect(typeof result.id).toBe('string');
     });
@@ -104,16 +108,26 @@ describe('InterviewsController', () => {
   // ── findAll ───────────────────────────────────────────────────────────
   describe('findAll', () => {
     it('should return all interviews', async () => {
-      service.findAll.mockResolvedValue(mockFindAllResult);
+      service.findAll.mockResolvedValue({
+        data: mockFindAllResult as any,
+        total: 2,
+        page: 1,
+        limit: 20,
+      });
 
       const result = await controller.findAll();
 
-      expect(result).toEqual(mockFindAllResult);
-      expect(result).toHaveLength(2);
+      expect(result).toEqual({
+        data: mockFindAllResult,
+        total: 2,
+        page: 1,
+        limit: 20,
+      });
+      expect(result.data).toHaveLength(2);
     });
 
     it('should call service.findAll once', async () => {
-      service.findAll.mockResolvedValue([]);
+      service.findAll.mockResolvedValue({ data: [], total: 0, page: 1, limit: 20 });
 
       await controller.findAll();
 
@@ -121,11 +135,11 @@ describe('InterviewsController', () => {
     });
 
     it('should return empty array when no interviews', async () => {
-      service.findAll.mockResolvedValue([]);
+      service.findAll.mockResolvedValue({ data: [], total: 0, page: 1, limit: 20 });
 
       const result = await controller.findAll();
 
-      expect(result).toHaveLength(0);
+      expect(result.data).toHaveLength(0);
     });
   });
 
