@@ -4,12 +4,12 @@
 
 ## 概述
 
-專案使用 **Prisma ORM** 管理資料庫，支持：
+專案使用 **Prisma ORM** 管理資料庫，目前可直接運行的 schema/migrations 為：
 
-- **SQLite** - 開發環境預設
-- **PostgreSQL** - 生產環境推薦
+- **SQLite** - 開發與目前 Docker 部署預設
+- **PostgreSQL** - 規劃支援；切換前需提供 PostgreSQL provider 與對應 migrations
 
-核心資料模型共 **7 個表**，包含 **10+ 個關鍵關係**。
+核心資料模型共 **10 個表**，包含使用者、題目、提交、面試、指派與壓測報告等資料。
 
 ---
 
@@ -445,11 +445,13 @@ SEED_DB=true docker compose up -d --build
 DATABASE_URL=file:./data/code_judge.db
 ```
 
-**PostgreSQL（生产）：**
+**PostgreSQL（規劃）：**
 
 ```
 DATABASE_URL=postgresql://user:password@localhost:5432/code_judge
 ```
+
+> 注意：目前 `prisma/migrations/migration_lock.toml` 與既有 migration SQL 皆為 SQLite 產物，不能只改 `DATABASE_URL` 就直接套用到 PostgreSQL。
 
 ---
 

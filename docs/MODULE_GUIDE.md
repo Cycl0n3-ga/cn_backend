@@ -68,7 +68,7 @@ src/auth/
 }
 ```
 
-`role` 預設為 `CANDIDATE`，可選 `ADMIN`、`EXAMINER`、`QUESTIONER`、`CANDIDATE`。`CANDIDATE` 可不填 email；其他角色必須提供 email。
+`/auth/signup` 一律建立 `CANDIDATE`；`ADMIN`、`EXAMINER`、`QUESTIONER` 需由管理流程另外建置。`CANDIDATE` 可不填 email。
 
 #### 使用者登入
 ```typescript
@@ -278,10 +278,8 @@ src/submissions/
 Response:
 ```json
 {
-  "id": "submission-uuid",
-  "status": "PENDING",
-  "score": 0,
-  "createdAt": "2025-05-18T10:30:00Z"
+  "submission_id": "submission-uuid",
+  "status": "PENDING"
 }
 ```
 
@@ -289,21 +287,26 @@ Response:
 
 ```typescript
 // GET /api/v1/submissions/:id
+@UseGuards(JwtAuthGuard)
 ```
+
+僅提交者本人、`ADMIN`、`EXAMINER` 可查詢。
 
 Response:
 ```json
 {
-  "id": "submission-uuid",
-  "userId": "user-uuid",
-  "problemId": 1,
+  "submission_id": "submission-uuid",
+  "problem_id": "1",
   "language": "javascript",
   "status": "ACCEPTED",
-  "score": 100,
-  "executionTimeMs": 45,
-  "memoryUsageKb": 2048,
-  "userOutput": "[0,1]",
-  "createdAt": "2025-05-18T10:30:00Z"
+  "score": "100",
+  "user_answer": "[0,1]",
+  "compile_message": "",
+  "metrics": {
+    "execution_time_ms": "45",
+    "memory_usage_kb": "2048"
+  },
+  "submitted_at": "2025-05-18T10:30:00Z"
 }
 ```
 
@@ -596,6 +599,7 @@ src/assignments/
 ```typescript
 // POST /api/v1/assignments
 {
+  "jobId": 1,
   "problemId": 1,
   "userId": "user-uuid"
 }
@@ -605,6 +609,8 @@ src/assignments/
 
 ```typescript
 // GET /api/v1/assignments
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.EXAMINER, UserRole.QUESTIONER)
 ```
 
 ---

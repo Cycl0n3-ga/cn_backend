@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { SubmissionsService } from './submissions.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { JudgeQueueService } from '../judge/judge-queue.service';
-import { NotFoundException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 
 describe('SubmissionsService', () => {
   let service: SubmissionsService;
@@ -24,6 +24,8 @@ describe('SubmissionsService', () => {
     memoryUsageKb: null,
     createdAt: new Date('2026-05-13T12:00:00Z'),
   };
+  const ownerReader = { id: 'user-uuid-1', role: 'CANDIDATE' };
+  const examinerReader = { id: 'examiner-uuid', role: 'EXAMINER' };
 
   beforeEach(async () => {
     prisma = {
@@ -176,7 +178,7 @@ describe('SubmissionsService', () => {
         memoryUsageKb: 2048,
       });
 
-      const result = await service.findOne('sub-uuid-1');
+      const result = await service.findOne('sub-uuid-1', ownerReader);
 
       expect(result).toHaveProperty('submission_id', 'sub-uuid-1');
       expect(result).toHaveProperty('status', 'ACCEPTED');
@@ -193,7 +195,7 @@ describe('SubmissionsService', () => {
         score: 100,
       });
 
-      const result = await service.findOne('sub-uuid-1');
+      const result = await service.findOne('sub-uuid-1', ownerReader);
 
       expect(result).toHaveProperty('submission_id');
       expect(result).toHaveProperty('problem_id');
@@ -215,7 +217,7 @@ describe('SubmissionsService', () => {
         memoryUsageKb: 2048,
       });
 
-      const result = await service.findOne('sub-uuid-1');
+      const result = await service.findOne('sub-uuid-1', ownerReader);
 
       expect(typeof result.problem_id).toBe('string');
       expect(typeof result.score).toBe('string');
@@ -231,7 +233,7 @@ describe('SubmissionsService', () => {
         memoryUsageKb: null,
       });
 
-      const result = await service.findOne('sub-uuid-1');
+      const result = await service.findOne('sub-uuid-1', ownerReader);
 
       expect(result.metrics.execution_time_ms).toBe('0');
       expect(result.metrics.memory_usage_kb).toBe('0');
@@ -243,7 +245,7 @@ describe('SubmissionsService', () => {
         userOutput: null,
       });
 
-      const result = await service.findOne('sub-uuid-1');
+      const result = await service.findOne('sub-uuid-1', ownerReader);
 
       expect(result.user_answer).toBe('');
     });
@@ -255,7 +257,7 @@ describe('SubmissionsService', () => {
         score: 0,
       });
 
-      const result = await service.findOne('sub-uuid-1');
+      const result = await service.findOne('sub-uuid-1', ownerReader);
 
       expect(result.status).toBe('PENDING');
     });
@@ -267,23 +269,42 @@ describe('SubmissionsService', () => {
         score: 0,
       });
 
-      const result = await service.findOne('sub-uuid-1');
+      const result = await service.findOne('sub-uuid-1', ownerReader);
 
       expect(result.status).toBe('WRONG_ANSWER');
+    });
+
+    it('should allow EXAMINER to read any submission', async () => {
+      prisma.submission.findUnique.mockResolvedValue(mockSubmission);
+
+      const result = await service.findOne('sub-uuid-1', examinerReader);
+
+      expect(result.submission_id).toBe('sub-uuid-1');
+    });
+
+    it('should throw ForbiddenException when another candidate reads the submission', async () => {
+      prisma.submission.findUnique.mockResolvedValue(mockSubmission);
+
+      await expect(
+        service.findOne('sub-uuid-1', {
+          id: 'other-candidate-uuid',
+          role: 'CANDIDATE',
+        }),
+      ).rejects.toThrow(ForbiddenException);
     });
 
     it('should throw NotFoundException for non-existent submission', async () => {
       prisma.submission.findUnique.mockResolvedValue(null);
 
-      await expect(service.findOne('nonexistent-id')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.findOne('nonexistent-id', ownerReader),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw NotFoundException with submission ID in message', async () => {
       prisma.submission.findUnique.mockResolvedValue(null);
 
-      await expect(service.findOne('bad-id')).rejects.toThrow(
+      await expect(service.findOne('bad-id', ownerReader)).rejects.toThrow(
         'Submission "bad-id" not found.',
       );
     });

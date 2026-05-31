@@ -185,7 +185,7 @@ curl -X POST http://localhost:4100/api/v1/judge/run \
 - **ORM:** Prisma 7.x
 - **認證:** Passport.js + JWT
 - **測試:** Jest
-- **資料庫:** SQLite (開發) / PostgreSQL (生產)
+- **資料庫:** SQLite（目前可直接運行的預設；PostgreSQL 需另行提供 provider/migrations）
 - **容器:** Docker + Docker Compose
 - **API 文件:** Swagger/OpenAPI
 
@@ -245,31 +245,7 @@ npm run db:seed        # 灌入種子資料
 
 ## 📝 版本資訊
 
-- **當前版本:** 1.0.0
-- **發布日期:** 2025-05-13
-- **狀態:** ✅ 穩定版
+- **當前版本:** 0.0.1（以 `package.json` 為準）
+- **狀態:** 開發中
 
 詳細的版本資訊和變更日誌請參考 [CHANGELOG.md](docs/CHANGELOG.md)
-| POST | `/api/v1/interviews` | 建立面試 |
-| GET | `/api/v1/interviews` | 取得面試列表 |
-| PATCH | `/api/v1/interviews/:id` | 更改面試名稱 |
-| DELETE | `/api/v1/interviews/:id` | 刪除面試 |
-| POST | `/api/v1/interview-candidates` | 新增面試者 |
-| GET | `/api/v1/interview-candidates/:id/time-status` | 取得伺服器時間與測驗剩餘時間 |
-| PATCH | `/api/v1/interview-candidates/:id/time` | 更新面試者測驗開始/結束時間 |
-| DELETE | `/api/v1/interview-candidates/:id` | 移除面試者 |
-
-## 文件
-
-- [API 規格書](docs/API_SPECIFICATION.md) — 前端使用的完整 API 文件
-- [後端架構](docs/BACKEND_ARCHITECTURE.md) — 系統架構與開發指南
-- [Swagger UI](http://localhost:4100/api/docs) — 互動式 API 文件
-
-## 技術棧
-
-- **NestJS 11** — Node.js 後端框架
-- **Prisma 7** — ORM
-- **SQLite** — 開發資料庫
-- **JWT + Passport** — 認證授權
-- **Swagger** — API 文件
-- **Jest** — 測試框架

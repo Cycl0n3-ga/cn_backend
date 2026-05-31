@@ -60,9 +60,12 @@ export class SubmissionsController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: '查詢提交結果',
-    description: '前端透過輪詢此端點取得評測狀態與結果',
+    description:
+      '前端透過輪詢此端點取得評測狀態與結果。僅提交者本人、ADMIN 或 EXAMINER 可查詢。',
   })
   @ApiResponse({
     status: 200,
@@ -84,8 +87,13 @@ export class SubmissionsController {
       },
     },
   })
+  @ApiResponse({ status: 401, description: '未認證' })
+  @ApiResponse({ status: 403, description: '無權限' })
   @ApiResponse({ status: 404, description: '提交不存在' })
-  findOne(@Param('id') id: string) {
-    return this.submissionsService.findOne(id);
+  findOne(
+    @Request() req: { user: { id: string; role: string } },
+    @Param('id') id: string,
+  ) {
+    return this.submissionsService.findOne(id, req.user);
   }
 }

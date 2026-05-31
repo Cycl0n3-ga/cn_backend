@@ -26,6 +26,9 @@ describe('SubmissionsController', () => {
     },
     submitted_at: new Date('2026-05-13T12:00:00Z'),
   };
+  const mockOwnerRequest = {
+    user: { id: 'user-uuid-1', role: 'CANDIDATE' },
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -152,7 +155,7 @@ describe('SubmissionsController', () => {
     it('should return submission details', async () => {
       service.findOne.mockResolvedValue(mockFindOneResult);
 
-      const result = await controller.findOne('sub-uuid-1');
+      const result = await controller.findOne(mockOwnerRequest, 'sub-uuid-1');
 
       expect(result).toEqual(mockFindOneResult);
     });
@@ -160,9 +163,12 @@ describe('SubmissionsController', () => {
     it('should pass submission ID directly to service', async () => {
       service.findOne.mockResolvedValue(mockFindOneResult);
 
-      await controller.findOne('my-submission-id');
+      await controller.findOne(mockOwnerRequest, 'my-submission-id');
 
-      expect(service.findOne).toHaveBeenCalledWith('my-submission-id');
+      expect(service.findOne).toHaveBeenCalledWith(
+        'my-submission-id',
+        mockOwnerRequest.user,
+      );
     });
 
     it('should propagate NotFoundException for non-existent submission', async () => {
@@ -170,15 +176,15 @@ describe('SubmissionsController', () => {
         new NotFoundException('Submission "bad-id" not found.'),
       );
 
-      await expect(controller.findOne('bad-id')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        controller.findOne(mockOwnerRequest, 'bad-id'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should return all expected fields', async () => {
       service.findOne.mockResolvedValue(mockFindOneResult);
 
-      const result = await controller.findOne('sub-uuid-1');
+      const result = await controller.findOne(mockOwnerRequest, 'sub-uuid-1');
 
       expect(result).toHaveProperty('submission_id');
       expect(result).toHaveProperty('problem_id');

@@ -433,7 +433,7 @@ workers/                           ← 獨立 process / container
 
 ### 3. 可擴展性與部署 (Scalability & Deployment)
 - **無狀態 API (Stateless API)**：本系統的 API 層（NestJS）為完全無狀態，相賴 JWT 進行認證，可輕易部署於 Kubernetes 並透過 Load Balancer 進行水平擴展 (Horizontal Pod Autoscaling)。
-- **資料庫擴展 (Database Scaling)**：預設提供 SQLite 供快速啟動，但架構上使用 Prisma ORM，生產環境只需更改 `DATABASE_URL` 即可無縫切換至 PostgreSQL，並可配置 Connection Pooling。
+- **資料庫擴展 (Database Scaling)**：預設提供 SQLite 供快速啟動；若要切換 PostgreSQL，需要另外建立 PostgreSQL provider 與 migrations，再配置 Connection Pooling。
 - **快得機制預留 (Caching)**：排行榜 (`GET /leaderboard`) 等高頻讀得 API，未來可直接整合 Redis Cache 降低資料庫負擔。
 
 ---
@@ -533,25 +533,25 @@ docker compose down
 | 6 | `DELETE` | `/api/v1/problems/:id` | 🔒 ADMIN / QUESTIONER | 軟刪除題目 |
 | 7 | `POST` | `/api/v1/problems/:id/assign` | 🔒 ADMIN / EXAMINER / QUESTIONER | 指派題目給使用者 |
 | 8 | `POST` | `/api/v1/submissions` | 🔒 ADMIN / CANDIDATE | 提交程庫碼（非同步評測） |
-| 9 | `GET` | `/api/v1/submissions/:id` | ❌ | 輪詢評測結果 |
-| 10 | `GET` | `/api/v1/users` | ❌ | 使用者列表 |
-| 11 | `GET` | `/api/v1/users/:username/submissions` | ❌ | 使用者提交歷史 |
+| 9 | `GET` | `/api/v1/submissions/:id` | 🔒 owner / ADMIN / EXAMINER | 輪詢評測結果 |
+| 10 | `GET` | `/api/v1/users` | 🔒 Bearer | 使用者列表 |
+| 11 | `GET` | `/api/v1/users/:username/submissions` | 🔒 owner / ADMIN / EXAMINER | 使用者提交歷史 |
 | 12 | `GET` | `/api/v1/leaderboard` | ❌ | 全站排行榜 |
 | 13 | `GET` | `/api/v1/health` | ❌ | 系統健康檢查 |
 | 14 | `GET` | `/api/v1/internal/testcases/:id` | 🔑 Internal Key | 評測機得得測資（含隱藏） |
 | 15 | `POST` | `/api/v1/interviews` | 🔒 ADMIN / EXAMINER | 建立面試 |
-| 16 | `GET` | `/api/v1/interviews` | ❌ | 得得面試列表 |
+| 16 | `GET` | `/api/v1/interviews` | 🔒 ADMIN / EXAMINER | 取得面試列表 |
 | 17 | `PATCH` | `/api/v1/interviews/:id` | 🔒 ADMIN / EXAMINER | 更新面試 jobRole |
 | 18 | `DELETE` | `/api/v1/interviews/:id` | 🔒 ADMIN / EXAMINER | 刪除面試 |
 | 19 | `POST` | `/api/v1/interview-candidates` | 🔒 ADMIN / EXAMINER | 新增面試候選人 |
-| 20 | `GET` | `/api/v1/interview-candidates` | ❌ | 取得所有面試考生列表 |
+| 20 | `GET` | `/api/v1/interview-candidates` | 🔒 ADMIN / EXAMINER | 取得所有面試考生列表 |
 | 21 | `PATCH` | `/api/v1/interview-candidates/:id/time` | 🔒 ADMIN / EXAMINER | 更新面試候選人測驗時間 |
 | 22 | `GET` | `/api/v1/interview-candidates/:id/time-status` | 🔒 ADMIN / EXAMINER / CANDIDATE | 取得伺服器時間與剩餘時間 |
 | 23 | `DELETE` | `/api/v1/interview-candidates/:id` | 🔒 ADMIN / EXAMINER | 移除面試候選人 |
 | 24 | `POST` | `/api/v1/assignments` | 🔒 ADMIN / EXAMINER / QUESTIONER | 指派題目給考生 |
-| 25 | `GET` | `/api/v1/assignments` | ❌ | 取得題目指派列表 |
-| 26 | `GET` | `/api/v1/assignments/user/:userId` | ❌ | 取得特定使用者的指派 |
-| 27 | `GET` | `/api/v1/assignments/:id` | ❌ | 取得單一指派 |
+| 25 | `GET` | `/api/v1/assignments` | 🔒 ADMIN / EXAMINER / QUESTIONER | 取得題目指派列表 |
+| 26 | `GET` | `/api/v1/assignments/user/:userId` | 🔒 owner / ADMIN / EXAMINER / QUESTIONER | 取得特定使用者的指派 |
+| 27 | `GET` | `/api/v1/assignments/:id` | 🔒 ADMIN / EXAMINER / QUESTIONER | 取得單一指派 |
 | 28 | `DELETE` | `/api/v1/assignments/:id` | 🔒 ADMIN / EXAMINER / QUESTIONER | 刪除題目指派 |
 
 ---

@@ -1,7 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AssignmentsController } from './assignments.controller';
 import { AssignmentsService } from './assignments.service';
-import { NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 
 describe('AssignmentsController', () => {
   let controller: AssignmentsController;
@@ -20,6 +24,12 @@ describe('AssignmentsController', () => {
     },
     problem: { id: 1, title: 'Two Sum', difficulty: 'EASY' },
     user: { id: 'user-uuid-1', username: 'alice', role: 'CANDIDATE' },
+  };
+  const candidateRequest = {
+    user: { id: 'user-uuid-1', role: 'CANDIDATE' },
+  };
+  const examinerRequest = {
+    user: { id: 'examiner-uuid', role: 'EXAMINER' },
   };
 
   beforeEach(async () => {
@@ -173,7 +183,10 @@ describe('AssignmentsController', () => {
     it('should return assignments for a user', async () => {
       service.findByUser.mockResolvedValue([mockAssignment]);
 
-      const result = await controller.findByUser('user-uuid-1');
+      const result = await controller.findByUser(
+        candidateRequest,
+        'user-uuid-1',
+      );
 
       expect(Array.isArray(result)).toBe(true);
       expect(result[0].userId).toBe('user-uuid-1');
@@ -182,7 +195,7 @@ describe('AssignmentsController', () => {
     it('should pass userId to service', async () => {
       service.findByUser.mockResolvedValue([]);
 
-      await controller.findByUser('specific-user-id');
+      await controller.findByUser(examinerRequest, 'specific-user-id');
 
       expect(service.findByUser).toHaveBeenCalledWith('specific-user-id');
     });
@@ -190,9 +203,19 @@ describe('AssignmentsController', () => {
     it('should return empty array when user has no assignments', async () => {
       service.findByUser.mockResolvedValue([]);
 
-      const result = await controller.findByUser('uid-no-assignments');
+      const result = await controller.findByUser(
+        examinerRequest,
+        'uid-no-assignments',
+      );
 
       expect(result).toEqual([]);
+    });
+
+    it('should reject candidates reading another user assignments', () => {
+      expect(() =>
+        controller.findByUser(candidateRequest, 'other-user-id'),
+      ).toThrow(ForbiddenException);
+      expect(service.findByUser).not.toHaveBeenCalled();
     });
   });
 

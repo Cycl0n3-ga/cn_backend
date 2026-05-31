@@ -418,7 +418,7 @@ Authorization: Bearer <JWT_TOKEN>
 | 欄位          | 型別   | 必填 | 說明                                          |
 | ------------- | ------ | ---- | --------------------------------------------- |
 | `problem_id`  | number | ✅   | 題目 ID                                       |
-| `language`    | string | ✅   | 程式語言 (`python3`, `cpp`, `java`, `golang`) |
+| `language`    | string | ✅   | 程式語言 (`javascript`/`js`, `python`/`python3`/`py`, `c`, `cpp`/`c++`) |
 | `source_code` | string | ✅   | 原始碼                                        |
 
 **Response (202 Accepted):**
@@ -431,7 +431,7 @@ Authorization: Bearer <JWT_TOKEN>
 ```
 
 > ⚠️ 此端點回傳 **202 Accepted**，表示提交已接收但尚未完成評測。
-> 前端應使用 `submission_id` 輪詢 `GET /submissions/{id}` 取得最終結果。
+> 前端應使用 `submission_id` 與原登入者 JWT 輪詢 `GET /submissions/{id}` 取得最終結果。
 
 ---
 
@@ -441,7 +441,7 @@ Authorization: Bearer <JWT_TOKEN>
 | ---------- | ------------------------------ |
 | **Method** | `GET`                          |
 | **Path**   | `/submissions/{submission_id}` |
-| **認證**   | 不需要                         |
+| **認證**   | ✅ Bearer Token（提交者本人、`ADMIN`、`EXAMINER`） |
 
 **Response (200 OK):**
 
@@ -494,7 +494,7 @@ Authorization: Bearer <JWT_TOKEN>
 | ---------- | -------- |
 | **Method** | `GET`    |
 | **Path**   | `/users` |
-| **認證**   | 不需要   |
+| **認證**   | ✅ Bearer Token |
 
 **Response (200 OK):**
 
@@ -522,7 +522,7 @@ Authorization: Bearer <JWT_TOKEN>
 | ---------- | ------------------------------- |
 | **Method** | `GET`                           |
 | **Path**   | `/users/{username}/submissions` |
-| **認證**   | 不需要                          |
+| **認證**   | ✅ Bearer Token（本人、`ADMIN`、`EXAMINER`） |
 
 **Query Parameters:**
 
@@ -794,7 +794,7 @@ x-internal-api-key: <INTERNAL_API_KEY>
 | ---------- | ----------------------- |
 | **Method** | `GET`                   |
 | **Path**   | `/interview-candidates` |
-| **認證**   | ❌ (公開)               |
+| **認證**   | ✅ Bearer Token (`ADMIN`, `EXAMINER`) |
 
 **Response (200 OK):**
 
@@ -942,7 +942,7 @@ x-internal-api-key: <INTERNAL_API_KEY>
 | ---------- | -------------- |
 | **Method** | `GET`          |
 | **Path**   | `/assignments` |
-| **認證**   | ❌ (公開)      |
+| **認證**   | ✅ Bearer Token (`ADMIN`, `EXAMINER`, `QUESTIONER`) |
 
 **Response (200 OK):**
 
@@ -966,7 +966,7 @@ x-internal-api-key: <INTERNAL_API_KEY>
 | ---------- | ---------------------------- |
 | **Method** | `GET`                        |
 | **Path**   | `/assignments/user/{userId}` |
-| **認證**   | ❌ (公開)                    |
+| **認證**   | ✅ Bearer Token（本人、`ADMIN`、`EXAMINER`、`QUESTIONER`） |
 
 **Response (200 OK):**
 
@@ -989,7 +989,7 @@ x-internal-api-key: <INTERNAL_API_KEY>
 | ---------- | ------------------- |
 | **Method** | `GET`               |
 | **Path**   | `/assignments/{id}` |
-| **認證**   | ❌ (公開)           |
+| **認證**   | ✅ Bearer Token (`ADMIN`, `EXAMINER`, `QUESTIONER`) |
 
 **Response (200 OK):**
 
@@ -1026,7 +1026,7 @@ x-internal-api-key: <INTERNAL_API_KEY>
 |------|------|
 | **Method** | `POST` |
 | **Path** | `/stress-test-reports` |
-| **認證** | 不需要 (內部工具調用) |
+| **認證** | 🔑 Internal API Key (`x-internal-api-key`) |
 
 **Request Body:**
 
@@ -1141,27 +1141,27 @@ x-internal-api-key: <INTERNAL_API_KEY>
 | 7   | `DELETE` | `/problems/:id`                  | 🔒 ADMIN / QUESTIONER | 刪除題目             |
 | 8   | `POST`   | `/problems/:id/assign`           | 🔒 ADMIN / EXAMINER / QUESTIONER | 指派題目             |
 | 9   | `POST`   | `/submissions`                   | 🔒 ADMIN / CANDIDATE | 提交程式碼           |
-| 10  | `GET`    | `/submissions/:id`               | ❌          | 查詢評測結果         |
-| 11  | `GET`    | `/users`                         | ❌          | 使用者列表           |
-| 12  | `GET`    | `/users/:username/submissions`   | ❌          | 使用者提交歷史       |
+| 10  | `GET`    | `/submissions/:id`               | 🔒 owner / ADMIN / EXAMINER | 查詢評測結果         |
+| 11  | `GET`    | `/users`                         | 🔒 Bearer   | 使用者列表           |
+| 12  | `GET`    | `/users/:username/submissions`   | 🔒 owner / ADMIN / EXAMINER | 使用者提交歷史       |
 | 13  | `GET`    | `/leaderboard`                   | ❌          | 排行榜               |
 | 14  | `GET`    | `/health`                        | ❌          | 健康檢查             |
 | 15  | `GET`    | `/internal/testcases/:id`        | 🔑 Internal | 評測機測資           |
 | 16  | `POST`   | `/interviews`                    | 🔒 ADMIN / EXAMINER | 建立面試             |
-| 17  | `GET`    | `/interviews`                    | ❌          | 取得面試列表         |
+| 17  | `GET`    | `/interviews`                    | 🔒 ADMIN / EXAMINER | 取得面試列表         |
 | 18  | `PATCH`  | `/interviews/:id`                | 🔒 ADMIN / EXAMINER | 更改面試名稱         |
 | 19  | `DELETE` | `/interviews/:id`                | 🔒 ADMIN / EXAMINER | 刪除面試             |
 | 20  | `POST`   | `/interview-candidates`          | 🔒 ADMIN / EXAMINER | 新增面試者           |
-| 21  | `GET`    | `/interview-candidates`          | ❌          | 取得所有面試考生列表 |
+| 21  | `GET`    | `/interview-candidates`          | 🔒 ADMIN / EXAMINER | 取得所有面試考生列表 |
 | 22  | `PATCH`  | `/interview-candidates/:id/time` | 🔒 ADMIN / EXAMINER | 更新面試考生測驗時間 |
 | 23  | `GET`    | `/interview-candidates/:id/time-status` | 🔒 ADMIN / EXAMINER / CANDIDATE | 取得伺服器時間與剩餘時間 |
 | 24  | `DELETE` | `/interview-candidates/:id`      | 🔒 ADMIN / EXAMINER | 移除面試者           |
 | 25  | `POST`   | `/assignments`                   | 🔒 ADMIN / EXAMINER / QUESTIONER | 指派題目給考生       |
-| 26  | `GET`    | `/assignments`                   | ❌          | 取得題目指派列表     |
-| 27  | `GET`    | `/assignments/user/:userId`      | ❌          | 取得特定使用者的指派 |
-| 28  | `GET`    | `/assignments/:id`               | ❌          | 取得單一指派         |
+| 26  | `GET`    | `/assignments`                   | 🔒 ADMIN / EXAMINER / QUESTIONER | 取得題目指派列表     |
+| 27  | `GET`    | `/assignments/user/:userId`      | 🔒 owner / ADMIN / EXAMINER / QUESTIONER | 取得特定使用者的指派 |
+| 28  | `GET`    | `/assignments/:id`               | 🔒 ADMIN / EXAMINER / QUESTIONER | 取得單一指派         |
 | 29  | `DELETE` | `/assignments/:id`               | 🔒 ADMIN / EXAMINER / QUESTIONER | 刪除題目指派         |
-| 30  | `POST`   | `/stress-test-reports`           | ❌          | 新增壓力測試報告     |
+| 30  | `POST`   | `/stress-test-reports`           | 🔑 Internal | 新增壓力測試報告     |
 | 31  | `GET`    | `/stress-test-reports`           | ❌          | 取得壓力測試報告列表 |
 | 32  | `GET`    | `/stress-test-reports/latest`    | ❌          | 取得端點最新報告     |
 | 33  | `GET`    | `/stress-test-reports/summary`   | ❌          | 取得壓力測試摘要     |

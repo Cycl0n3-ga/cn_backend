@@ -26,7 +26,7 @@
 |------|------|------|
 | Docker | 24.x 或更高 | 容器化 |
 | Docker Compose | 2.x 或更高 | 多容器編排 |
-| PostgreSQL | 15.x 或更高 | 生產資料庫 |
+| PostgreSQL | 15.x 或更高 | 規劃支援；目前 migrations 為 SQLite |
 | Redis | 7.x 或更高 | 快取層（未來功能） |
 
 ---
@@ -55,11 +55,11 @@ npm install
 DATABASE_URL=file:./data/code_judge.db
 
 # JWT配置
-JWT_SECRET=your-secret-key-here
+JWT_SECRET=your-secret-key-with-at-least-32-characters
 JWT_EXPIRES_IN=86400
 
 # 內部API配置
-INTERNAL_API_KEY=internal-judge-worker-key
+INTERNAL_API_KEY=internal-judge-worker-key-with-at-least-32-characters
 
 # 服務配置
 PORT=4100
@@ -108,10 +108,12 @@ npm run start:dev
 DATABASE_URL=file:./data/code_judge.db
 ```
 
-**PostgreSQL (生产環境推荐)**
+**PostgreSQL (規劃支援)**
 ```env
 DATABASE_URL=postgresql://username:password@localhost:5432/code_judge
 ```
+
+> 目前 repository 內的 Prisma provider 與 migrations 為 SQLite。切換 PostgreSQL 前，需先建立 PostgreSQL 專用 schema/provider 與 migrations。
 
 #### JWT配置
 
@@ -272,7 +274,7 @@ services:
       - "4100:4100"              # 映射連接埠
     environment:
       DATABASE_URL: file:./data/code_judge.db
-      JWT_SECRET: production-secret-key-change-me
+      JWT_SECRET: your-secret-key-with-at-least-32-characters
       SEED_DB: false
     volumes:
       - backend_data:/app/data   # 資料庫持久化
@@ -281,7 +283,9 @@ services:
 
 ---
 
-### 本地PostgreSQL設置
+### 本地 PostgreSQL 設置（規劃支援）
+
+> 以下僅作為未來切換 PostgreSQL 的資料庫準備參考；目前專案不能只改 `DATABASE_URL` 就直接套用既有 SQLite migrations。
 
 **安装PostgreSQL：**
 

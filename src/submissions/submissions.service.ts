@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { JudgeQueueService } from '../judge/judge-queue.service.js';
 import { type JudgeResult } from '../judge/judge.service.js';
@@ -15,6 +19,11 @@ const STATUS = {
   RUNTIME_ERROR: 'RUNTIME_ERROR',
   COMPILE_ERROR: 'COMPILE_ERROR',
 } as const;
+
+type SubmissionReader = {
+  id: string;
+  role: string;
+};
 
 @Injectable()
 export class SubmissionsService {
@@ -62,13 +71,17 @@ export class SubmissionsService {
     };
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, reader: SubmissionReader) {
     const submission = await this.prisma.submission.findUnique({
       where: { id },
     });
 
     if (!submission) {
       throw new NotFoundException(`Submission "${id}" not found.`);
+    }
+
+    if (!this.canReadSubmission(submission.userId, reader)) {
+      throw new ForbiddenException('Insufficient permissions.');
     }
 
     return {
@@ -228,5 +241,13 @@ export class SubmissionsService {
       default:
         return STATUS.RUNTIME_ERROR;
     }
+  }
+
+  private canReadSubmission(ownerUserId: string, reader: SubmissionReader) {
+    return (
+      reader.id === ownerUserId ||
+      reader.role === 'ADMIN' ||
+      reader.role === 'EXAMINER'
+    );
   }
 }
