@@ -450,9 +450,18 @@ src/interviews/
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('ADMIN')
 {
-  "jobRole": "Senior Backend Engineer"
+  "jobRole": "Senior Backend Engineer",
+  "examinerEmpId": "examiner-uuid",
+  "candidateUserId": "candidate-uuid",
+  "problemCounts": {
+    "easy": 2,
+    "medium": 1,
+    "hard": 0
+  }
 }
 ```
+
+`candidateUserId` 和 `problemCounts` 可省略；提供後會在建立面試時同步新增候選人，並依 EASY / MEDIUM / HARD 題數自動建立面試題目指派。
 
 #### 得得面試列表
 
