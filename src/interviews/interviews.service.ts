@@ -1,12 +1,31 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateInterviewDto, UpdateInterviewDto } from './dto/interview.dto.js';
+import { hasAnyUserRole, UserRole } from '../auth/user-role.js';
 
 @Injectable()
 export class InterviewsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createInterviewDto: CreateInterviewDto) {
+    const examiner = await this.prisma.user.findUnique({
+      where: { id: createInterviewDto.examinerEmpId },
+    });
+    if (!examiner) {
+      throw new NotFoundException(
+        `User #${createInterviewDto.examinerEmpId} not found.`,
+      );
+    }
+    if (!hasAnyUserRole(examiner.role, [UserRole.EXAMINER, UserRole.ADMIN])) {
+      throw new BadRequestException(
+        'examinerEmpId must belong to an EXAMINER or ADMIN user.',
+      );
+    }
+
     const interview = await this.prisma.interview.create({
       data: {
         jobRole: createInterviewDto.jobRole,

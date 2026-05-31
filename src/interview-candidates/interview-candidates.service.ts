@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { hasPrismaErrorCode } from '../prisma/prisma-errors.js';
@@ -10,6 +11,7 @@ import {
   CreateInterviewCandidateDto,
   UpdateInterviewCandidateTimeDto,
 } from './dto/interview-candidate.dto.js';
+import { hasUserRole, UserRole } from '../auth/user-role.js';
 
 type InterviewCandidateRecord = {
   id: number;
@@ -17,6 +19,17 @@ type InterviewCandidateRecord = {
   userId: string;
   startTime: number | null;
   endTime: number | null;
+};
+
+type InterviewTimeStatus =
+  | 'NOT_SCHEDULED'
+  | 'BEFORE_START'
+  | 'IN_PROGRESS'
+  | 'ENDED';
+
+type TimeStatusActor = {
+  id: string;
+  role: string;
 };
 
 @Injectable()
@@ -39,6 +52,9 @@ export class InterviewCandidatesService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException(`User #${userId} not found.`);
+    }
+    if (!hasUserRole(user.role, UserRole.CANDIDATE)) {
+      throw new BadRequestException('userId must belong to a CANDIDATE user.');
     }
 
     try {
@@ -69,7 +85,7 @@ export class InterviewCandidatesService {
           select: { id: true, jobRole: true, examinerEmpId: true },
         },
         user: {
-          select: { id: true, username: true, email: true },
+          select: { id: true, username: true, role: true },
         },
       },
       orderBy: { id: 'asc' },
@@ -121,6 +137,65 @@ export class InterviewCandidatesService {
     });
 
     return this.formatCandidate(updated);
+  }
+
+  async getTimeStatus(id: number, actor?: TimeStatusActor) {
+    const candidate = await this.prisma.interviewCandidate.findUnique({
+      where: { id },
+    });
+    if (!candidate) {
+      throw new NotFoundException(`InterviewCandidate #${id} not found.`);
+    }
+    if (
+      actor &&
+      hasUserRole(actor.role, UserRole.CANDIDATE) &&
+      candidate.userId !== actor.id
+    ) {
+      throw new ForbiddenException('Insufficient permissions.');
+    }
+
+    const serverTime = Math.floor(Date.now() / 1000);
+    const { startTime, endTime } = candidate;
+    let status: InterviewTimeStatus = 'NOT_SCHEDULED';
+    let remainingTime: number | null = null;
+    let elapsedTime: number | null = null;
+    let duration: number | null = null;
+    let timeUntilStart: number | null = null;
+
+    if (startTime != null && endTime != null) {
+      duration = Math.max(endTime - startTime, 0);
+
+      if (serverTime < startTime) {
+        status = 'BEFORE_START';
+        remainingTime = duration;
+        elapsedTime = 0;
+        timeUntilStart = startTime - serverTime;
+      } else if (serverTime <= endTime) {
+        status = 'IN_PROGRESS';
+        remainingTime = endTime - serverTime;
+        elapsedTime = serverTime - startTime;
+        timeUntilStart = 0;
+      } else {
+        status = 'ENDED';
+        remainingTime = 0;
+        elapsedTime = duration;
+        timeUntilStart = 0;
+      }
+    }
+
+    return {
+      id: candidate.id.toString(),
+      jobId: candidate.jobId.toString(),
+      userId: candidate.userId,
+      serverTime,
+      startTime,
+      endTime,
+      remainingTime,
+      elapsedTime,
+      duration,
+      timeUntilStart,
+      status,
+    };
   }
 
   async remove(id: number) {

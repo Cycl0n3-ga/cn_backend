@@ -161,12 +161,24 @@ describe('Code Judge API (e2e)', () => {
     });
 
     describe('POST /api/v1/auth/signup', () => {
-      it('should return 400 for missing email', async () => {
+      it('should allow candidate signup without email', async () => {
+        const suffix = Date.now();
         await request(app.getHttpServer())
           .post('/api/v1/auth/signup')
           .send({
-            username: 'signuptest',
+            username: `candidate_no_email_${suffix}`,
             passwordSha256: validSha256,
+          })
+          .expect(201);
+      });
+
+      it('should return 400 for examiner signup without email', async () => {
+        await request(app.getHttpServer())
+          .post('/api/v1/auth/signup')
+          .send({
+            username: 'examiner_no_email',
+            passwordSha256: validSha256,
+            role: 'EXAMINER',
           })
           .expect(400);
       });
@@ -235,7 +247,7 @@ describe('Code Judge API (e2e)', () => {
         expect(signup.body).toHaveProperty('id');
         expect(signup.body).toHaveProperty('username', username);
         expect(signup.body).toHaveProperty('email', email);
-        expect(signup.body).toHaveProperty('role', 'USER');
+        expect(signup.body).toHaveProperty('role', 'CANDIDATE');
 
         const login = await request(app.getHttpServer())
           .post('/api/v1/auth/login')
@@ -243,7 +255,7 @@ describe('Code Judge API (e2e)', () => {
           .expect(200);
 
         expect(login.body).toHaveProperty('token');
-        expect(login.body).toHaveProperty('user_role', 'USER');
+        expect(login.body).toHaveProperty('user_role', 'CANDIDATE');
       });
     });
   });
@@ -415,7 +427,7 @@ describe('Code Judge API (e2e)', () => {
         createdProblemId = res.body.problem_id;
       });
 
-      it('should return 403 when USER tries to create a problem', async () => {
+      it('should return 403 when CANDIDATE tries to create a problem', async () => {
         await request(app.getHttpServer())
           .post('/api/v1/problems')
           .set('Authorization', `Bearer ${aliceToken}`)
@@ -878,6 +890,14 @@ describe('Code Judge API (e2e)', () => {
         await request(app.getHttpServer())
           .patch('/api/v1/interview-candidates/1/time')
           .send({ startTime: 1770000000, endTime: 1770003600 })
+          .expect(401);
+      });
+    });
+
+    describe('GET /api/v1/interview-candidates/:id/time-status', () => {
+      it('should return 401 without auth token', async () => {
+        await request(app.getHttpServer())
+          .get('/api/v1/interview-candidates/1/time-status')
           .expect(401);
       });
     });

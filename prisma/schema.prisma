@@ -13,9 +13,9 @@ datasource db {
 model User {
   id           String   @id @default(uuid())
   username     String   @unique
-  email        String   @unique
+  email        String?  @unique
   passwordHash String
-  role         String   @default("USER") // "ADMIN" | "USER"
+  role         String   @default("CANDIDATE") // "ADMIN" | "EXAMINER" | "QUESTIONER" | "CANDIDATE"
   solvedCount  Int      @default(0)
   rating       Int      @default(0)
   createdAt    DateTime @default(now())

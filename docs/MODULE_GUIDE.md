@@ -44,6 +44,7 @@ src/auth/
 ├── auth.service.ts          # 核心業務邏輯
 ├── auth.controller.ts       # API 端點
 ├── auth.module.ts           # 模組定義
+├── user-role.ts             # 角色 enum 與正規化工具
 ├── jwt.strategy.ts          # JWT策略
 ├── jwt-auth.guard.ts        # JWT守卫
 ├── roles.guard.ts           # 角色權限守卫
@@ -61,10 +62,13 @@ src/auth/
 // POST /api/v1/auth/signup
 {
   "username": "newuser",
-  "email": "user@example.com",
-  "passwordSha256": "sha256_hash_of_password"
+  "email": null,
+  "passwordSha256": "sha256_hash_of_password",
+  "role": "CANDIDATE"
 }
 ```
+
+`role` 預設為 `CANDIDATE`，可選 `ADMIN`、`EXAMINER`、`QUESTIONER`、`CANDIDATE`。`CANDIDATE` 可不填 email；其他角色必須提供 email。
 
 #### 使用者登入
 ```typescript
@@ -101,8 +105,10 @@ curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
 
 | 角色 | 權限 |
 |------|------|
-| ADMIN | 建立/編輯/刪除項目、指派項目、管理使用者 |
-| USER | 查看項目、提交程式碼、查看排行榜 |
+| ADMIN | 系統管理者，可通過所有角色保護端點 |
+| EXAMINER | 建立/修改/刪除面試、管理面試候選人、指派面試題目 |
+| QUESTIONER | 建立/刪除項目、指派項目 |
+| CANDIDATE | 查看項目、提交程式碼、查看排行榜、查詢測驗時間 |
 
 ### 裝飾器用法
 
@@ -114,9 +120,9 @@ getProfile(@Request() req) {
   return req.user;
 }
 
-// 需要Admin角色
+// 需要 QUESTIONER 角色（ADMIN 會被 RolesGuard 視為 superuser）
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles(UserRole.QUESTIONER)
 @Post('problems')
 createProblem(@Body() dto: CreateProblemDto) {
   // ...
@@ -332,8 +338,8 @@ Response:
     {
       "id": "user-uuid",
       "username": "alice",
-      "email": "alice@example.com",
-      "role": "USER",
+      "email": null,
+      "role": "CANDIDATE",
       "solvedCount": 42,
       "rating": 1500,
       "createdAt": "2025-05-13T..."
@@ -515,6 +521,30 @@ src/interview-candidates/
 ```
 
 可只更新其中一個欄位；傳 `null` 可清除時間。
+
+#### 查詢候選人測驗剩餘時間
+
+```typescript
+// GET /api/v1/interview-candidates/:id/time-status
+```
+
+Response:
+```json
+{
+  "serverTime": 1770000300,
+  "startTime": 1770000000,
+  "endTime": 1770003600,
+  "remainingTime": 3300,
+  "elapsedTime": 300,
+  "duration": 3600,
+  "timeUntilStart": 0,
+  "status": "IN_PROGRESS"
+}
+```
+
+`serverTime`、`startTime`、`endTime` 使用 Unix timestamp seconds；其他時間欄位為秒數。
+
+`CANDIDATE` 僅能查詢自己的測驗時間狀態；`ADMIN`、`EXAMINER` 可查詢所有考生記錄。
 
 #### 刪除候選人
 

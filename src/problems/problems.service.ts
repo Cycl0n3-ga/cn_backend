@@ -1,5 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { hasUserRole, UserRole } from '../auth/user-role.js';
 
 type ProblemFindAllWhere = {
   isDeleted: boolean;
@@ -26,7 +31,7 @@ type ProblemAnalytics = {
 type ProblemCreator = {
   id: string;
   username: string;
-  email: string;
+  email: string | null;
 } | null;
 
 @Injectable()
@@ -188,6 +193,11 @@ export class ProblemsService {
     });
     if (!user) {
       throw new NotFoundException(`User "${assigneeUsername}" not found.`);
+    }
+    if (!hasUserRole(user.role, UserRole.CANDIDATE)) {
+      throw new BadRequestException(
+        'assignee_username must belong to a CANDIDATE user.',
+      );
     }
 
     const assignment = await this.prisma.assignment.upsert({

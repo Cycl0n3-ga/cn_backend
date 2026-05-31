@@ -19,7 +19,7 @@ describe('AssignmentsController', () => {
       examinerEmpId: 'examiner-uuid',
     },
     problem: { id: 1, title: 'Two Sum', difficulty: 'EASY' },
-    user: { id: 'user-uuid-1', username: 'alice', email: 'alice@example.com' },
+    user: { id: 'user-uuid-1', username: 'alice', role: 'CANDIDATE' },
   };
 
   beforeEach(async () => {

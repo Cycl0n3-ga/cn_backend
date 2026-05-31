@@ -52,11 +52,11 @@ describe('AuthService (integration)', () => {
     expect(created).toHaveProperty('id');
     expect(created).toHaveProperty('username', username);
     expect(created).toHaveProperty('email', email);
-    expect(created).toHaveProperty('role', 'USER');
+    expect(created).toHaveProperty('role', 'CANDIDATE');
 
     const login = await authService.login(username, passwordSha256);
     expect(login.token).toEqual(expect.any(String));
-    expect(login.user_role).toBe('USER');
+    expect(login.user_role).toBe('CANDIDATE');
 
     await prisma.user.delete({ where: { id: created.id } });
   });

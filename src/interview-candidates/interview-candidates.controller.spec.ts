@@ -43,10 +43,31 @@ describe('InterviewCandidatesController', () => {
       user: {
         id: 'user-uuid-1',
         username: 'alice',
-        email: 'alice@example.com',
+        role: 'CANDIDATE',
       },
     },
   ];
+
+  const mockTimeStatusResult = {
+    id: '1',
+    jobId: '1',
+    userId: 'user-uuid-1',
+    serverTime: 1770000300,
+    startTime: 1770000000,
+    endTime: 1770003600,
+    remainingTime: 3300,
+    elapsedTime: 300,
+    duration: 3600,
+    timeUntilStart: 0,
+    status: 'IN_PROGRESS' as const,
+  };
+
+  const mockRequest = {
+    user: {
+      id: 'user-uuid-1',
+      role: 'CANDIDATE',
+    },
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -57,6 +78,7 @@ describe('InterviewCandidatesController', () => {
           useValue: {
             create: jest.fn(),
             findAll: jest.fn(),
+            getTimeStatus: jest.fn(),
             updateTime: jest.fn(),
             remove: jest.fn(),
           },
@@ -182,6 +204,28 @@ describe('InterviewCandidatesController', () => {
       await controller.findAll();
 
       expect(service.findAll).toHaveBeenCalledWith();
+    });
+  });
+
+  // ── getTimeStatus ────────────────────────────────────────────────────
+  describe('getTimeStatus', () => {
+    it('should return candidate time status', async () => {
+      service.getTimeStatus.mockResolvedValue(mockTimeStatusResult);
+
+      const result = await controller.getTimeStatus(1, mockRequest);
+
+      expect(result).toEqual(mockTimeStatusResult);
+      expect(service.getTimeStatus).toHaveBeenCalledWith(1, mockRequest.user);
+    });
+
+    it('should propagate NotFoundException from service', async () => {
+      service.getTimeStatus.mockRejectedValue(
+        new NotFoundException('InterviewCandidate #999 not found.'),
+      );
+
+      await expect(controller.getTimeStatus(999, mockRequest)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 

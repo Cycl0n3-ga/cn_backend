@@ -90,17 +90,17 @@ describe('LeaderboardService', () => {
       expect(result.data[0].rank).toBe('11'); // (3-1)*5 + 1
     });
 
-    it('should only count USER role (not ADMIN)', async () => {
+    it('should only count CANDIDATE role (not staff roles)', async () => {
       prisma.user.count.mockResolvedValue(0);
       prisma.user.findMany.mockResolvedValue([]);
 
       await service.getRankings();
 
       expect(prisma.user.count).toHaveBeenCalledWith({
-        where: { role: 'USER' },
+        where: { role: 'CANDIDATE' },
       });
       expect(prisma.user.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { role: 'USER' } }),
+        expect.objectContaining({ where: { role: 'CANDIDATE' } }),
       );
     });
 

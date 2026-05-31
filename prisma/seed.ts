@@ -45,12 +45,34 @@ async function main() {
     },
   });
 
+  const examiner = await prisma.user.create({
+    data: {
+      username: 'examiner',
+      email: 'examiner@codejudge.dev',
+      passwordHash: userHash,
+      role: 'EXAMINER',
+      solvedCount: 0,
+      rating: 0,
+    },
+  });
+
+  const questioner = await prisma.user.create({
+    data: {
+      username: 'questioner',
+      email: 'questioner@codejudge.dev',
+      passwordHash: userHash,
+      role: 'QUESTIONER',
+      solvedCount: 0,
+      rating: 0,
+    },
+  });
+
   const alice = await prisma.user.create({
     data: {
       username: 'alice',
-      email: 'alice@example.com',
+      email: null,
       passwordHash: userHash,
-      role: 'USER',
+      role: 'CANDIDATE',
       solvedCount: 3,
       rating: 1500,
     },
@@ -59,15 +81,15 @@ async function main() {
   const bob = await prisma.user.create({
     data: {
       username: 'bob',
-      email: 'bob@example.com',
+      email: null,
       passwordHash: userHash,
-      role: 'USER',
+      role: 'CANDIDATE',
       solvedCount: 5,
       rating: 1800,
     },
   });
 
-  console.log(`  ✓ Created ${3} users`);
+  console.log(`  ✓ Created ${5} users`);
 
   // ─── Problems ────────────────────────────────────
   const twoSum = await prisma.problem.create({
@@ -78,7 +100,7 @@ async function main() {
       timeLimitMs: 1000,
       memoryLimitMb: 256,
       acceptanceRate: 0.49,
-      creatorId: admin.id,
+      creatorId: questioner.id,
     },
   });
 
@@ -90,7 +112,7 @@ async function main() {
       timeLimitMs: 2000,
       memoryLimitMb: 256,
       acceptanceRate: 0.39,
-      creatorId: admin.id,
+      creatorId: questioner.id,
     },
   });
 
@@ -102,7 +124,7 @@ async function main() {
       timeLimitMs: 3000,
       memoryLimitMb: 512,
       acceptanceRate: 0.35,
-      creatorId: admin.id,
+      creatorId: questioner.id,
     },
   });
 
@@ -114,7 +136,7 @@ async function main() {
       timeLimitMs: 1000,
       memoryLimitMb: 256,
       acceptanceRate: 0.75,
-      creatorId: admin.id,
+      creatorId: questioner.id,
     },
   });
 
@@ -126,7 +148,7 @@ async function main() {
       timeLimitMs: 1000,
       memoryLimitMb: 256,
       acceptanceRate: 0.5,
-      creatorId: admin.id,
+      creatorId: questioner.id,
     },
   });
 

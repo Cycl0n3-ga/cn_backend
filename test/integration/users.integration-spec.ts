@@ -22,10 +22,20 @@ describe('UsersService (integration)', () => {
   it('findAll should include seeded users and return numeric fields as strings', async () => {
     const res = await usersService.findAll();
 
-    expect(res.data).toHaveLength(3);
+    expect(res.data).toHaveLength(5);
 
     const admin = res.data.find((u) => u.username === 'admin');
     expect(admin).toBeTruthy();
+    expect(admin).toMatchObject({ role: 'ADMIN' });
+
+    const examiner = res.data.find((u) => u.username === 'examiner');
+    expect(examiner).toMatchObject({ role: 'EXAMINER' });
+
+    const questioner = res.data.find((u) => u.username === 'questioner');
+    expect(questioner).toMatchObject({ role: 'QUESTIONER' });
+
+    const alice = res.data.find((u) => u.username === 'alice');
+    expect(alice).toMatchObject({ role: 'CANDIDATE', email: null });
 
     for (const u of res.data) {
       expect(typeof u.solvedCount).toBe('string');

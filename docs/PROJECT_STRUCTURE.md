@@ -11,6 +11,7 @@ cn_22_backend/
 │   │   ├── auth.controller.ts
 │   │   ├── auth.service.ts
 │   │   ├── auth.module.ts
+│   │   ├── user-role.ts          # 角色 enum 與正規化工具
 │   │   ├── jwt.strategy.ts        # JWT策略
 │   │   ├── jwt-auth.guard.ts      # JWT守卫
 │   │   ├── roles.guard.ts         # 角色權限守卫

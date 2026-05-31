@@ -21,9 +21,9 @@
 model User {
   id           String       @id @default(uuid())
   username     String       @unique
-  email        String       @unique
+  email        String?      @unique
   passwordHash String
-  role         String       @default("USER")
+  role         String       @default("CANDIDATE")
   solvedCount  Int          @default(0)
   rating       Int          @default(0)
   createdAt    DateTime     @default(now())
@@ -41,9 +41,9 @@ model User {
 
 - `id`: UUID 卤一識別碼
 - `username`: 使用者名稱（卤一）
-- `email`: 郸箱（卤一）
+- `email`: 郸箱（卤一，`CANDIDATE` 可為 null）
 - `passwordHash`: 密碼雜湯（使用 bcryptjs）
-- `role`: 使用者角色 - `"ADMIN"` 或 `"USER"`
+- `role`: 使用者角色 - `"ADMIN"` | `"EXAMINER"` | `"QUESTIONER"` | `"CANDIDATE"`，預設 `"CANDIDATE"`
 - `solvedCount`: 已解決的題目數
 - `rating`: 使用者評分/等級
 - `createdAt/updatedAt`: 時間戳
@@ -331,7 +331,7 @@ InterviewCandidate (N)
 ### 主鍵索引
 
 - 所有主鍵欄位都會自動建立索引
-- `User.username`, `User.email` - 唯一索引
+- `User.username`, `User.email` - 唯一索引（SQLite/PostgreSQL 允許多筆 `email = null`）
 - `Problem.title` - 可考虑新增
 
 ### 联合唯一約束
@@ -374,8 +374,20 @@ CREATE INDEX idx_problem_is_deleted ON problems(is_deleted);
    - 建立 `InterviewCandidate` 表
 
 4. **20260531061000_add_interview_candidate_times**
+
    - 新增 `InterviewCandidate.startTime` 欄位
    - 新增 `InterviewCandidate.endTime` 欄位
+
+5. **20260531070000_add_problem_creator**
+
+   - 新增 `Problem.creatorId` 欄位
+   - 新增題目建立者關聯與索引
+
+6. **20260531080000_update_user_roles_and_candidate_email**
+
+   - `User.email` 改為 nullable，讓 `CANDIDATE` 帳號可不填 email
+   - `User.role` 預設改為 `CANDIDATE`
+   - 舊資料角色 `USER` 會遷移為 `CANDIDATE`
 
 ### 執行遷移
 
@@ -403,11 +415,13 @@ SEED_DB=true docker compose up -d --build
 
 ### 预置帳戶
 
-| 使用者名 | 密碼     | 角色  |
-| -------- | -------- | ----- |
-| admin    | admin123 | ADMIN |
-| alice    | user123  | USER  |
-| bob      | user123  | USER  |
+| 使用者名   | 密碼     | 角色       | Email |
+| ---------- | -------- | ---------- | ----- |
+| admin      | admin123 | ADMIN      | admin@codejudge.dev |
+| examiner   | user123  | EXAMINER   | examiner@codejudge.dev |
+| questioner | user123  | QUESTIONER | questioner@codejudge.dev |
+| alice      | user123  | CANDIDATE  | null |
+| bob        | user123  | CANDIDATE  | null |
 
 ---
 

@@ -294,8 +294,10 @@ Server: bcrypt.compare("240be518...", user.passwordHash) → true/false
 | 帳號 | 明文密碼（人類閱讀） | passwordSha256 (64 位 hex) | 角色 |
 |------|---------------------|---------------------------|------|
 | `admin` | `admin123` | `240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9` | ADMIN |
-| `alice` | `user123` | `e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446` | USER |
-| `bob` | `user123` | `e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446` | USER |
+| `examiner` | `user123` | `e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446` | EXAMINER |
+| `questioner` | `user123` | `e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446` | QUESTIONER |
+| `alice` | `user123` | `e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446` | CANDIDATE |
+| `bob` | `user123` | `e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446` | CANDIDATE |
 
 ---
 
@@ -334,8 +336,10 @@ Client                          Server
 
 | 角色 | 權限 |
 |------|------|
-| `USER` | 提交程庫碼、查看題目、查看排行榜、建立/修改/刪除面試 |
-| `ADMIN` | 所有 USER 權限 + 新增/刪除題目 + 指派題目 |
+| `ADMIN` | 系統管理者，可通過所有角色保護端點 |
+| `EXAMINER` | 建立/修改/刪除面試、管理面試候選人、指派面試題目 |
+| `QUESTIONER` | 建立/刪除題目、指派題目 |
+| `CANDIDATE` | 查看題目、提交程式碼、查看排行榜、查詢自己的測驗時間狀態 |
 
 ---
 
@@ -525,29 +529,30 @@ docker compose down
 | 2 | `POST` | `/api/v1/auth/signup` | ❌ | 使用者註冊（傳 passwordSha256） |
 | 3 | `GET` | `/api/v1/problems` | ❌ | 題目列表（分頁 + 難度篩選） |
 | 4 | `GET` | `/api/v1/problems/:id` | ❌ | 題目詳情（含公開測資） |
-| 5 | `POST` | `/api/v1/problems` | 🔒 ADMIN | 新增題目 |
-| 6 | `DELETE` | `/api/v1/problems/:id` | 🔒 ADMIN | 軟刪除題目 |
-| 7 | `POST` | `/api/v1/problems/:id/assign` | 🔒 ADMIN | 指派題目給使用者 |
-| 8 | `POST` | `/api/v1/submissions` | 🔒 USER+ | 提交程庫碼（非同步評測） |
+| 5 | `POST` | `/api/v1/problems` | 🔒 ADMIN / QUESTIONER | 新增題目 |
+| 6 | `DELETE` | `/api/v1/problems/:id` | 🔒 ADMIN / QUESTIONER | 軟刪除題目 |
+| 7 | `POST` | `/api/v1/problems/:id/assign` | 🔒 ADMIN / EXAMINER / QUESTIONER | 指派題目給使用者 |
+| 8 | `POST` | `/api/v1/submissions` | 🔒 ADMIN / CANDIDATE | 提交程庫碼（非同步評測） |
 | 9 | `GET` | `/api/v1/submissions/:id` | ❌ | 輪詢評測結果 |
 | 10 | `GET` | `/api/v1/users` | ❌ | 使用者列表 |
 | 11 | `GET` | `/api/v1/users/:username/submissions` | ❌ | 使用者提交歷史 |
 | 12 | `GET` | `/api/v1/leaderboard` | ❌ | 全站排行榜 |
 | 13 | `GET` | `/api/v1/health` | ❌ | 系統健康檢查 |
 | 14 | `GET` | `/api/v1/internal/testcases/:id` | 🔑 Internal Key | 評測機得得測資（含隱藏） |
-| 15 | `POST` | `/api/v1/interviews` | 🔒 USER+ | 建立面試 |
+| 15 | `POST` | `/api/v1/interviews` | 🔒 ADMIN / EXAMINER | 建立面試 |
 | 16 | `GET` | `/api/v1/interviews` | ❌ | 得得面試列表 |
-| 17 | `PATCH` | `/api/v1/interviews/:id` | 🔒 USER+ | 更新面試 jobRole |
-| 18 | `DELETE` | `/api/v1/interviews/:id` | 🔒 USER+ | 刪除面試 |
-| 19 | `POST` | `/api/v1/interview-candidates` | 🔒 USER+ | 新增面試候選人 |
+| 17 | `PATCH` | `/api/v1/interviews/:id` | 🔒 ADMIN / EXAMINER | 更新面試 jobRole |
+| 18 | `DELETE` | `/api/v1/interviews/:id` | 🔒 ADMIN / EXAMINER | 刪除面試 |
+| 19 | `POST` | `/api/v1/interview-candidates` | 🔒 ADMIN / EXAMINER | 新增面試候選人 |
 | 20 | `GET` | `/api/v1/interview-candidates` | ❌ | 取得所有面試考生列表 |
-| 21 | `PATCH` | `/api/v1/interview-candidates/:id/time` | 🔒 USER+ | 更新面試候選人測驗時間 |
-| 22 | `DELETE` | `/api/v1/interview-candidates/:id` | 🔒 USER+ | 移除面試候選人 |
-| 23 | `POST` | `/api/v1/assignments` | 🔒 USER+ | 指派題目給考生 |
-| 24 | `GET` | `/api/v1/assignments` | ❌ | 取得題目指派列表 |
-| 25 | `GET` | `/api/v1/assignments/user/:userId` | ❌ | 取得特定使用者的指派 |
-| 26 | `GET` | `/api/v1/assignments/:id` | ❌ | 取得單一指派 |
-| 27 | `DELETE` | `/api/v1/assignments/:id` | 🔒 USER+ | 刪除題目指派 |
+| 21 | `PATCH` | `/api/v1/interview-candidates/:id/time` | 🔒 ADMIN / EXAMINER | 更新面試候選人測驗時間 |
+| 22 | `GET` | `/api/v1/interview-candidates/:id/time-status` | 🔒 ADMIN / EXAMINER / CANDIDATE | 取得伺服器時間與剩餘時間 |
+| 23 | `DELETE` | `/api/v1/interview-candidates/:id` | 🔒 ADMIN / EXAMINER | 移除面試候選人 |
+| 24 | `POST` | `/api/v1/assignments` | 🔒 ADMIN / EXAMINER / QUESTIONER | 指派題目給考生 |
+| 25 | `GET` | `/api/v1/assignments` | ❌ | 取得題目指派列表 |
+| 26 | `GET` | `/api/v1/assignments/user/:userId` | ❌ | 取得特定使用者的指派 |
+| 27 | `GET` | `/api/v1/assignments/:id` | ❌ | 取得單一指派 |
+| 28 | `DELETE` | `/api/v1/assignments/:id` | 🔒 ADMIN / EXAMINER / QUESTIONER | 刪除題目指派 |
 
 ---
 

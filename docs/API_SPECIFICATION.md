@@ -31,8 +31,19 @@ Authorization: Bearer <JWT_TOKEN>
 | 帳號    | 明文密碼（僅供人類閱讀） | passwordSha256 (sha256 hex)                                        | 角色  |
 | ------- | ------------------------ | ------------------------------------------------------------------ | ----- |
 | `admin` | `admin123`               | `240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9` | ADMIN |
-| `alice` | `user123`                | `e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446` | USER  |
-| `bob`   | `user123`                | `e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446` | USER  |
+| `examiner` | `user123`             | `e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446` | EXAMINER |
+| `questioner` | `user123`           | `e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446` | QUESTIONER |
+| `alice` | `user123`                | `e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446` | CANDIDATE |
+| `bob`   | `user123`                | `e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446` | CANDIDATE |
+
+### 角色權限
+
+| 角色 | 說明 |
+|------|------|
+| `ADMIN` | 系統管理者，可通過所有角色保護端點 |
+| `EXAMINER` | 管理面試、面試候選人、面試題目指派 |
+| `QUESTIONER` | 管理題庫與題目指派 |
+| `CANDIDATE` | 參與測驗與提交程式碼；帳號可不填 email |
 
 ### 統一錯誤回應格式
 
@@ -98,15 +109,17 @@ Authorization: Bearer <JWT_TOKEN>
 ```json
 {
   "username": "newuser",
-  "email": "newuser@example.com",
+  "email": null,
   "passwordSha256": "e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446",
-  "role": "USER"
+  "role": "CANDIDATE"
 }
 ```
 
 > `passwordSha256` 請傳送 `sha256(明文密碼)` 的 hex 字串（長度 64）。
 
-> `role` 為選填，預設 `USER`。可選值：`ADMIN`, `USER`。
+> `role` 為選填，預設 `CANDIDATE`。可選值：`ADMIN`, `EXAMINER`, `QUESTIONER`, `CANDIDATE`。
+
+> `email` 對 `CANDIDATE` 為選填；`ADMIN`、`EXAMINER`、`QUESTIONER` 必填。
 
 **Response (201 Created):**
 
@@ -114,14 +127,15 @@ Authorization: Bearer <JWT_TOKEN>
 {
   "id": "uuid-string",
   "username": "newuser",
-  "email": "newuser@example.com",
-  "role": "USER",
+  "email": null,
+  "role": "CANDIDATE",
   "createdAt": "2026-05-13T12:00:00.000Z"
 }
 ```
 
 **Error Responses:**
 
+- `400 Bad Request` — role 不合法，或非 CANDIDATE 帳號未提供 email
 - `409 Conflict` — 帳號或信箱已存在
 
 ---
@@ -237,7 +251,7 @@ Authorization: Bearer <JWT_TOKEN>
 | ---------- | ----------------------- |
 | **Method** | `POST`                  |
 | **Path**   | `/problems`             |
-| **認證**   | ✅ Bearer Token (ADMIN) |
+| **認證**   | ✅ Bearer Token (`ADMIN`, `QUESTIONER`) |
 
 **Request Body:**
 
@@ -291,7 +305,7 @@ Authorization: Bearer <JWT_TOKEN>
 | ---------- | ----------------------- |
 | **Method** | `DELETE`                |
 | **Path**   | `/problems/{id}`        |
-| **認證**   | ✅ Bearer Token (ADMIN) |
+| **認證**   | ✅ Bearer Token (`ADMIN`, `QUESTIONER`) |
 
 **Response:** `204 No Content`（無回傳本體）
 
@@ -305,7 +319,7 @@ Authorization: Bearer <JWT_TOKEN>
 | ---------- | ----------------------- |
 | **Method** | `POST`                  |
 | **Path**   | `/problems/{id}/assign` |
-| **認證**   | ✅ Bearer Token (ADMIN) |
+| **認證**   | ✅ Bearer Token (`ADMIN`, `EXAMINER`, `QUESTIONER`) |
 
 **Request Body:**
 
@@ -336,7 +350,7 @@ Authorization: Bearer <JWT_TOKEN>
 | ---------- | --------------- |
 | **Method** | `POST`          |
 | **Path**   | `/submissions`  |
-| **認證**   | ✅ Bearer Token |
+| **認證**   | ✅ Bearer Token (`ADMIN`, `CANDIDATE`) |
 
 **Request Body:**
 
@@ -437,8 +451,8 @@ Authorization: Bearer <JWT_TOKEN>
     {
       "id": "uuid",
       "username": "alice",
-      "email": "alice@example.com",
-      "role": "USER",
+      "email": null,
+      "role": "CANDIDATE",
       "solvedCount": "3",
       "rating": "1500",
       "createdAt": "2026-05-13T12:00:00.000Z"
@@ -589,7 +603,7 @@ x-internal-api-key: <INTERNAL_API_KEY>
 | ---------- | --------------- |
 | **Method** | `POST`          |
 | **Path**   | `/interviews`   |
-| **認證**   | ✅ Bearer Token |
+| **認證**   | ✅ Bearer Token (`ADMIN`, `EXAMINER`) |
 
 **Request Body:**
 
@@ -618,7 +632,7 @@ x-internal-api-key: <INTERNAL_API_KEY>
 | ---------- | ------------------ |
 | **Method** | `PATCH`            |
 | **Path**   | `/interviews/{id}` |
-| **認證**   | ✅ Bearer Token    |
+| **認證**   | ✅ Bearer Token (`ADMIN`, `EXAMINER`) |
 
 **Request Body:**
 
@@ -646,7 +660,7 @@ x-internal-api-key: <INTERNAL_API_KEY>
 | ---------- | ------------------ |
 | **Method** | `DELETE`           |
 | **Path**   | `/interviews/{id}` |
-| **認證**   | ✅ Bearer Token    |
+| **認證**   | ✅ Bearer Token (`ADMIN`, `EXAMINER`) |
 
 **Response (204 No Content):** 無回傳本體
 
@@ -658,7 +672,7 @@ x-internal-api-key: <INTERNAL_API_KEY>
 | ---------- | ----------------------- |
 | **Method** | `POST`                  |
 | **Path**   | `/interview-candidates` |
-| **認證**   | ✅ Bearer Token         |
+| **認證**   | ✅ Bearer Token (`ADMIN`, `EXAMINER`) |
 
 **Request Body:**
 
@@ -714,7 +728,7 @@ x-internal-api-key: <INTERNAL_API_KEY>
     "user": {
       "id": "uuid-string",
       "username": "candidate_alice",
-      "email": "alice@example.com"
+      "role": "CANDIDATE"
     }
   }
 ]
@@ -728,7 +742,7 @@ x-internal-api-key: <INTERNAL_API_KEY>
 | ---------- | --------------------------------- |
 | **Method** | `PATCH`                           |
 | **Path**   | `/interview-candidates/{id}/time` |
-| **認證**   | ✅ Bearer Token                   |
+| **認證**   | ✅ Bearer Token (`ADMIN`, `EXAMINER`) |
 
 **Request Body:**
 
@@ -755,13 +769,45 @@ x-internal-api-key: <INTERNAL_API_KEY>
 
 ---
 
-### 8.7 從面試中移除考生
+### 8.7 取得面試考生測驗剩餘時間
+
+| 項目 | 值 |
+|------|------|
+| **Method** | `GET` |
+| **Path** | `/interview-candidates/{id}/time-status` |
+| **認證** | ✅ Bearer Token (`ADMIN`, `EXAMINER`, `CANDIDATE`) |
+
+`CANDIDATE` 僅能查詢自己的面試考生記錄；`ADMIN`、`EXAMINER` 可查詢所有記錄。
+
+**Response (200 OK):**
+
+```json
+{
+  "id": "1",
+  "jobId": "1",
+  "userId": "uuid-string",
+  "serverTime": 1770000300,
+  "startTime": 1770000000,
+  "endTime": 1770003600,
+  "remainingTime": 3300,
+  "elapsedTime": 300,
+  "duration": 3600,
+  "timeUntilStart": 0,
+  "status": "IN_PROGRESS"
+}
+```
+
+`serverTime`、`startTime`、`endTime` 為 Unix timestamp seconds；`remainingTime`、`elapsedTime`、`duration`、`timeUntilStart` 為秒數。若尚未設定完整時間，`remainingTime` 會是 `null`，`status` 會是 `NOT_SCHEDULED`。
+
+---
+
+### 8.8 從面試中移除考生
 
 | 項目       | 值                           |
 | ---------- | ---------------------------- |
 | **Method** | `DELETE`                     |
 | **Path**   | `/interview-candidates/{id}` |
-| **認證**   | ✅ Bearer Token              |
+| **認證**   | ✅ Bearer Token (`ADMIN`, `EXAMINER`) |
 
 **Response (204 No Content):** 無回傳本體
 
@@ -777,7 +823,7 @@ x-internal-api-key: <INTERNAL_API_KEY>
 | ---------- | --------------- |
 | **Method** | `POST`          |
 | **Path**   | `/assignments`  |
-| **認證**   | ✅ Bearer Token |
+| **認證**   | ✅ Bearer Token (`ADMIN`, `EXAMINER`, `QUESTIONER`) |
 
 **Request Body:**
 
@@ -877,7 +923,7 @@ x-internal-api-key: <INTERNAL_API_KEY>
 | ---------- | ------------------- |
 | **Method** | `DELETE`            |
 | **Path**   | `/assignments/{id}` |
-| **認證**   | ✅ Bearer Token     |
+| **認證**   | ✅ Bearer Token (`ADMIN`, `EXAMINER`, `QUESTIONER`) |
 
 **Response (204 No Content):** 無回傳本體
 
@@ -891,26 +937,27 @@ x-internal-api-key: <INTERNAL_API_KEY>
 | 2   | `POST`   | `/auth/signup`                   | ❌          | 使用者註冊           |
 | 3   | `GET`    | `/problems`                      | ❌          | 題目列表             |
 | 4   | `GET`    | `/problems/:id`                  | ❌          | 題目詳情             |
-| 5   | `POST`   | `/problems`                      | 🔒 ADMIN    | 新增題目             |
-| 6   | `DELETE` | `/problems/:id`                  | 🔒 ADMIN    | 刪除題目             |
-| 7   | `POST`   | `/problems/:id/assign`           | 🔒 ADMIN    | 指派題目             |
-| 8   | `POST`   | `/submissions`                   | 🔒 USER+    | 提交程式碼           |
+| 5   | `POST`   | `/problems`                      | 🔒 ADMIN / QUESTIONER | 新增題目             |
+| 6   | `DELETE` | `/problems/:id`                  | 🔒 ADMIN / QUESTIONER | 刪除題目             |
+| 7   | `POST`   | `/problems/:id/assign`           | 🔒 ADMIN / EXAMINER / QUESTIONER | 指派題目             |
+| 8   | `POST`   | `/submissions`                   | 🔒 ADMIN / CANDIDATE | 提交程式碼           |
 | 9   | `GET`    | `/submissions/:id`               | ❌          | 查詢評測結果         |
 | 10  | `GET`    | `/users`                         | ❌          | 使用者列表           |
 | 11  | `GET`    | `/users/:username/submissions`   | ❌          | 使用者提交歷史       |
 | 12  | `GET`    | `/leaderboard`                   | ❌          | 排行榜               |
 | 13  | `GET`    | `/health`                        | ❌          | 健康檢查             |
 | 14  | `GET`    | `/internal/testcases/:id`        | 🔑 Internal | 評測機測資           |
-| 15  | `POST`   | `/interviews`                    | 🔒 USER+    | 建立面試             |
+| 15  | `POST`   | `/interviews`                    | 🔒 ADMIN / EXAMINER | 建立面試             |
 | 16  | `GET`    | `/interviews`                    | ❌          | 取得面試列表         |
-| 17  | `PATCH`  | `/interviews/:id`                | 🔒 USER+    | 更改面試名稱         |
-| 18  | `DELETE` | `/interviews/:id`                | 🔒 USER+    | 刪除面試             |
-| 19  | `POST`   | `/interview-candidates`          | 🔒 USER+    | 新增面試者           |
+| 17  | `PATCH`  | `/interviews/:id`                | 🔒 ADMIN / EXAMINER | 更改面試名稱         |
+| 18  | `DELETE` | `/interviews/:id`                | 🔒 ADMIN / EXAMINER | 刪除面試             |
+| 19  | `POST`   | `/interview-candidates`          | 🔒 ADMIN / EXAMINER | 新增面試者           |
 | 20  | `GET`    | `/interview-candidates`          | ❌          | 取得所有面試考生列表 |
-| 21  | `PATCH`  | `/interview-candidates/:id/time` | 🔒 USER+    | 更新面試考生測驗時間 |
-| 22  | `DELETE` | `/interview-candidates/:id`      | 🔒 USER+    | 移除面試者           |
-| 23  | `POST`   | `/assignments`                   | 🔒 USER+    | 指派題目給考生       |
-| 24  | `GET`    | `/assignments`                   | ❌          | 取得題目指派列表     |
-| 25  | `GET`    | `/assignments/user/:userId`      | ❌          | 取得特定使用者的指派 |
-| 26  | `GET`    | `/assignments/:id`               | ❌          | 取得單一指派         |
-| 27  | `DELETE` | `/assignments/:id`               | 🔒 USER+    | 刪除題目指派         |
+| 21  | `PATCH`  | `/interview-candidates/:id/time` | 🔒 ADMIN / EXAMINER | 更新面試考生測驗時間 |
+| 22  | `GET`    | `/interview-candidates/:id/time-status` | 🔒 ADMIN / EXAMINER / CANDIDATE | 取得伺服器時間與剩餘時間 |
+| 23  | `DELETE` | `/interview-candidates/:id`      | 🔒 ADMIN / EXAMINER | 移除面試者           |
+| 24  | `POST`   | `/assignments`                   | 🔒 ADMIN / EXAMINER / QUESTIONER | 指派題目給考生       |
+| 25  | `GET`    | `/assignments`                   | ❌          | 取得題目指派列表     |
+| 26  | `GET`    | `/assignments/user/:userId`      | ❌          | 取得特定使用者的指派 |
+| 27  | `GET`    | `/assignments/:id`               | ❌          | 取得單一指派         |
+| 28  | `DELETE` | `/assignments/:id`               | 🔒 ADMIN / EXAMINER / QUESTIONER | 刪除題目指派         |

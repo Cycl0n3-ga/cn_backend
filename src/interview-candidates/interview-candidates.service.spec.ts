@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
 
@@ -16,7 +17,11 @@ describe('InterviewCandidatesService', () => {
     jobRole: 'Backend Developer',
     examinerEmpId: 'examiner-uuid',
   };
-  const mockUser = { id: 'user-uuid-1', username: 'alice' };
+  const mockUser = {
+    id: 'user-uuid-1',
+    username: 'alice',
+    role: 'CANDIDATE',
+  };
   const mockCandidate = {
     id: 1,
     jobId: 1,
@@ -135,6 +140,18 @@ describe('InterviewCandidatesService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
+    it('should throw BadRequestException when user is not a candidate', async () => {
+      prisma.interview.findUnique.mockResolvedValue(mockInterview);
+      prisma.user.findUnique.mockResolvedValue({
+        ...mockUser,
+        role: 'EXAMINER',
+      });
+
+      await expect(
+        service.create({ jobId: 1, userId: 'user-uuid-1' }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
     it('should throw ConflictException when candidate already added (P2002)', async () => {
       prisma.interview.findUnique.mockResolvedValue(mockInterview);
       prisma.user.findUnique.mockResolvedValue(mockUser);
@@ -177,7 +194,7 @@ describe('InterviewCandidatesService', () => {
         user: {
           id: 'user-uuid-1',
           username: 'alice',
-          email: 'alice@example.com',
+          role: 'CANDIDATE',
         },
       };
 
@@ -193,6 +210,7 @@ describe('InterviewCandidatesService', () => {
       expect(result[0]).toHaveProperty('endTime', 1770003600);
       expect(result[0]).toHaveProperty('interview');
       expect(result[0]).toHaveProperty('user');
+      expect(result[0].user).not.toHaveProperty('email');
     });
 
     it('should return empty array when no candidates exist', async () => {
@@ -272,6 +290,80 @@ describe('InterviewCandidatesService', () => {
       await expect(
         service.updateTime(1, { endTime: 1770000000 }),
       ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  // ── getTimeStatus ────────────────────────────────────────────────────
+  describe('getTimeStatus', () => {
+    beforeEach(() => {
+      jest.spyOn(Date, 'now').mockReturnValue(1770000300 * 1000);
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('should return server time and remaining time for in-progress interview', async () => {
+      prisma.interviewCandidate.findUnique.mockResolvedValue({
+        ...mockCandidate,
+        startTime: 1770000000,
+        endTime: 1770003600,
+      });
+
+      const result = await service.getTimeStatus(1);
+
+      expect(result).toMatchObject({
+        id: '1',
+        jobId: '1',
+        userId: 'user-uuid-1',
+        serverTime: 1770000300,
+        startTime: 1770000000,
+        endTime: 1770003600,
+        remainingTime: 3300,
+        elapsedTime: 300,
+        duration: 3600,
+        timeUntilStart: 0,
+        status: 'IN_PROGRESS',
+      });
+    });
+
+    it('should return NOT_SCHEDULED when times are missing', async () => {
+      prisma.interviewCandidate.findUnique.mockResolvedValue(mockCandidate);
+
+      const result = await service.getTimeStatus(1);
+
+      expect(result.remainingTime).toBeNull();
+      expect(result.status).toBe('NOT_SCHEDULED');
+    });
+
+    it('should allow candidate actor to read own time status', async () => {
+      prisma.interviewCandidate.findUnique.mockResolvedValue(mockCandidate);
+
+      await expect(
+        service.getTimeStatus(1, {
+          id: 'user-uuid-1',
+          role: 'CANDIDATE',
+        }),
+      ).resolves.toMatchObject({ id: '1', status: 'NOT_SCHEDULED' });
+    });
+
+    it('should throw ForbiddenException when candidate actor reads another candidate status', async () => {
+      prisma.interviewCandidate.findUnique.mockResolvedValue(mockCandidate);
+
+      await expect(
+        service.getTimeStatus(1, {
+          id: 'other-user',
+          role: 'CANDIDATE',
+        }),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should throw NotFoundException when candidate does not exist', async () => {
+      prisma.interviewCandidate.findUnique.mockResolvedValue(null);
+
+      await expect(service.getTimeStatus(999)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 

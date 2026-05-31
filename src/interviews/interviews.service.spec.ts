@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { InterviewsService } from './interviews.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 describe('InterviewsService', () => {
   let service: InterviewsService;
@@ -14,6 +14,11 @@ describe('InterviewsService', () => {
     createdAt: new Date(),
     updatedAt: new Date(),
   };
+  const mockExaminer = {
+    id: 'user-uuid-1',
+    username: 'examiner',
+    role: 'EXAMINER',
+  };
 
   beforeEach(async () => {
     prisma = {
@@ -23,6 +28,9 @@ describe('InterviewsService', () => {
         findUnique: jest.fn(),
         update: jest.fn(),
         delete: jest.fn(),
+      },
+      user: {
+        findUnique: jest.fn(),
       },
     };
 
@@ -39,6 +47,7 @@ describe('InterviewsService', () => {
   // ── create ────────────────────────────────────────────────────────────
   describe('create', () => {
     it('should create an interview and return id, jobRole, examinerEmpId', async () => {
+      prisma.user.findUnique.mockResolvedValue(mockExaminer);
       prisma.interview.create.mockResolvedValue(mockInterview);
 
       const result = await service.create({
@@ -52,6 +61,7 @@ describe('InterviewsService', () => {
     });
 
     it('should return id as string', async () => {
+      prisma.user.findUnique.mockResolvedValue(mockExaminer);
       prisma.interview.create.mockResolvedValue(mockInterview);
 
       const result = await service.create({
@@ -63,6 +73,10 @@ describe('InterviewsService', () => {
     });
 
     it('should pass correct data to prisma', async () => {
+      prisma.user.findUnique.mockResolvedValue({
+        ...mockExaminer,
+        id: 'examiner-uuid',
+      });
       prisma.interview.create.mockResolvedValue(mockInterview);
 
       await service.create({
@@ -73,6 +87,28 @@ describe('InterviewsService', () => {
       expect(prisma.interview.create).toHaveBeenCalledWith({
         data: { jobRole: 'Frontend Dev', examinerEmpId: 'examiner-uuid' },
       });
+    });
+
+    it('should throw NotFoundException when examiner user does not exist', async () => {
+      prisma.user.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.create({ jobRole: 'Frontend Dev', examinerEmpId: 'missing' }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw BadRequestException when examinerEmpId is not examiner role', async () => {
+      prisma.user.findUnique.mockResolvedValue({
+        ...mockExaminer,
+        role: 'CANDIDATE',
+      });
+
+      await expect(
+        service.create({
+          jobRole: 'Frontend Dev',
+          examinerEmpId: 'candidate-uuid',
+        }),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 

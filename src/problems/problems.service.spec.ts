@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProblemsService } from './problems.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 describe('ProblemsService', () => {
   let service: ProblemsService;
@@ -490,7 +490,11 @@ describe('ProblemsService', () => {
 
   // ── assign ────────────────────────────────────────────────────────────
   describe('assign', () => {
-    const mockUserAlice = { id: 'alice-uuid', username: 'alice' };
+    const mockUserAlice = {
+      id: 'alice-uuid',
+      username: 'alice',
+      role: 'CANDIDATE',
+    };
 
     it('should assign problem to user and return assignment info', async () => {
       prisma.problem.findFirst.mockResolvedValue(mockProblem);
@@ -533,6 +537,18 @@ describe('ProblemsService', () => {
 
       await expect(service.assign(1, 'nonexistent')).rejects.toThrow(
         NotFoundException,
+      );
+    });
+
+    it('should throw BadRequestException if assignee is not a candidate', async () => {
+      prisma.problem.findFirst.mockResolvedValue(mockProblem);
+      prisma.user.findUnique.mockResolvedValue({
+        ...mockUserAlice,
+        role: 'QUESTIONER',
+      });
+
+      await expect(service.assign(1, 'questioner')).rejects.toThrow(
+        BadRequestException,
       );
     });
 

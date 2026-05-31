@@ -24,6 +24,7 @@ import { CreateProblemDto, AssignProblemDto } from './dto/index.js';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/roles.guard.js';
 import { Roles } from '../auth/roles.decorator.js';
+import { UserRole } from '../auth/user-role.js';
 
 @ApiTags('Problems')
 @Controller('problems')
@@ -68,11 +69,11 @@ export class ProblemsController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @Roles(UserRole.QUESTIONER)
   @ApiBearerAuth()
   @ApiOperation({
-    summary: '新增題目 (Admin)',
-    description: '管理員新增題目，包含測試資料',
+    summary: '新增題目',
+    description: '題目管理者新增題目，包含測試資料',
   })
   @ApiResponse({ status: 201, description: '題目建立成功' })
   @ApiResponse({ status: 401, description: '未認證' })
@@ -99,10 +100,10 @@ export class ProblemsController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @Roles(UserRole.QUESTIONER)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: '刪除題目 (Admin)', description: '軟刪除指定題目' })
+  @ApiOperation({ summary: '刪除題目', description: '軟刪除指定題目' })
   @ApiResponse({ status: 204, description: '刪除成功' })
   @ApiResponse({ status: 404, description: '題目不存在' })
   remove(@Param('id', ParseIntPipe) id: number) {
@@ -112,10 +113,10 @@ export class ProblemsController {
   @Post(':id/assign')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @Roles(UserRole.EXAMINER, UserRole.QUESTIONER)
   @ApiBearerAuth()
   @ApiOperation({
-    summary: '指派題目 (Admin)',
+    summary: '指派題目',
     description: '將題目指定給特定使用者',
   })
   @ApiResponse({ status: 200, description: '指派成功' })

@@ -35,8 +35,8 @@ describe('ProblemsService (integration)', () => {
     expect(typeof first.acceptedCount).toBe('string');
     expect(typeof first.failedCount).toBe('string');
     expect(first.creator).toMatchObject({
-      username: 'admin',
-      email: 'admin@codejudge.dev',
+      username: 'questioner',
+      email: 'questioner@codejudge.dev',
     });
   });
 
@@ -54,8 +54,8 @@ describe('ProblemsService (integration)', () => {
     expect(detail.problem_id).toBe('1');
     expect(detail.sample_test_cases.length).toBe(2);
     expect(detail.creator).toMatchObject({
-      username: 'admin',
-      email: 'admin@codejudge.dev',
+      username: 'questioner',
+      email: 'questioner@codejudge.dev',
     });
     expect(detail).toMatchObject({
       assignedCount: '1',
