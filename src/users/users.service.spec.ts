@@ -56,6 +56,7 @@ describe('UsersService', () => {
       user: {
         findMany: jest.fn(),
         findUnique: jest.fn(),
+        count: jest.fn(),
       },
       submission: {
         count: jest.fn(),
@@ -73,15 +74,19 @@ describe('UsersService', () => {
   // ── findAll ───────────────────────────────────────────────────────────
   describe('findAll', () => {
     it('should return all users in data array', async () => {
+      prisma.user.count.mockResolvedValue(2);
       prisma.user.findMany.mockResolvedValue(mockUsers);
 
       const result = await service.findAll();
 
       expect(result).toHaveProperty('data');
+      expect(result).toHaveProperty('total', '2');
+      expect(result).toHaveProperty('page', '1');
       expect(result.data).toHaveLength(2);
     });
 
     it('should map user fields correctly', async () => {
+      prisma.user.count.mockResolvedValue(1);
       prisma.user.findMany.mockResolvedValue([mockUsers[0]]);
 
       const result = await service.findAll();
@@ -95,6 +100,7 @@ describe('UsersService', () => {
     });
 
     it('should return numeric fields as strings', async () => {
+      prisma.user.count.mockResolvedValue(1);
       prisma.user.findMany.mockResolvedValue([mockUsers[0]]);
 
       const result = await service.findAll();
@@ -107,6 +113,7 @@ describe('UsersService', () => {
 
     it('should not expose passwordHash', async () => {
       const userWithHash = { ...mockUsers[0], passwordHash: 'bcrypt-hash' };
+      prisma.user.count.mockResolvedValue(1);
       prisma.user.findMany.mockResolvedValue([userWithHash]);
 
       const result = await service.findAll();
@@ -115,6 +122,7 @@ describe('UsersService', () => {
     });
 
     it('should return empty array when no users exist', async () => {
+      prisma.user.count.mockResolvedValue(0);
       prisma.user.findMany.mockResolvedValue([]);
 
       const result = await service.findAll();
@@ -123,6 +131,7 @@ describe('UsersService', () => {
     });
 
     it('should include createdAt timestamp', async () => {
+      prisma.user.count.mockResolvedValue(1);
       prisma.user.findMany.mockResolvedValue([mockUsers[0]]);
 
       const result = await service.findAll();

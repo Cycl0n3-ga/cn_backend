@@ -42,6 +42,8 @@ describe('SubmissionsService', () => {
       user: {
         update: jest.fn(),
       },
+      // Mock $transaction to execute the callback with the prisma mock itself
+      $transaction: jest.fn((cb: (tx: any) => Promise<any>) => cb(prisma)),
     };
 
     const module: TestingModule = await Test.createTestingModule({

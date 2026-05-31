@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsInt } from 'class-validator';
+import { IsString, IsNotEmpty, IsInt, MaxLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateSubmissionDto {
@@ -12,13 +12,15 @@ export class CreateSubmissionDto {
   })
   @IsString()
   @IsNotEmpty()
+  @MaxLength(20)
   language: string;
 
   @ApiProperty({
     example: 'def twoSum(nums, target):\n    pass',
-    description: '原始碼',
+    description: '原始碼（最大 64KB）',
   })
   @IsString()
   @IsNotEmpty()
+  @MaxLength(65536)
   source_code: string;
 }

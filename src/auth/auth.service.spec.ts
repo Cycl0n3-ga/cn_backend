@@ -2,11 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-  BadRequestException,
-  ConflictException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { createHash } from 'node:crypto';
 
@@ -233,26 +229,29 @@ describe('AuthService', () => {
       expect(result).toHaveProperty('email', null);
     });
 
-    it('should accept ADMIN role when specified', async () => {
+    it('should always force role to CANDIDATE regardless of input', async () => {
       prisma.user.findFirst.mockResolvedValue(null);
-      prisma.user.create.mockResolvedValue({ ...newUserResult, role: 'ADMIN' });
+      prisma.user.create.mockResolvedValue({
+        ...newUserResult,
+        role: 'CANDIDATE',
+      });
 
       await service.signup({
         username: 'adminuser',
         email: 'admin@example.com',
         passwordSha256: sha256Hex('admin123'),
-        role: 'ADMIN',
+        role: 'ADMIN', // attacker tries to escalate
       });
 
       const createCall = prisma.user.create.mock.calls[0][0];
-      expect(createCall.data.role).toBe('ADMIN');
+      expect(createCall.data.role).toBe('CANDIDATE');
     });
 
-    it('should normalize lowercase role input', async () => {
+    it('should ignore role=QUESTIONER and force CANDIDATE', async () => {
       prisma.user.findFirst.mockResolvedValue(null);
       prisma.user.create.mockResolvedValue({
         ...newUserResult,
-        role: 'QUESTIONER',
+        role: 'CANDIDATE',
       });
 
       await service.signup({
@@ -263,17 +262,26 @@ describe('AuthService', () => {
       });
 
       const createCall = prisma.user.create.mock.calls[0][0];
-      expect(createCall.data.role).toBe('QUESTIONER');
+      expect(createCall.data.role).toBe('CANDIDATE');
     });
 
-    it('should require email for non-candidate roles', async () => {
-      await expect(
-        service.signup({
-          username: 'examiner1',
-          passwordSha256: sha256Hex('examiner123'),
-          role: 'EXAMINER',
-        }),
-      ).rejects.toThrow(BadRequestException);
+    it('should allow signup without email for CANDIDATE (even with role=EXAMINER)', async () => {
+      prisma.user.findFirst.mockResolvedValue(null);
+      prisma.user.create.mockResolvedValue({
+        ...newUserResult,
+        email: null,
+        role: 'CANDIDATE',
+      });
+
+      // role is ignored; email is optional for CANDIDATE
+      await service.signup({
+        username: 'examiner1',
+        passwordSha256: sha256Hex('examiner123'),
+        role: 'EXAMINER',
+      });
+
+      const createCall = prisma.user.create.mock.calls[0][0];
+      expect(createCall.data.role).toBe('CANDIDATE');
     });
 
     it('should throw ConflictException for duplicate username', async () => {

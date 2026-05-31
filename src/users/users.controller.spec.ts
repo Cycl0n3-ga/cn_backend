@@ -1,18 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
-import { NotFoundException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 
 describe('UsersController', () => {
   let controller: UsersController;
   let service: jest.Mocked<UsersService>;
 
   const mockFindAllResult = {
+    total: '1',
+    page: '1',
     data: [
       {
         id: 'uuid-1',
         username: 'alice',
-        email: null,
+        email: null as string | null,
         role: 'CANDIDATE',
         solvedCount: '3',
         rating: '1500',
@@ -38,6 +40,10 @@ describe('UsersController', () => {
     ],
   };
 
+  const mockAdminReq = { user: { username: 'admin', role: 'ADMIN' } };
+  const mockAliceReq = { user: { username: 'alice', role: 'CANDIDATE' } };
+  const mockBobReq = { user: { username: 'bob', role: 'CANDIDATE' } };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
@@ -62,53 +68,61 @@ describe('UsersController', () => {
 
   // ── findAll ───────────────────────────────────────────────────────────
   describe('findAll', () => {
-    it('should return all users', async () => {
+    it('should return all users with pagination', async () => {
       service.findAll.mockResolvedValue(mockFindAllResult);
 
       const result = await controller.findAll();
 
       expect(result).toEqual(mockFindAllResult);
-      expect(service.findAll).toHaveBeenCalledTimes(1);
+      expect(service.findAll).toHaveBeenCalledWith(1, 20);
     });
 
-    it('should return empty data array when no users', async () => {
-      service.findAll.mockResolvedValue({ data: [] });
+    it('should pass custom page and limit', async () => {
+      service.findAll.mockResolvedValue({ total: '0', page: '2', data: [] });
 
-      const result = await controller.findAll();
+      await controller.findAll('2', '10');
 
-      expect(result.data).toHaveLength(0);
+      expect(service.findAll).toHaveBeenCalledWith(2, 10);
+    });
+
+    it('should clamp limit to max 100', async () => {
+      service.findAll.mockResolvedValue({ total: '0', page: '1', data: [] });
+
+      await controller.findAll('1', '999');
+
+      expect(service.findAll).toHaveBeenCalledWith(1, 100);
     });
   });
 
   // ── getSubmissions ────────────────────────────────────────────────────
   describe('getSubmissions', () => {
-    it('should return submission history with default pagination', async () => {
+    it('should return submission history for own user', async () => {
       service.getSubmissionHistory.mockResolvedValue(mockHistoryResult);
 
-      const result = await controller.getSubmissions('alice');
+      const result = await controller.getSubmissions(mockAliceReq, 'alice');
 
       expect(result).toEqual(mockHistoryResult);
       expect(service.getSubmissionHistory).toHaveBeenCalledWith('alice', 1, 20);
     });
 
-    it('should pass custom page and limit to service', async () => {
+    it('should allow ADMIN to view any user submissions', async () => {
       service.getSubmissionHistory.mockResolvedValue(mockHistoryResult);
 
-      await controller.getSubmissions('alice', '2', '10');
+      const result = await controller.getSubmissions(
+        mockAdminReq,
+        'alice',
+        '2',
+        '10',
+      );
 
+      expect(result).toEqual(mockHistoryResult);
       expect(service.getSubmissionHistory).toHaveBeenCalledWith('alice', 2, 10);
     });
 
-    it('should convert string page/limit to numbers', async () => {
-      service.getSubmissionHistory.mockResolvedValue(mockHistoryResult);
-
-      await controller.getSubmissions('alice', '3', '5');
-
-      const call = service.getSubmissionHistory.mock.calls[0];
-      expect(typeof call[1]).toBe('number');
-      expect(typeof call[2]).toBe('number');
-      expect(call[1]).toBe(3);
-      expect(call[2]).toBe(5);
+    it('should throw ForbiddenException when viewing other user submissions', () => {
+      expect(() => controller.getSubmissions(mockBobReq, 'alice')).toThrow(
+        ForbiddenException,
+      );
     });
 
     it('should propagate NotFoundException for unknown username', async () => {
@@ -116,15 +130,20 @@ describe('UsersController', () => {
         new NotFoundException('User "ghost" not found.'),
       );
 
-      await expect(controller.getSubmissions('ghost')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        controller.getSubmissions(mockAdminReq, 'ghost'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should use page=1 when page query param is not provided', async () => {
       service.getSubmissionHistory.mockResolvedValue(mockHistoryResult);
 
-      await controller.getSubmissions('alice', undefined, undefined);
+      await controller.getSubmissions(
+        mockAliceReq,
+        'alice',
+        undefined,
+        undefined,
+      );
 
       expect(service.getSubmissionHistory).toHaveBeenCalledWith('alice', 1, 20);
     });

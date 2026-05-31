@@ -6,12 +6,14 @@ import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';
 import { JwtStrategy } from './jwt.strategy.js';
 
+import { resolveJwtSecret } from './jwt-secret.js';
+
 @Module({
   imports: [
     PrismaModule,
     PassportModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'fallback-secret',
+      secret: resolveJwtSecret(),
       signOptions: {
         expiresIn: parseInt(process.env.JWT_EXPIRES_IN || '3600', 10),
       },

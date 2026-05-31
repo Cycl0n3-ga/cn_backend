@@ -50,11 +50,6 @@ export class CreateInterviewDto {
   @IsString()
   jobRole: string;
 
-  @ApiProperty({ example: 'uuid-string', description: '面試官 User ID' })
-  @IsNotEmpty()
-  @IsString()
-  examinerEmpId: string;
-
   @ApiPropertyOptional({
     example: 'uuid-string',
     description: '面試者 User ID；提供後會一併新增為此面試的候選人',

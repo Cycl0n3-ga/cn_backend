@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Injectable,
   UnauthorizedException,
   ConflictException,
@@ -7,7 +6,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { normalizeEmail, normalizeUserRole, UserRole } from './user-role.js';
+import { normalizeEmail, UserRole } from './user-role.js';
 
 @Injectable()
 export class AuthService {
@@ -53,14 +52,12 @@ export class AuthService {
     passwordSha256: string;
     role?: string;
   }) {
-    const role = normalizeUserRole(data.role);
+    // Security: signup MUST only create CANDIDATE users.
+    // Non-CANDIDATE accounts require admin provisioning.
+    const role = UserRole.CANDIDATE;
     const email = normalizeEmail(data.email);
 
-    if (role !== UserRole.CANDIDATE && !email) {
-      throw new BadRequestException(
-        'email is required for ADMIN, EXAMINER, and QUESTIONER accounts.',
-      );
-    }
+    // email is optional for CANDIDATE signup
 
     const conflictChecks = email
       ? [{ username: data.username }, { email }]
@@ -82,7 +79,7 @@ export class AuthService {
     const user = await this.prisma.user.create({
       data: {
         username: data.username,
-        email,
+        email: email ?? null,
         passwordHash,
         role,
       },

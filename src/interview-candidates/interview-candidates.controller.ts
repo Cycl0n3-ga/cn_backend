@@ -65,9 +65,13 @@ export class InterviewCandidatesController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.EXAMINER)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: '取得所有面試考生列表',
-    description: '列出所有面試中的考生記錄（含面試及使用者資訊）',
+    description:
+      '列出所有面試中的考生記錄（含面試及使用者資訊）。需要 EXAMINER 權限。',
   })
   @ApiResponse({
     status: 200,
@@ -95,6 +99,8 @@ export class InterviewCandidatesController {
       ],
     },
   })
+  @ApiResponse({ status: 401, description: '未認證' })
+  @ApiResponse({ status: 403, description: '權限不足' })
   findAll() {
     return this.interviewCandidatesService.findAll();
   }
