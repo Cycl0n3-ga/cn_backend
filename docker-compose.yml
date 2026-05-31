@@ -4,8 +4,8 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: code-judge-backend
-    ports:
-      - "${HOST_PORT:-4100}:${PORT:-4100}"
+    expose:
+      - "4100"
     environment:
       # This repository currently runs on SQLite via Prisma driver adapter.
       # The DB file is persisted via the /app/data volume.
@@ -22,9 +22,7 @@ services:
       SEED_DB: ${SEED_DB:-false}
     volumes:
       - backend_data:/app/data
-      # JudgeService calls Docker to run untrusted submissions in isolated containers.
       - /var/run/docker.sock:/var/run/docker.sock
-      # This path must exist on both the host and backend container for Docker bind mounts.
       - ${JUDGE_TMP_DIR:-/tmp/code-judge-workspaces}:${JUDGE_TMP_DIR:-/tmp/code-judge-workspaces}
     command: >
       sh -c "DB_DIR=$${SQLITE_DB_FILE%/*} && mkdir -p \"$$DB_DIR\" && touch \"$$SQLITE_DB_FILE\" && npx prisma migrate deploy && if [ \"$$SEED_DB\" = \"true\" ]; then npx prisma db seed; fi && npm run start:prod"
@@ -40,5 +38,24 @@ services:
       start_period: 20s
     restart: unless-stopped
 
+  caddy:
+    image: caddy:2-alpine
+    container_name: code-judge-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN_NAME: ${DOMAIN_NAME:-localhost}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      backend-api:
+        condition: service_healthy
+
 volumes:
   backend_data:
+  caddy_data:
+  caddy_config:

@@ -1,0 +1,10 @@
+# 🐳 Caddy Configuration File
+# This file handles automatic SSL/TLS certificates and acts as a secure reverse proxy.
+#
+# It reads the environment variable $DOMAIN_NAME.
+# If $DOMAIN_NAME is set (e.g. "example.com"), Caddy automatically obtains a Let's Encrypt SSL certificate.
+# If $DOMAIN_NAME is not set, it defaults to "localhost" with local self-signed HTTPS certificates.
+
+{$DOMAIN_NAME:localhost} {
+    reverse_proxy backend-api:4100
+}
