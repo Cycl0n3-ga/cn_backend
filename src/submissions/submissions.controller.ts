@@ -15,6 +15,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { SubmissionsService } from './submissions.service.js';
 import { CreateSubmissionDto } from './dto/index.js';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
@@ -30,6 +31,7 @@ export class SubmissionsController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.CANDIDATE)
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
   @ApiBearerAuth()
   @HttpCode(HttpStatus.ACCEPTED)
   @ApiOperation({

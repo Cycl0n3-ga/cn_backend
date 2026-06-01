@@ -1,5 +1,5 @@
 // Online Code Judge — Prisma Schema
-// Database: SQLite (development) / PostgreSQL (production)
+// Database: SQLite default. PostgreSQL requires a separate provider/migration path.
 
 generator client {
   provider = "prisma-client-js"
@@ -28,6 +28,7 @@ model User {
   interviewCandidates  InterviewCandidate[] // 作為被面試者的記錄
   interviewAssignments InterviewAssignment[] // 作為考生被指派的題目
 
+  @@index([role, rating, solvedCount])
   @@map("users")
 }
 
@@ -83,6 +84,12 @@ model Submission {
   compileMessage  String   @default("")
   executionTimeMs Int?
   memoryUsageKb   Int?
+  judgeJobId      String?
+  queuedAt        DateTime?
+  startedAt       DateTime?
+  finishedAt      DateTime?
+  attempts        Int      @default(0)
+  lastError       String?
   createdAt       DateTime @default(now())
 
   user    User    @relation(fields: [userId], references: [id])
@@ -91,6 +98,8 @@ model Submission {
   @@index([userId])
   @@index([userId, problemId, status])
   @@index([problemId, status])
+  @@index([status, createdAt])
+  @@index([judgeJobId])
   @@map("submissions")
 }
 
@@ -154,6 +163,8 @@ model InterviewAssignment {
   problem   Problem   @relation(fields: [problemId], references: [id], onDelete: Cascade)
 
   @@unique([jobId, userId, problemId])
+  @@index([userId])
+  @@index([jobId])
   @@map("interview_assignments")
 }
 

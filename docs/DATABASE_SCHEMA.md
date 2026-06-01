@@ -55,8 +55,8 @@ model User {
 - 1-N: 一個使用者可以建立多個題目
 - 1-N: 一個使用者可以建立多個面試
 - 1-N: 一個使用者可以作為多個面試的候選人
-- 1-N: 一个使用者可以建立多个面試
-- 1-N: 一个使用者可以作为多个面試的候選人
+- 1-N: 一個使用者可以建立多個面試
+- 1-N: 一個使用者可以作为多個面試的候選人
 
 ---
 
@@ -150,10 +150,19 @@ model Submission {
   compileMessage  String   @default("")
   executionTimeMs Int?
   memoryUsageKb   Int?
+  judgeJobId      String?
+  queuedAt        DateTime?
+  startedAt       DateTime?
+  finishedAt      DateTime?
+  attempts        Int      @default(0)
+  lastError       String?
   createdAt       DateTime @default(now())
 
   user    User    @relation(fields: [userId], references: [id])
   problem Problem @relation(fields: [problemId], references: [id])
+
+  @@index([status, createdAt])
+  @@index([judgeJobId])
 }
 ```
 
@@ -164,7 +173,7 @@ model Submission {
 - `problemId`: 項目ID（外鍵）
 - `language`: 程式語言
 - `sourceCode`: 原始程式碼
-- `status`: 評測状态
+- `status`: 評測狀態
   - `PENDING` - 待評測
   - `COMPILING` - 編譯中
   - `RUNNING` - 執行中
@@ -179,6 +188,12 @@ model Submission {
 - `compileMessage`: 編譯資訊/錯誤日誌
 - `executionTimeMs`: 執行時間（毫秒）
 - `memoryUsageKb`: 記憶體使用數（KB）
+- `judgeJobId`: BullMQ job id，用於關聯 worker log / queue state
+- `queuedAt`: 進入 queue 的時間
+- `startedAt`: worker 開始執行時間
+- `finishedAt`: terminal status 寫入時間
+- `attempts`: worker 已嘗試次數
+- `lastError`: queue/worker/recovery 最後錯誤摘要
 - `createdAt`: 提交時間
 
 **關係：**
@@ -246,7 +261,7 @@ model Interview {
 
 **關係：**
 
-- N-1: 多个面試由一个使用者（面試官）建立
+- N-1: 多個面試由一個使用者（面試官）建立
 - 1-N: 一個面試可以有多個候選人
 
 ---
@@ -339,15 +354,24 @@ InterviewCandidate (N)
 - `Assignment(problemId, userId)` - 防止重復指派
 - `InterviewCandidate(jobId, userId)` - 防止重復候選
 
-### 建議的额外索引
+### 已建立 / 建議的额外索引
 
 ```sql
 -- 提交查詢優化
 CREATE INDEX idx_submission_user_id ON submissions(user_id);
 CREATE INDEX idx_submission_problem_id ON submissions(problem_id);
 CREATE INDEX idx_submission_status ON submissions(status);
+CREATE INDEX submissions_status_createdAt_idx ON submissions(status, createdAt);
+CREATE INDEX submissions_judgeJobId_idx ON submissions(judgeJobId);
 
--- 问题查詢優化
+-- 排行榜查詢優化
+CREATE INDEX users_role_rating_solvedCount_idx ON users(role, rating, solvedCount);
+
+-- 面試題目查詢優化
+CREATE INDEX interview_assignments_userId_idx ON interview_assignments(userId);
+CREATE INDEX interview_assignments_jobId_idx ON interview_assignments(jobId);
+
+-- 問題查詢優化
 CREATE INDEX idx_problem_difficulty ON problems(difficulty);
 CREATE INDEX idx_problem_is_deleted ON problems(is_deleted);
 ```
@@ -395,7 +419,7 @@ CREATE INDEX idx_problem_is_deleted ON problems(is_deleted);
 # 開發環境：建立或更新本地DB
 npm run db:migrate
 
-# 生产環境：應用遷移
+# 生產環境：應用遷移
 npx prisma migrate deploy
 ```
 
@@ -415,27 +439,27 @@ SEED_DB=true docker compose up -d --build
 
 ### 预置帳戶
 
-| 使用者名   | 密碼     | 角色       | Email |
-| ---------- | -------- | ---------- | ----- |
-| admin      | admin123 | ADMIN      | admin@codejudge.dev |
-| examiner   | user123  | EXAMINER   | examiner@codejudge.dev |
+| 使用者名   | 密碼     | 角色       | Email                    |
+| ---------- | -------- | ---------- | ------------------------ |
+| admin      | admin123 | ADMIN      | admin@codejudge.dev      |
+| examiner   | user123  | EXAMINER   | examiner@codejudge.dev   |
 | questioner | user123  | QUESTIONER | questioner@codejudge.dev |
-| alice      | user123  | CANDIDATE  | null |
-| bob        | user123  | CANDIDATE  | null |
+| alice      | user123  | CANDIDATE  | null                     |
+| bob        | user123  | CANDIDATE  | null                     |
 
 ---
 
 ## 效能考數
 
-### SQLite（開發）vs PostgreSQL（生产）
+### SQLite（開發）vs PostgreSQL（生產）
 
 | 特性     | SQLite  | PostgreSQL |
 | -------- | ------- | ---------- |
-| 并發效能 | ⚠️ 有限 | ✅ 優秀    |
-| 事務支持 | ✅ 是   | ✅ 是      |
+| 並發效能 | ⚠️ 有限 | ✅ 優秀    |
+| 事務支援 | ✅ 是   | ✅ 是      |
 | ACID特性 | ✅ 是   | ✅ 是      |
 | 索引类型 | 基礎    | 進階       |
-| JSON支持 | 基礎    | 優秀       |
+| JSON支援 | 基礎    | 優秀       |
 
 ### 資料庫連接配置
 

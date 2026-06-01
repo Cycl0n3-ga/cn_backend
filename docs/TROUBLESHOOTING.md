@@ -8,7 +8,7 @@
 
 ## Docker 部署健康檢查失敗
 
-- 使用 `npm run deploy` 時，腳本會產生 `.deploy/deploy.env` 並等待 `http://localhost:${HOST_PORT}/api/v1/health`。
+- 使用 `npm run deploy` 時，腳本會產生 `.deploy/deploy.env` 並等待 `http://localhost:${HOST_PORT}/api/v1/health/ready`。
 - 若主機的 `HOST_PORT` 已被占用，先設定另一個 port，例如：
 
 ```bash
@@ -18,8 +18,41 @@ HOST_PORT=4101 npm run deploy
 - 查看容器日誌：
 
 ```bash
-docker compose --env-file .deploy/deploy.env logs -f backend-api
+docker compose --env-file .deploy/deploy.env logs -f backend-api judge-worker redis
 ```
+
+## Submission 卡在 PENDING 或 RUNNING
+
+1. 查看 submission detail 的 `judge_job_id`、`last_error`、`queued_at`、`started_at`。
+2. 確認 Redis 正常：
+
+```bash
+docker compose --env-file .deploy/deploy.env exec redis redis-cli ping
+```
+
+3. 查看 worker 日誌：
+
+```bash
+docker compose --env-file .deploy/deploy.env logs -f judge-worker
+```
+
+4. 確認 worker 可以存取 Docker daemon：
+
+```bash
+docker compose --env-file .deploy/deploy.env exec judge-worker docker info
+```
+
+5. 若是部署或重啟造成的舊 job，`JudgeRecoveryService` 會在啟動時 requeue 超過 `JUDGE_STUCK_AFTER_SECONDS` 的 `PENDING/RUNNING` submission。可調整 `.deploy/deploy.env`：
+
+```bash
+JUDGE_STUCK_AFTER_SECONDS=300
+```
+
+## Redis / BullMQ 連線失敗
+
+- production 必須設定 `JUDGE_QUEUE_DRIVER=redis` 與 `REDIS_URL=redis://redis:6379`。
+- 本地單 process 測試可用 `JUDGE_QUEUE_DRIVER=inline`。
+- `/api/v1/health/ready` 會在 Redis 不可用時回傳 `status: DOWN`。
 
 ## 認證或權限錯誤
 

@@ -75,8 +75,22 @@ cn_22_backend/
 │   │
 │   ├── judge/                     # 內部評測核心模組
 │   │   ├── judge.service.ts
+│   │   ├── judge-queue.service.ts
+│   │   ├── judge-job.processor.ts
+│   │   ├── judge-worker.service.ts
+│   │   ├── judge-recovery.service.ts
 │   │   ├── judge.module.ts
 │   │   ├── *.spec.ts
+│   │
+│   ├── common/                    # 共用基礎設施
+│   │   ├── app-setup.ts           # 全域 pipe/filter/interceptor 設定
+│   │   ├── http-exception.filter.ts
+│   │   ├── logging.interceptor.ts
+│   │   ├── pagination.ts
+│   │   └── request-id.middleware.ts
+│   │
+│   ├── config/                    # runtime env validation
+│   │   └── env.ts
 │   │
 │   ├── internal/                  # 內部API模組（用於評測机）
 │   │   ├── internal.controller.ts
@@ -84,7 +98,7 @@ cn_22_backend/
 │   │   ├── internal-auth.guard.ts
 │   │   ├── *.spec.ts
 │   │
-│   ├── health/                    # 健康检查模組
+│   ├── health/                    # 健康檢查模組
 │   │   ├── health.controller.ts
 │   │   ├── health.module.ts
 │   │   ├── *.spec.ts
@@ -96,10 +110,12 @@ cn_22_backend/
 │   │
 │   ├── app.module.ts              # 根模組
 │   ├── main.ts                    # 應用入口
+│   ├── worker.ts                  # Judge worker 入口
+│   ├── judge-worker.module.ts     # Worker application context
 │   └── *.spec.ts                  # 單元測試
 │
 ├── prisma/                        # Prisma配置與遷移
-│   ├── schema.prisma              # 資料庫模庫定義
+│   ├── schema.prisma              # 資料庫模式定義
 │   ├── seed.ts                    # 种子資料脚本
 │   └── migrations/                # 資料庫遷移记錄
 │
@@ -125,11 +141,13 @@ cn_22_backend/
 │   ├── API_SPECIFICATION.md       # API檔案
 │   ├── BACKEND_ARCHITECTURE.md    # 架構設計
 │   ├── CHANGELOG.md               # 版本變更日誌
-│   ├── DATABASE_SCHEMA.md         # 資料庫模庫詳解
+│   ├── DATABASE_SCHEMA.md         # 資料庫模式詳解
 │   ├── MODULE_GUIDE.md            # 各模組詳細說明
 │   ├── SETUP_GUIDE.md             # 開發環境設置
 │   ├── TESTING_GUIDE.md           # 測試指南
 │   ├── DEPLOYMENT_GUIDE.md        # 部署指南
+│   ├── ARCHITECTURE_OVERVIEW.md   # API/worker/queue 架構總覽
+│   ├── adr/                       # Architecture Decision Records
 │   ├── SECURITY.md                # 安全性檔案
 │   ├── TROUBLESHOOTING.md         # 故障排除指南
 │   └── CONTRIBUTING.md            # 貢獻指南
@@ -137,9 +155,9 @@ cn_22_backend/
 ├── coverage/                      # 測試涵蓋率報告
 ├── .eslintrc.js                   # ESLint配置
 ├── docker-compose.yml             # Docker Compose配置
-├── Dockerfile                     # 生产镜像配置
-├── package.json                   # npm相相性配置
-├── package-lock.json              # npm相相性锁定
+├── Dockerfile                     # 生產镜像配置
+├── package.json                   # npm依賴配置
+├── package-lock.json              # npm依賴鎖定
 ├── tsconfig.json                  # TypeScript配置
 ├── tsconfig.build.json            # TypeScript構建配置
 ├── nest-cli.json                  # NestJS CLI配置
@@ -148,37 +166,42 @@ cn_22_backend/
 └── README.md                       # 項目README
 ```
 
-## 源程庫碼統計
+## 源程式碼統計
 
 ### 模組數數
-- **11** 个功能模組（auth, problems, submissions等）
-- **10** 个資料传輸對象（DTO）模組
-- **1** 个服務模組（Prisma ORM）
+
+- **11** 個功能模組（auth, problems, submissions等）
+- **10** 個資料传輸對象（DTO）模組
+- **1** 個服務模組（Prisma ORM）
 
 ### 檔案統計
-- **源檔案 (.ts)**: ~85个
-- **單元測試 (.spec.ts)**: ~30个
-- **整合測試**: 4个
-- **E2E測試**: 1个
-- **配置檔案 (.json/.yml)**: ~10个
+
+- **源檔案 (.ts)**: ~85個
+- **單元測試 (.spec.ts)**: ~30個
+- **整合測試**: 4個
+- **E2E測試**: 1個
+- **配置檔案 (.json/.yml)**: ~10個
 
 ### 測試涵蓋
-- 單元測試: 每个模組都有對應的 `.spec.ts` 檔案
+
+- 單元測試: 每個模組都有對應的 `.spec.ts` 檔案
 - 整合測試: auth, users, problems, leaderboard
 - E2E測試: 完整API流程測試
 - 效能測試: 負載測試、壓力測試、效能測試脚本
 
-## 資料庫模庫
+## 資料庫模式
 
 項目使用 Prisma ORM，目前可直接運行：
+
 - **SQLite** (開發與 Docker 部署預設)
 - **PostgreSQL** (規劃支援；需另行提供 provider/migrations)
 
 核心資料模型：
+
 - `User` - 使用者帳戶
-- `Problem` - 程庫設計题目
+- `Problem` - 程式設計题目
 - `TestCase` - 測試用例
-- `Submission` - 程庫碼提交记錄
+- `Submission` - 程式碼提交记錄
 - `Assignment` - 题目指派
 - `Interview` - 面試记錄
 - `InterviewCandidate` - 面試候選人與測驗開始/結束時間
@@ -186,39 +209,48 @@ cn_22_backend/
 - `StressTestReport` - 壓力測試報告
 - `HealthMetric` - 系統健康指標
 
+`Submission` 額外包含 judge queue metadata：`judgeJobId`、`queuedAt`、`startedAt`、`finishedAt`、`attempts`、`lastError`。
+
 ## 关键配置檔案
 
 ### 環境配置
+
 - `DATABASE_URL` - 資料庫連接字符串
-- `JWT_SECRET` - JWT签名密钥
+- `JWT_SECRET` - JWT签名金鑰
 - `JWT_EXPIRES_IN` - JWT過期時間
-- `INTERNAL_API_KEY` - 內部API密钥
+- `INTERNAL_API_KEY` - 內部API金鑰
 - `PORT` - 服務連接埠（預設4100）
+- `JUDGE_QUEUE_DRIVER` - `inline` 或 `redis`
+- `REDIS_URL` - BullMQ/Redis 連線
+- `JUDGE_CONCURRENCY` - worker 同時執行 job 數
+- `JUDGE_JOB_ATTEMPTS` - judge job retry 次數
 
 ### 開發工具
+
 - **框架**: NestJS 11.x
 - **ORM**: Prisma 7.x
 - **認證**: Passport.js + JWT
 - **測試**: Jest
 - **容器**: Docker + Docker Compose
-- **程庫碼检查**: ESLint + Prettier
+- **程式碼檢查**: ESLint + Prettier
 
 ## API基礎URL
+
 - 本地開發: `http://localhost:4100/api/v1`
 - Swagger檔案: `http://localhost:4100/api/docs`
 
 ## 檔案導覽
 
-| 檔案 | 用途 |
-|------|------|
-| [README.md](../README.md) | 項目快速開始 |
-| [API_SPECIFICATION.md](API_SPECIFICATION.md) | API端点詳解 |
-| [BACKEND_ARCHITECTURE.md](BACKEND_ARCHITECTURE.md) | 系統架構設計 |
-| [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) | 資料庫模型 |
-| [MODULE_GUIDE.md](MODULE_GUIDE.md) | 各模組功能說明 |
-| [SETUP_GUIDE.md](SETUP_GUIDE.md) | 開發環境配置 |
-| [TESTING_GUIDE.md](TESTING_GUIDE.md) | 測試執行指南 |
-| [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) | 部署說明 |
-| [SECURITY.md](SECURITY.md) | 安全性檔案 |
-| [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | 常见问题 |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | 貢獻指南 |
+| 檔案                                               | 用途           |
+| -------------------------------------------------- | -------------- |
+| [README.md](../README.md)                          | 項目快速開始   |
+| [API_SPECIFICATION.md](API_SPECIFICATION.md)       | API端点詳解    |
+| [BACKEND_ARCHITECTURE.md](BACKEND_ARCHITECTURE.md) | 系統架構設計   |
+| [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md)           | 資料庫模型     |
+| [MODULE_GUIDE.md](MODULE_GUIDE.md)                 | 各模組功能說明 |
+| [SETUP_GUIDE.md](SETUP_GUIDE.md)                   | 開發環境配置   |
+| [TESTING_GUIDE.md](TESTING_GUIDE.md)               | 測試執行指南   |
+| [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)         | 部署說明       |
+| [SECURITY.md](SECURITY.md)                         | 安全性檔案     |
+| [TROUBLESHOOTING.md](TROUBLESHOOTING.md)           | 常见問題       |
+| [CONTRIBUTING.md](CONTRIBUTING.md)                 | 貢獻指南       |

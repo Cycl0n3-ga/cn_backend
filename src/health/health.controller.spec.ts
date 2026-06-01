@@ -25,7 +25,16 @@ describe('HealthController', () => {
     };
 
     mockJudgeQueue = {
-      getStats: jest.fn().mockReturnValue({ active: 0, queued: 0, concurrency: 2 }),
+      getStats: jest.fn().mockResolvedValue({
+        driver: 'inline',
+        active: 0,
+        waiting: 0,
+        delayed: 0,
+        failed: 0,
+        completed: 0,
+        concurrency: 2,
+      }),
+      isReady: jest.fn().mockResolvedValue(true),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -142,8 +151,13 @@ describe('HealthController', () => {
 
       controller.getDashboard(mockRes);
 
-      expect(mockRes.setHeader).toHaveBeenCalledWith('Content-Type', 'text/html; charset=utf-8');
-      expect(mockRes.send).toHaveBeenCalledWith(expect.stringContaining('Code Judge 系統監控儀表板'));
+      expect(mockRes.setHeader).toHaveBeenCalledWith(
+        'Content-Type',
+        'text/html; charset=utf-8',
+      );
+      expect(mockRes.send).toHaveBeenCalledWith(
+        expect.stringContaining('Code Judge 系統監控儀表板'),
+      );
     });
   });
 });

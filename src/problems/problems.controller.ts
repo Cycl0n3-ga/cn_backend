@@ -30,6 +30,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/roles.guard.js';
 import { Roles } from '../auth/roles.decorator.js';
 import { UserRole } from '../auth/user-role.js';
+import { parsePagination } from '../common/pagination.js';
 
 @ApiTags('Problems')
 @Controller('problems')
@@ -54,12 +55,12 @@ export class ProblemsController {
     @Query('limit') limit?: string,
     @Query('difficulty') difficulty?: string,
   ) {
-    const parsedPage = Math.max(1, parseInt(page || '1', 10) || 1);
-    const parsedLimit = Math.min(
-      100,
-      Math.max(1, parseInt(limit || '20', 10) || 20),
+    const pagination = parsePagination(page, limit);
+    return this.problemsService.findAll(
+      pagination.page,
+      pagination.limit,
+      difficulty,
     );
-    return this.problemsService.findAll(parsedPage, parsedLimit, difficulty);
   }
 
   @Get(':id')

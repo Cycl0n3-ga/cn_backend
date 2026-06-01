@@ -27,6 +27,8 @@ module.exports = async () => {
   process.env.JWT_SECRET = 'jest-test-secret';
   process.env.JWT_EXPIRES_IN = '3600';
   process.env.INTERNAL_API_KEY = 'jest-internal-api-key';
+  process.env.JUDGE_QUEUE_DRIVER = 'inline';
+  process.env.JUDGE_RECOVERY_ON_START = 'false';
 
   const stateFile = path.join(tmpDir, `jest-db-state-${runId}.json`);
   process.env.JEST_DB_STATE_PATH = stateFile;
