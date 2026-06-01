@@ -56,7 +56,9 @@ async function bootstrap() {
   const port = process.env.PORT ?? 4100;
 
   if (domainName) {
-    const cleanDomain = domainName.startsWith('http') ? domainName : `http://${domainName}`;
+    const cleanDomain = domainName.startsWith('http')
+      ? domainName
+      : `http://${domainName}`;
     configBuilder.addServer(cleanDomain, 'Remote Server (HTTP)');
     if (!domainName.startsWith('http')) {
       configBuilder.addServer(`https://${domainName}`, 'Remote Server (HTTPS)');
