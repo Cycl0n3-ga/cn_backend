@@ -29,6 +29,7 @@ COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/clie
 
 # Copy built application
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma.config.js ./
 RUN mkdir -p /app/data && chown -R node:node /app
 
 # Expose port
