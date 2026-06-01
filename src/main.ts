@@ -46,16 +46,27 @@ async function bootstrap() {
   configureHttpApp(app);
 
   // Swagger / OpenAPI
-  const config = new DocumentBuilder()
+  const configBuilder = new DocumentBuilder()
     .setTitle('Code Judge API')
     .setDescription(buildSwaggerDescription())
     .setVersion('1.0')
-    .addBearerAuth()
-    .addServer(
-      `http://localhost:${process.env.PORT || 4100}`,
-      'Local Development',
-    )
-    .build();
+    .addBearerAuth();
+
+  const domainName = process.env.DOMAIN_NAME;
+  const port = process.env.PORT ?? 4100;
+
+  if (domainName) {
+    const cleanDomain = domainName.startsWith('http') ? domainName : `http://${domainName}`;
+    configBuilder.addServer(cleanDomain, 'Remote Server (HTTP)');
+    if (!domainName.startsWith('http')) {
+      configBuilder.addServer(`https://${domainName}`, 'Remote Server (HTTPS)');
+    }
+  }
+
+  configBuilder.addServer(`http://localhost:${port}`, 'Local Development');
+  configBuilder.addServer('/', 'Auto-detect Host (Relative)');
+
+  const config = configBuilder.build();
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document, {
