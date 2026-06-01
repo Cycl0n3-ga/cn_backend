@@ -34,24 +34,48 @@ export class HealthController {
     },
   })
   async check() {
+    return this.readiness();
+  }
+
+  @Get('live')
+  @ApiOperation({
+    summary: 'Liveness probe',
+    description: '只確認 Node.js process 仍可回應，不檢查外部依賴。',
+  })
+  live() {
+    return {
+      status: 'UP',
+      uptime: `${Math.floor((Date.now() - this.startTime) / 1000)}s`,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  @Get('ready')
+  @ApiOperation({
+    summary: 'Readiness probe',
+    description: '確認 API 所需的 DB 與 judge queue 依賴是否可用。',
+  })
+  async readiness() {
     let dbStatus = 'OK';
+    let pendingSubmissions = 0;
     try {
       await this.prisma.user.count();
+      pendingSubmissions = await this.prisma.submission.count({
+        where: { status: { in: ['PENDING', 'COMPILING', 'RUNNING'] } },
+      });
     } catch {
       dbStatus = 'DOWN';
     }
 
-    const pendingSubmissions = await this.prisma.submission.count({
-      where: { status: { in: ['PENDING', 'COMPILING', 'RUNNING'] } },
-    });
+    const queueReady = await this.judgeQueueService.isReady();
 
     const uptimeSeconds = Math.floor((Date.now() - this.startTime) / 1000);
 
     return {
-      status: dbStatus === 'OK' ? 'UP' : 'DOWN',
+      status: dbStatus === 'OK' && queueReady ? 'UP' : 'DOWN',
       services: {
         database: dbStatus,
-        judge_queue: 'OK',
+        judge_queue: queueReady ? 'OK' : 'DOWN',
       },
       queue_depth: pendingSubmissions.toString(),
       uptime: `${uptimeSeconds}s`,
@@ -62,7 +86,8 @@ export class HealthController {
   @Get('stats')
   @ApiOperation({
     summary: '獲取系統實時統計指標',
-    description: '提供 CPU、內存、資料庫連線、判題佇列與最新提交統計，供 Dashboard 輪詢使用。',
+    description:
+      '提供 CPU、內存、資料庫連線、判題佇列與最新提交統計，供 Dashboard 輪詢使用。',
   })
   async getStats() {
     let dbStatus = 'OK';
@@ -85,10 +110,13 @@ export class HealthController {
       by: ['status'],
       _count: true,
     });
-    const statusCounts = statusGroups.reduce((acc, curr) => {
-      acc[curr.status] = curr._count;
-      return acc;
-    }, {} as Record<string, number>);
+    const statusCounts = statusGroups.reduce(
+      (acc, curr) => {
+        acc[curr.status] = curr._count;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
     const recentSubmissionsRaw = await this.prisma.submission.findMany({
       take: 10,
@@ -110,7 +138,7 @@ export class HealthController {
       createdAt: s.createdAt,
     }));
 
-    const queueStats = this.judgeQueueService.getStats();
+    const queueStats = await this.judgeQueueService.getStats();
 
     const totalMem = os.totalmem();
     const freeMem = os.freemem();
@@ -148,7 +176,8 @@ export class HealthController {
   @Get('dashboard')
   @ApiOperation({
     summary: '系統監控儀表板',
-    description: '返回一個實時更新、視覺效果驚艷的 Glassmorphism 暗黑模式監控介面。',
+    description:
+      '返回一個實時更新、視覺效果驚艷的 Glassmorphism 暗黑模式監控介面。',
   })
   getDashboard(@Res() res: Response) {
     const html = `
@@ -1140,4 +1169,3 @@ export class HealthController {
     res.send(html);
   }
 }
-

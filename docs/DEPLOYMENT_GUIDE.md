@@ -1,17 +1,17 @@
 # DEPLOYMENT_GUIDE.md - 部署指南
 
-線上程庫碼評測系統後端 - 完整的部署說明
+線上程式碼評測系統後端 - 完整的部署說明
 
 ## 目錄
+
 - [部署概覽](#部署概覽)
 - [Docker部署](#docker部署)
-- [生产環境配置](#生产環境配置)
+- [生產環境配置](#生產環境配置)
 - [資料庫部署](#資料庫部署)
 - [效能優化](#效能優化)
 - [監控和日誌](#監控和日誌)
 
 ---
-
 
 ## Docker部署
 
@@ -23,16 +23,16 @@
 # 建立部署設定、構建、執行 migration、啟動服務、等待 health check
 npm run deploy
 
-# 查看日誌
-docker compose --env-file .deploy/deploy.env logs -f backend-api
+# 查看 API / worker / Redis 日誌
+docker compose --env-file .deploy/deploy.env logs -f backend-api judge-worker redis
 
 # 停止服務
 docker compose --env-file .deploy/deploy.env down
 ```
 
-`scripts/deploy.sh` 會自動產生 `.deploy/deploy.env`，其中包含 SQLite DB URL、JWT secret、internal API key、`HOST_PORT` 與 judge 暫存目錄設定。Backend 會映射到 `HOST_PORT`（預設 `4100`），Caddy 另提供 80/443 反向代理。
+`scripts/deploy.sh` 會自動產生 `.deploy/deploy.env`，其中包含 SQLite DB URL、JWT secret、internal API key、`HOST_PORT`、Redis queue 與 judge 暫存目錄設定。Backend 會映射到 `HOST_PORT`（預設 `4100`），Caddy 另提供 80/443 反向代理。
 
-評測服務會透過 Docker socket 建立隔離的程式執行容器；請只在信任的主機上使用這份預設 Compose 設定。
+部署會啟動 `backend-api`、`judge-worker`、`redis` 與 `caddy`。API container 不掛 Docker socket；只有 `judge-worker` 透過 Docker socket 建立隔離的程式執行容器。請只在信任的主機上使用這份預設 Compose 設定。
 
 #### 2. 啟動時灌入种子資料
 
@@ -48,12 +48,24 @@ SEED_DB=true npm run deploy
 docker compose --env-file .deploy/deploy.env up -d --build
 ```
 
+### Compose 服務角色
+
+| Service        | 角色                                              | 安全邊界                         |
+| -------------- | ------------------------------------------------- | -------------------------------- |
+| `backend-api`  | HTTP API、auth、submission enqueue、readiness     | non-root、no docker.sock         |
+| `judge-worker` | BullMQ worker、Docker sandbox execution、寫回結果 | internal only、mount docker.sock |
+| `redis`        | durable queue / retry state                       | not public                       |
+| `caddy`        | reverse proxy / TLS                               | public ingress                   |
+
 ### 單容器部署
+
+不建議 production 用單容器部署，因為 API 與 judge worker 應分離。若只做本機開發，可以使用 `JUDGE_QUEUE_DRIVER=inline npm run start:dev`；若要 production，請使用 Compose 或等價的多服務部署。
 
 #### 構建镜像
 
 ```bash
-docker build -t code-judge-backend:1.0.0 .
+docker build --target production-api -t code-judge-backend-api:1.0.0 .
+docker build --target production-worker -t code-judge-worker:1.0.0 .
 ```
 
 #### 執行容器
@@ -63,18 +75,22 @@ docker run -d \
   --name code-judge-backend \
   -p 4100:4100 \
   -e DATABASE_URL=file:/app/data/code_judge.db \
+  -e JUDGE_QUEUE_DRIVER=redis \
+  -e REDIS_URL=redis://redis:6379 \
   -e JWT_SECRET=your-production-secret \
   -e JWT_EXPIRES_IN=86400 \
   -e INTERNAL_API_KEY=internal-key \
   -v backend_data:/app/data \
-  code-judge-backend:1.0.0
+  code-judge-backend-api:1.0.0
 ```
+
+此範例仍需要另行啟動 Redis 與 judge worker，否則 submission 只會進入 queue，不會被消費。
 
 ### 多容器部署（應用 + 資料庫）
 
 > 目前 repository 內的 Prisma provider 與 migrations 為 SQLite。下方 PostgreSQL compose 範例是規劃/改造參考，不能直接套用現有 migrations；可直接運行的預設部署請使用本專案根目錄的 `docker-compose.yml` 或 `npm run deploy`。
 
-#### docker-compose.yml (生产配置)
+#### docker-compose.yml (生產配置)
 
 ```yaml
 version: '3.8'
@@ -84,7 +100,7 @@ services:
     image: code-judge-backend:1.0.0
     container_name: code-judge-backend
     ports:
-      - "4100:4100"
+      - '4100:4100'
     environment:
       DATABASE_URL: postgresql://judge_user:${DB_PASSWORD}@db:5432/code_judge
       JWT_SECRET: ${JWT_SECRET}
@@ -99,7 +115,7 @@ services:
       - ./logs:/app/logs
     restart: always
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4100/api/v1/health"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:4100/api/v1/health/ready']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -116,7 +132,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U judge_user"]
+      test: ['CMD-SHELL', 'pg_isready -U judge_user']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -126,7 +142,7 @@ volumes:
   backend_data:
 ```
 
-#### 啟動生产環境
+#### 啟動生產環境
 
 ```bash
 # 設置環境變數
@@ -137,17 +153,18 @@ export DB_PASSWORD="secure-db-password-here"
 # 啟動
 docker compose -f docker-compose.prod.yml up -d
 
-# 驗證服務状态
+# 驗證服務狀態
 docker compose ps
 ```
 
 ---
 
-## 生产環境配置
+## 生產環境配置
 
 ### 環境變數清單
 
 **.env.production**
+
 ```bash
 # 應用配置
 NODE_ENV=production
@@ -158,18 +175,43 @@ API_PREFIX=/api/v1
 DATABASE_URL=postgresql://judge_user:password@db.example.com:5432/code_judge
 
 # JWT
-JWT_SECRET=<生成的长随机字符串>
+JWT_SECRET=<生成的长隨機字符串>
 JWT_EXPIRES_IN=86400
 
 # 內部API
-INTERNAL_API_KEY=<生成的強密钥>
+INTERNAL_API_KEY=<生成的強金鑰>
 INTERNAL_API_ALLOWED_IPS=10.0.0.0/8,192.168.0.0/16
+
+# Judge queue
+JUDGE_QUEUE_DRIVER=redis
+REDIS_URL=redis://redis:6379
+JUDGE_CONCURRENCY=2
+JUDGE_JOB_ATTEMPTS=3
+JUDGE_STUCK_AFTER_SECONDS=300
 
 # 日誌
 LOG_LEVEL=info
 ```
 
-### 生成安全密钥
+### Health checks
+
+| Endpoint               | 用途                        |
+| ---------------------- | --------------------------- |
+| `/api/v1/health/live`  | process liveness            |
+| `/api/v1/health/ready` | DB + Redis/BullMQ readiness |
+| `/api/v1/health/stats` | dashboard/statistics        |
+
+Docker Compose healthcheck 使用 `/health/ready`，因此 Redis 或 DB 不可用時，API 不會被標記為 healthy。
+
+### Rollback
+
+1. 確認不要設定 `SEED_DB=true`，避免覆蓋正式資料。
+2. 切回上一個 git commit 或上一版 image tag。
+3. 執行 `docker compose --env-file .deploy/deploy.env up -d --build`。
+4. 觀察 `backend-api`、`judge-worker`、`redis` logs。
+5. 檢查 `/api/v1/health/ready` 與卡住的 submissions。啟動 recovery 會自動 requeue 超過 `JUDGE_STUCK_AFTER_SECONDS` 的 `PENDING/RUNNING` submission。
+
+### 生成安全金鑰
 
 ```bash
 # 生成JWT_SECRET
@@ -203,9 +245,10 @@ npm run start:prod
 
 > 目前 `prisma/schema.prisma` 與 `prisma/migrations` 是 SQLite 版本。切換 PostgreSQL 前，需先建立 PostgreSQL provider 與對應 migrations。
 
-#### 在服務器上安装PostgreSQL
+#### 在服務器上安裝PostgreSQL
 
 **Ubuntu/Debian**
+
 ```bash
 sudo apt-get update
 sudo apt-get install postgresql postgresql-contrib -y
@@ -216,6 +259,7 @@ sudo systemctl enable postgresql
 ```
 
 **Docker**
+
 ```bash
 docker run -d \
   --name postgres \
@@ -295,14 +339,14 @@ gunzip < /backups/code-judge/backup_20250518_020000.sql.gz | psql -U judge_user 
 
 ## 效能優化
 
-### 應用层優化
+### 應用層優化
 
-#### 1. 啟用快得
+#### 1. 啟用快取
 
-在應用中新增快得层（future feature）
+在應用中新增快取層（future feature）
 
 ```typescript
-// 快得问题列表
+// 快取問題列表
 @Cacheable('problems', { ttl: 3600 })
 async getProblems() {
   return this.prismaService.problem.findMany();
@@ -316,7 +360,7 @@ async getProblems() {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  
+
   // 連接池配置
   directUrl = env("DATABASE_DIRECT_URL")
 }
@@ -343,7 +387,7 @@ await this.prismaService.problem.findMany({
 });
 ```
 
-### 資料庫层優化
+### 資料庫層優化
 
 #### 1. 索引優化
 
@@ -372,7 +416,7 @@ WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
 ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
 ```
 
-### 网络层優化
+### 網路層優化
 
 #### 1. 啟用GZIP壓缩
 
@@ -422,7 +466,7 @@ export class AppModule {}
 
 ### 日誌配置
 
-#### Winston日誌程庫庫
+#### Winston日誌程式庫
 
 ```bash
 npm install winston
@@ -445,16 +489,19 @@ const logger = winston.createLogger({
 });
 ```
 
-### 健康检查
+### 健康檢查
 
 ```bash
-# 检查應用状态
-curl http://localhost:4100/api/v1/health
+# 檢查應用 readiness
+curl http://localhost:4100/api/v1/health/ready
 
 # 響應
 {
-  "status": "ok",
-  "timestamp": "2025-05-18T10:30:00Z"
+  "status": "UP",
+  "services": {
+    "database": "OK",
+    "judge_queue": "OK"
+  }
 }
 ```
 
@@ -482,17 +529,17 @@ Sentry.init({
 
 ---
 
-## 部署检查清單
+## 部署檢查清單
 
 - [ ] 環境變數已配置
-- [ ] 資料庫已建立并遷移
+- [ ] 資料庫已建立並遷移
 - [ ] SSL/TLS證书已配置
 - [ ] 備份策略已實施
 - [ ] 監控告警已設置
 - [ ] 日誌收集已配置
-- [ ] 健康检查已驗證
+- [ ] 健康檢查已驗證
 - [ ] 效能基準已測試
-- [ ] 安全审計已完成
+- [ ] 安全審計已完成
 - [ ] 檔案已更新
 
 ---
@@ -508,11 +555,11 @@ docker logs code-judge-backend
 # 重新啟動容器
 docker restart code-judge-backend
 
-# 查看容器状态
+# 查看容器狀態
 docker ps | grep code-judge
 ```
 
-### 資料庫連接问题
+### 資料庫連接問題
 
 ```bash
 # 測試連接
@@ -527,6 +574,6 @@ SELECT datname, count(*) FROM pg_stat_activity GROUP BY datname;
 ## 相关檔案
 
 - [SETUP_GUIDE.md](SETUP_GUIDE.md) - 開發環境設置
-- [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) - 資料庫模庫
+- [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) - 資料庫模式
 - [SECURITY.md](SECURITY.md) - 安全性檔案
 - [Dockerfile](../Dockerfile) - Docker配置

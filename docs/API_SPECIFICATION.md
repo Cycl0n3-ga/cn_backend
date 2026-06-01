@@ -28,22 +28,22 @@ Authorization: Bearer <JWT_TOKEN>
 
 > 注意：本專案 `passwordSha256` 欄位 **不是明文密碼**，而是 `sha256(明文密碼)` 的 64 位 hex 字串。
 
-| 帳號    | 明文密碼（僅供人類閱讀） | passwordSha256 (sha256 hex)                                        | 角色  |
-| ------- | ------------------------ | ------------------------------------------------------------------ | ----- |
-| `admin` | `admin123`               | `240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9` | ADMIN |
-| `examiner` | `user123`             | `e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446` | EXAMINER |
-| `questioner` | `user123`           | `e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446` | QUESTIONER |
-| `alice` | `user123`                | `e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446` | CANDIDATE |
-| `bob`   | `user123`                | `e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446` | CANDIDATE |
+| 帳號         | 明文密碼（僅供人類閱讀） | passwordSha256 (sha256 hex)                                        | 角色       |
+| ------------ | ------------------------ | ------------------------------------------------------------------ | ---------- |
+| `admin`      | `admin123`               | `240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9` | ADMIN      |
+| `examiner`   | `user123`                | `e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446` | EXAMINER   |
+| `questioner` | `user123`                | `e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446` | QUESTIONER |
+| `alice`      | `user123`                | `e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446` | CANDIDATE  |
+| `bob`        | `user123`                | `e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446` | CANDIDATE  |
 
 ### 角色權限
 
-| 角色 | 說明 |
-|------|------|
-| `ADMIN` | 系統管理者，可通過所有角色保護端點 |
-| `EXAMINER` | 管理面試、面試候選人、面試題目指派 |
-| `QUESTIONER` | 管理題庫與題目指派 |
-| `CANDIDATE` | 參與測驗與提交程式碼；帳號可不填 email |
+| 角色         | 說明                                   |
+| ------------ | -------------------------------------- |
+| `ADMIN`      | 系統管理者，可通過所有角色保護端點     |
+| `EXAMINER`   | 管理面試、面試候選人、面試題目指派     |
+| `QUESTIONER` | 管理題庫與題目指派                     |
+| `CANDIDATE`  | 參與測驗與提交程式碼；帳號可不填 email |
 
 ### 統一錯誤回應格式
 
@@ -247,10 +247,10 @@ Authorization: Bearer <JWT_TOKEN>
 
 ### 3.3 新增題目 (Admin Only)
 
-| 項目       | 值                      |
-| ---------- | ----------------------- |
-| **Method** | `POST`                  |
-| **Path**   | `/problems`             |
+| 項目       | 值                                      |
+| ---------- | --------------------------------------- |
+| **Method** | `POST`                                  |
+| **Path**   | `/problems`                             |
 | **認證**   | ✅ Bearer Token (`ADMIN`, `QUESTIONER`) |
 
 **Request Body:**
@@ -299,13 +299,13 @@ Authorization: Bearer <JWT_TOKEN>
 
 ---
 
-### 3.4 編輯題目 (Admin Only)
+### 3.4 編輯題目
 
-| 項目       | 值                      |
-| ---------- | ----------------------- |
-| **Method** | `PATCH`                  |
-| **Path**   | `/problems/{id}`        |
-| **認證**   | ✅ Bearer Token (`ADMIN`, `QUESTIONER`) |
+| 項目       | 值                                                  |
+| ---------- | --------------------------------------------------- |
+| **Method** | `PATCH`                                             |
+| **Path**   | `/problems/{id}`                                    |
+| **認證**   | ✅ Bearer Token (`ADMIN`, `EXAMINER`, `QUESTIONER`) |
 
 **Request Body:**
 
@@ -317,24 +317,24 @@ Authorization: Bearer <JWT_TOKEN>
   "function_name": "solve",
   "time_limit_ms": 1500,
   "memory_limit_mb": 512,
-  "test_cases": [
-    { "input": "[1,2,3]", "output": "6", "is_hidden": false }
-  ]
+  "test_cases": [{ "input": "[1,2,3]", "output": "6", "is_hidden": false }]
 }
 ```
 
-| 欄位                     | 型別    | 必填 | 說明                           |
-| ------------------------ | ------- | ---- | ------------------------------ |
-| `title`                  | string  | 否   | 題目標題                       |
-| `description`            | string  | 否   | 題目描述 (Markdown)            |
-| `difficulty`             | enum    | 否   | `EASY`, `MEDIUM`, `HARD`       |
-| `function_name`          | string  | 否   | 預期使用者實作的 function 名稱 |
-| `time_limit_ms`          | number  | 否   | 時間限制（毫秒）               |
-| `memory_limit_mb`        | number  | 否   | 記憶體限制（MB）               |
-| `test_cases`             | array   | 否   | 新的測試資料（傳入會完全覆蓋舊測資） |
-| `test_cases[].input`     | string  | ✅   | 輸入                           |
-| `test_cases[].output`    | string  | ✅   | 預期輸出                       |
-| `test_cases[].is_hidden` | boolean | 否   | 是否隱藏，預設 true            |
+| 欄位                     | 型別    | 必填 | 說明                                           |
+| ------------------------ | ------- | ---- | ---------------------------------------------- |
+| `title`                  | string  | 否   | 題目標題                                       |
+| `description`            | string  | 否   | 題目描述 (Markdown)                            |
+| `difficulty`             | enum    | 否   | `EASY`, `MEDIUM`, `HARD`                       |
+| `function_name`          | string  | 否   | 預期使用者實作的 function 名稱                 |
+| `time_limit_ms`          | number  | 否   | 時間限制（毫秒）                               |
+| `memory_limit_mb`        | number  | 否   | 記憶體限制（MB）                               |
+| `test_cases`             | array   | 否   | 新的測試資料（傳入會完全覆蓋舊測資，至少一筆） |
+| `test_cases[].input`     | string  | ✅   | 輸入                                           |
+| `test_cases[].output`    | string  | ✅   | 預期輸出                                       |
+| `test_cases[].is_hidden` | boolean | 否   | 是否隱藏，預設 true                            |
+
+> PATCH body 至少要提供一個欄位；`test_cases: []` 會回傳 400，避免題目被更新成沒有任何測資。
 
 **Response (200 OK):**
 
@@ -342,11 +342,23 @@ Authorization: Bearer <JWT_TOKEN>
 {
   "problem_id": "1",
   "title": "Updated Problem Title",
+  "description": "## Description\n\nNew markdown text...",
+  "difficulty": "MEDIUM",
+  "function_name": "solve",
   "creator": {
     "id": "uuid-string",
     "username": "admin",
     "email": "admin@codejudge.dev"
-  }
+  },
+  "assignedCount": "0",
+  "submittedCount": "0",
+  "acceptedCount": "0",
+  "failedCount": "0",
+  "constraints": {
+    "time_limit_ms": "1500",
+    "memory_limit_mb": "512"
+  },
+  "sample_test_cases": [{ "input": "[1,2,3]", "output": "6" }]
 }
 ```
 
@@ -354,10 +366,10 @@ Authorization: Bearer <JWT_TOKEN>
 
 ### 3.5 刪除題目 (Admin Only)
 
-| 項目       | 值                      |
-| ---------- | ----------------------- |
-| **Method** | `DELETE`                |
-| **Path**   | `/problems/{id}`        |
+| 項目       | 值                                      |
+| ---------- | --------------------------------------- |
+| **Method** | `DELETE`                                |
+| **Path**   | `/problems/{id}`                        |
 | **認證**   | ✅ Bearer Token (`ADMIN`, `QUESTIONER`) |
 
 **Response:** `204 No Content`（無回傳本體）
@@ -368,10 +380,10 @@ Authorization: Bearer <JWT_TOKEN>
 
 ### 3.6 指派題目 (Admin Only)
 
-| 項目       | 值                      |
-| ---------- | ----------------------- |
-| **Method** | `POST`                  |
-| **Path**   | `/problems/{id}/assign` |
+| 項目       | 值                                                  |
+| ---------- | --------------------------------------------------- |
+| **Method** | `POST`                                              |
+| **Path**   | `/problems/{id}/assign`                             |
 | **認證**   | ✅ Bearer Token (`ADMIN`, `EXAMINER`, `QUESTIONER`) |
 
 **Request Body:**
@@ -399,10 +411,10 @@ Authorization: Bearer <JWT_TOKEN>
 
 ### 4.1 提交程式碼 (非同步)
 
-| 項目       | 值              |
-| ---------- | --------------- |
-| **Method** | `POST`          |
-| **Path**   | `/submissions`  |
+| 項目       | 值                                     |
+| ---------- | -------------------------------------- |
+| **Method** | `POST`                                 |
+| **Path**   | `/submissions`                         |
 | **認證**   | ✅ Bearer Token (`ADMIN`, `CANDIDATE`) |
 
 **Request Body:**
@@ -415,17 +427,19 @@ Authorization: Bearer <JWT_TOKEN>
 }
 ```
 
-| 欄位          | 型別   | 必填 | 說明                                          |
-| ------------- | ------ | ---- | --------------------------------------------- |
-| `problem_id`  | number | ✅   | 題目 ID                                       |
+| 欄位          | 型別   | 必填 | 說明                                                                    |
+| ------------- | ------ | ---- | ----------------------------------------------------------------------- |
+| `problem_id`  | number | ✅   | 題目 ID                                                                 |
 | `language`    | string | ✅   | 程式語言 (`javascript`/`js`, `python`/`python3`/`py`, `c`, `cpp`/`c++`) |
-| `source_code` | string | ✅   | 原始碼                                        |
+| `source_code` | string | ✅   | 原始碼                                                                  |
 
 **Response (202 Accepted):**
 
 ```json
 {
   "submission_id": "uuid-v4-string",
+  "judge_job_id": "uuid-v4-string",
+  "queue_driver": "redis",
   "status": "PENDING"
 }
 ```
@@ -437,10 +451,10 @@ Authorization: Bearer <JWT_TOKEN>
 
 ### 4.2 查詢提交結果
 
-| 項目       | 值                             |
-| ---------- | ------------------------------ |
-| **Method** | `GET`                          |
-| **Path**   | `/submissions/{submission_id}` |
+| 項目       | 值                                                 |
+| ---------- | -------------------------------------------------- |
+| **Method** | `GET`                                              |
+| **Path**   | `/submissions/{submission_id}`                     |
 | **認證**   | ✅ Bearer Token（提交者本人、`ADMIN`、`EXAMINER`） |
 
 **Response (200 OK):**
@@ -448,6 +462,7 @@ Authorization: Bearer <JWT_TOKEN>
 ```json
 {
   "submission_id": "uuid-v4-string",
+  "judge_job_id": "uuid-v4-string",
   "problem_id": "1",
   "language": "python3",
   "status": "ACCEPTED",
@@ -458,6 +473,10 @@ Authorization: Bearer <JWT_TOKEN>
     "execution_time_ms": "45",
     "memory_usage_kb": "2048"
   },
+  "last_error": "",
+  "queued_at": "2026-05-13T12:00:00.000Z",
+  "started_at": "2026-05-13T12:00:01.000Z",
+  "finished_at": "2026-05-13T12:00:02.000Z",
   "submitted_at": "2026-05-13T12:00:00.000Z"
 }
 ```
@@ -490,10 +509,10 @@ Authorization: Bearer <JWT_TOKEN>
 
 ### 5.1 取得所有使用者
 
-| 項目       | 值       |
-| ---------- | -------- |
-| **Method** | `GET`    |
-| **Path**   | `/users` |
+| 項目       | 值                  |
+| ---------- | ------------------- |
+| **Method** | `GET`               |
+| **Path**   | `/users`            |
 | **認證**   | ✅ ADMIN / EXAMINER |
 
 **Response (200 OK):**
@@ -518,10 +537,10 @@ Authorization: Bearer <JWT_TOKEN>
 
 ### 5.2 取得使用者提交歷史
 
-| 項目       | 值                              |
-| ---------- | ------------------------------- |
-| **Method** | `GET`                           |
-| **Path**   | `/users/{username}/submissions` |
+| 項目       | 值                                           |
+| ---------- | -------------------------------------------- |
+| **Method** | `GET`                                        |
+| **Path**   | `/users/{username}/submissions`              |
 | **認證**   | ✅ Bearer Token（本人、`ADMIN`、`EXAMINER`） |
 
 **Query Parameters:**
@@ -598,6 +617,8 @@ Authorization: Bearer <JWT_TOKEN>
 | **Path**   | `/health` |
 | **認證**   | 不需要    |
 
+`/health` 與 `/health/ready` 都會檢查 DB 與 judge queue；`/health/live` 只檢查 process 是否可回應。
+
 **Response (200 OK):**
 
 ```json
@@ -612,6 +633,16 @@ Authorization: Bearer <JWT_TOKEN>
   "timestamp": "2026-05-13T15:30:00.000Z"
 }
 ```
+
+---
+
+### 7.1.1 Liveness / Readiness
+
+| Method | Path            | 說明                              |
+| ------ | --------------- | --------------------------------- |
+| `GET`  | `/health/live`  | process liveness probe            |
+| `GET`  | `/health/ready` | DB + Redis/BullMQ readiness probe |
+| `GET`  | `/health/stats` | dashboard/system stats            |
 
 ---
 
@@ -652,10 +683,10 @@ x-internal-api-key: <INTERNAL_API_KEY>
 
 ### 8.1 建立面試 (輔助測試)
 
-| 項目       | 值              |
-| ---------- | --------------- |
-| **Method** | `POST`          |
-| **Path**   | `/interviews`   |
+| 項目       | 值                                    |
+| ---------- | ------------------------------------- |
+| **Method** | `POST`                                |
+| **Path**   | `/interviews`                         |
 | **認證**   | ✅ Bearer Token (`ADMIN`, `EXAMINER`) |
 
 **Request Body:**
@@ -715,10 +746,10 @@ x-internal-api-key: <INTERNAL_API_KEY>
 
 ### 8.2 更改面試名稱
 
-| 項目       | 值                 |
-| ---------- | ------------------ |
-| **Method** | `PATCH`            |
-| **Path**   | `/interviews/{id}` |
+| 項目       | 值                                    |
+| ---------- | ------------------------------------- |
+| **Method** | `PATCH`                               |
+| **Path**   | `/interviews/{id}`                    |
 | **認證**   | ✅ Bearer Token (`ADMIN`, `EXAMINER`) |
 
 **Request Body:**
@@ -743,10 +774,10 @@ x-internal-api-key: <INTERNAL_API_KEY>
 
 ### 8.3 刪除面試
 
-| 項目       | 值                 |
-| ---------- | ------------------ |
-| **Method** | `DELETE`           |
-| **Path**   | `/interviews/{id}` |
+| 項目       | 值                                    |
+| ---------- | ------------------------------------- |
+| **Method** | `DELETE`                              |
+| **Path**   | `/interviews/{id}`                    |
 | **認證**   | ✅ Bearer Token (`ADMIN`, `EXAMINER`) |
 
 **Response (204 No Content):** 無回傳本體
@@ -755,10 +786,10 @@ x-internal-api-key: <INTERNAL_API_KEY>
 
 ### 8.4 新增面試者到面試
 
-| 項目       | 值                      |
-| ---------- | ----------------------- |
-| **Method** | `POST`                  |
-| **Path**   | `/interview-candidates` |
+| 項目       | 值                                    |
+| ---------- | ------------------------------------- |
+| **Method** | `POST`                                |
+| **Path**   | `/interview-candidates`               |
 | **認證**   | ✅ Bearer Token (`ADMIN`, `EXAMINER`) |
 
 **Request Body:**
@@ -790,10 +821,10 @@ x-internal-api-key: <INTERNAL_API_KEY>
 
 ### 8.5 取得所有面試考生列表
 
-| 項目       | 值                      |
-| ---------- | ----------------------- |
-| **Method** | `GET`                   |
-| **Path**   | `/interview-candidates` |
+| 項目       | 值                                    |
+| ---------- | ------------------------------------- |
+| **Method** | `GET`                                 |
+| **Path**   | `/interview-candidates`               |
 | **認證**   | ✅ Bearer Token (`ADMIN`, `EXAMINER`) |
 
 **Response (200 OK):**
@@ -825,10 +856,10 @@ x-internal-api-key: <INTERNAL_API_KEY>
 
 ### 8.6 更新面試考生測驗時間
 
-| 項目       | 值                                |
-| ---------- | --------------------------------- |
-| **Method** | `PATCH`                           |
-| **Path**   | `/interview-candidates/{id}/time` |
+| 項目       | 值                                    |
+| ---------- | ------------------------------------- |
+| **Method** | `PATCH`                               |
+| **Path**   | `/interview-candidates/{id}/time`     |
 | **認證**   | ✅ Bearer Token (`ADMIN`, `EXAMINER`) |
 
 **Request Body:**
@@ -858,11 +889,11 @@ x-internal-api-key: <INTERNAL_API_KEY>
 
 ### 8.7 取得面試考生測驗剩餘時間
 
-| 項目 | 值 |
-|------|------|
-| **Method** | `GET` |
-| **Path** | `/interview-candidates/{id}/time-status` |
-| **認證** | ✅ Bearer Token (`ADMIN`, `EXAMINER`, `CANDIDATE`) |
+| 項目       | 值                                                 |
+| ---------- | -------------------------------------------------- |
+| **Method** | `GET`                                              |
+| **Path**   | `/interview-candidates/{id}/time-status`           |
+| **認證**   | ✅ Bearer Token (`ADMIN`, `EXAMINER`, `CANDIDATE`) |
 
 `CANDIDATE` 僅能查詢自己的面試考生記錄；`ADMIN`、`EXAMINER` 可查詢所有記錄。
 
@@ -890,10 +921,10 @@ x-internal-api-key: <INTERNAL_API_KEY>
 
 ### 8.8 從面試中移除考生
 
-| 項目       | 值                           |
-| ---------- | ---------------------------- |
-| **Method** | `DELETE`                     |
-| **Path**   | `/interview-candidates/{id}` |
+| 項目       | 值                                    |
+| ---------- | ------------------------------------- |
+| **Method** | `DELETE`                              |
+| **Path**   | `/interview-candidates/{id}`          |
 | **認證**   | ✅ Bearer Token (`ADMIN`, `EXAMINER`) |
 
 **Response (204 No Content):** 無回傳本體
@@ -906,10 +937,10 @@ x-internal-api-key: <INTERNAL_API_KEY>
 
 ### 9.1 指派題目給考生
 
-| 項目       | 值              |
-| ---------- | --------------- |
-| **Method** | `POST`          |
-| **Path**   | `/assignments`  |
+| 項目       | 值                                                  |
+| ---------- | --------------------------------------------------- |
+| **Method** | `POST`                                              |
+| **Path**   | `/assignments`                                      |
 | **認證**   | ✅ Bearer Token (`ADMIN`, `EXAMINER`, `QUESTIONER`) |
 
 **Request Body:**
@@ -938,10 +969,10 @@ x-internal-api-key: <INTERNAL_API_KEY>
 
 ### 9.2 取得題目指派列表
 
-| 項目       | 值             |
-| ---------- | -------------- |
-| **Method** | `GET`          |
-| **Path**   | `/assignments` |
+| 項目       | 值                                                  |
+| ---------- | --------------------------------------------------- |
+| **Method** | `GET`                                               |
+| **Path**   | `/assignments`                                      |
 | **認證**   | ✅ Bearer Token (`ADMIN`, `EXAMINER`, `QUESTIONER`) |
 
 **Response (200 OK):**
@@ -962,10 +993,10 @@ x-internal-api-key: <INTERNAL_API_KEY>
 
 ### 9.3 取得特定使用者的指派列表
 
-| 項目       | 值                           |
-| ---------- | ---------------------------- |
-| **Method** | `GET`                        |
-| **Path**   | `/assignments/user/{userId}` |
+| 項目       | 值                                                         |
+| ---------- | ---------------------------------------------------------- |
+| **Method** | `GET`                                                      |
+| **Path**   | `/assignments/user/{userId}`                               |
 | **認證**   | ✅ Bearer Token（本人、`ADMIN`、`EXAMINER`、`QUESTIONER`） |
 
 **Response (200 OK):**
@@ -985,10 +1016,10 @@ x-internal-api-key: <INTERNAL_API_KEY>
 
 ### 9.4 取得單一題目指派
 
-| 項目       | 值                  |
-| ---------- | ------------------- |
-| **Method** | `GET`               |
-| **Path**   | `/assignments/{id}` |
+| 項目       | 值                                                  |
+| ---------- | --------------------------------------------------- |
+| **Method** | `GET`                                               |
+| **Path**   | `/assignments/{id}`                                 |
 | **認證**   | ✅ Bearer Token (`ADMIN`, `EXAMINER`, `QUESTIONER`) |
 
 **Response (200 OK):**
@@ -1006,10 +1037,10 @@ x-internal-api-key: <INTERNAL_API_KEY>
 
 ### 9.5 刪除題目指派
 
-| 項目       | 值                  |
-| ---------- | ------------------- |
-| **Method** | `DELETE`            |
-| **Path**   | `/assignments/{id}` |
+| 項目       | 值                                                  |
+| ---------- | --------------------------------------------------- |
+| **Method** | `DELETE`                                            |
+| **Path**   | `/assignments/{id}`                                 |
 | **認證**   | ✅ Bearer Token (`ADMIN`, `EXAMINER`, `QUESTIONER`) |
 
 **Response (204 No Content):** 無回傳本體
@@ -1022,11 +1053,11 @@ x-internal-api-key: <INTERNAL_API_KEY>
 
 ### 10.1 新增壓力測試報告
 
-| 項目 | 值 |
-|------|------|
-| **Method** | `POST` |
-| **Path** | `/stress-test-reports` |
-| **認證** | 🔑 Internal API Key (`x-internal-api-key`) |
+| 項目       | 值                                         |
+| ---------- | ------------------------------------------ |
+| **Method** | `POST`                                     |
+| **Path**   | `/stress-test-reports`                     |
+| **認證**   | 🔑 Internal API Key (`x-internal-api-key`) |
 
 **Request Body:**
 
@@ -1059,13 +1090,14 @@ x-internal-api-key: <INTERNAL_API_KEY>
 
 ### 10.2 取得壓力測試報告列表
 
-| 項目 | 值 |
-|------|------|
-| **Method** | `GET` |
-| **Path** | `/stress-test-reports` |
-| **認證** | 不需要 |
+| 項目       | 值                     |
+| ---------- | ---------------------- |
+| **Method** | `GET`                  |
+| **Path**   | `/stress-test-reports` |
+| **認證**   | 不需要                 |
 
 **Query Parameters:**
+
 - `endpoint` (可選): 篩選特定端點的報告
 - `limit` (可選): 限制回傳筆數，預設 50，最大 100
 
@@ -1075,13 +1107,14 @@ x-internal-api-key: <INTERNAL_API_KEY>
 
 ### 10.3 取得特定端點最新報告
 
-| 項目 | 值 |
-|------|------|
-| **Method** | `GET` |
-| **Path** | `/stress-test-reports/latest` |
-| **認證** | 不需要 |
+| 項目       | 值                            |
+| ---------- | ----------------------------- |
+| **Method** | `GET`                         |
+| **Path**   | `/stress-test-reports/latest` |
+| **認證**   | 不需要                        |
 
 **Query Parameters:**
+
 - `endpoint` (必填): 端點路徑
 
 **Response (200 OK):** 最新一筆報告物件或 null。
@@ -1090,13 +1123,14 @@ x-internal-api-key: <INTERNAL_API_KEY>
 
 ### 10.4 取得各端點壓力測試摘要
 
-| 項目 | 值 |
-|------|------|
-| **Method** | `GET` |
-| **Path** | `/stress-test-reports/summary` |
-| **認證** | 不需要 |
+| 項目       | 值                             |
+| ---------- | ------------------------------ |
+| **Method** | `GET`                          |
+| **Path**   | `/stress-test-reports/summary` |
+| **認證**   | 不需要                         |
 
 **Query Parameters:**
+
 - `endpoint` (可選): 篩選特定端點
 
 **Response (200 OK):**
@@ -1118,11 +1152,11 @@ x-internal-api-key: <INTERNAL_API_KEY>
 
 ### 10.5 取得壓力測試 Dashboard (HTML)
 
-| 項目 | 值 |
-|------|------|
-| **Method** | `GET` |
-| **Path** | `/stress-test-reports/dashboard` |
-| **認證** | 不需要 |
+| 項目       | 值                               |
+| ---------- | -------------------------------- |
+| **Method** | `GET`                            |
+| **Path**   | `/stress-test-reports/dashboard` |
+| **認證**   | 不需要                           |
 
 **Response (200 OK):** 回傳 HTML 格式的監控儀表板。
 
@@ -1130,39 +1164,41 @@ x-internal-api-key: <INTERNAL_API_KEY>
 
 ## 11. API 端點總覽
 
-| #   | Method   | Path                             | 認證        | 說明                 |
-| --- | -------- | -------------------------------- | ----------- | -------------------- |
-| 1   | `POST`   | `/auth/login`                    | ❌          | 使用者登入           |
-| 2   | `POST`   | `/auth/signup`                   | ❌          | 使用者註冊           |
-| 3   | `GET`    | `/problems`                      | ❌          | 題目列表             |
-| 4   | `GET`    | `/problems/:id`                  | ❌          | 題目詳情             |
-| 5   | `POST`   | `/problems`                      | 🔒 ADMIN / QUESTIONER | 新增題目             |
-| 6   | `PATCH`  | `/problems/:id`                  | 🔒 ADMIN / QUESTIONER | 編輯題目             |
-| 7   | `DELETE` | `/problems/:id`                  | 🔒 ADMIN / QUESTIONER | 刪除題目             |
-| 8   | `POST`   | `/problems/:id/assign`           | 🔒 ADMIN / EXAMINER / QUESTIONER | 指派題目             |
-| 9   | `POST`   | `/submissions`                   | 🔒 ADMIN / CANDIDATE | 提交程式碼           |
-| 10  | `GET`    | `/submissions/:id`               | 🔒 owner / ADMIN / EXAMINER | 查詢評測結果         |
-| 11  | `GET`    | `/users`                         | 🔒 ADMIN / EXAMINER | 使用者列表           |
-| 12  | `GET`    | `/users/:username/submissions`   | 🔒 owner / ADMIN / EXAMINER | 使用者提交歷史       |
-| 13  | `GET`    | `/leaderboard`                   | ❌          | 排行榜               |
-| 14  | `GET`    | `/health`                        | ❌          | 健康檢查             |
-| 15  | `GET`    | `/internal/testcases/:id`        | 🔑 Internal | 評測機測資           |
-| 16  | `POST`   | `/interviews`                    | 🔒 ADMIN / EXAMINER | 建立面試             |
-| 17  | `GET`    | `/interviews`                    | 🔒 ADMIN / EXAMINER | 取得面試列表         |
-| 18  | `PATCH`  | `/interviews/:id`                | 🔒 ADMIN / EXAMINER | 更改面試名稱         |
-| 19  | `DELETE` | `/interviews/:id`                | 🔒 ADMIN / EXAMINER | 刪除面試             |
-| 20  | `POST`   | `/interview-candidates`          | 🔒 ADMIN / EXAMINER | 新增面試者           |
-| 21  | `GET`    | `/interview-candidates`          | 🔒 ADMIN / EXAMINER | 取得所有面試考生列表 |
-| 22  | `PATCH`  | `/interview-candidates/:id/time` | 🔒 ADMIN / EXAMINER | 更新面試考生測驗時間 |
-| 23  | `GET`    | `/interview-candidates/:id/time-status` | 🔒 ADMIN / EXAMINER / CANDIDATE | 取得伺服器時間與剩餘時間 |
-| 24  | `DELETE` | `/interview-candidates/:id`      | 🔒 ADMIN / EXAMINER | 移除面試者           |
-| 25  | `POST`   | `/assignments`                   | 🔒 ADMIN / EXAMINER / QUESTIONER | 指派題目給考生       |
-| 26  | `GET`    | `/assignments`                   | 🔒 ADMIN / EXAMINER / QUESTIONER | 取得題目指派列表     |
-| 27  | `GET`    | `/assignments/user/:userId`      | 🔒 owner / ADMIN / EXAMINER / QUESTIONER | 取得特定使用者的指派 |
-| 28  | `GET`    | `/assignments/:id`               | 🔒 ADMIN / EXAMINER / QUESTIONER | 取得單一指派         |
-| 29  | `DELETE` | `/assignments/:id`               | 🔒 ADMIN / EXAMINER / QUESTIONER | 刪除題目指派         |
-| 30  | `POST`   | `/stress-test-reports`           | 🔑 Internal | 新增壓力測試報告     |
-| 31  | `GET`    | `/stress-test-reports`           | ❌          | 取得壓力測試報告列表 |
-| 32  | `GET`    | `/stress-test-reports/latest`    | ❌          | 取得端點最新報告     |
-| 33  | `GET`    | `/stress-test-reports/summary`   | ❌          | 取得壓力測試摘要     |
-| 34  | `GET`    | `/stress-test-reports/dashboard` | ❌          | 取得監控 Dashboard   |
+| #   | Method   | Path                                    | 認證                                     | 說明                     |
+| --- | -------- | --------------------------------------- | ---------------------------------------- | ------------------------ |
+| 1   | `POST`   | `/auth/login`                           | ❌                                       | 使用者登入               |
+| 2   | `POST`   | `/auth/signup`                          | ❌                                       | 使用者註冊               |
+| 3   | `GET`    | `/problems`                             | ❌                                       | 題目列表                 |
+| 4   | `GET`    | `/problems/:id`                         | ❌                                       | 題目詳情                 |
+| 5   | `POST`   | `/problems`                             | 🔒 ADMIN / QUESTIONER                    | 新增題目                 |
+| 6   | `PATCH`  | `/problems/:id`                         | 🔒 ADMIN / EXAMINER / QUESTIONER         | 編輯題目                 |
+| 7   | `DELETE` | `/problems/:id`                         | 🔒 ADMIN / QUESTIONER                    | 刪除題目                 |
+| 8   | `POST`   | `/problems/:id/assign`                  | 🔒 ADMIN / EXAMINER / QUESTIONER         | 指派題目                 |
+| 9   | `POST`   | `/submissions`                          | 🔒 ADMIN / CANDIDATE                     | 提交程式碼               |
+| 10  | `GET`    | `/submissions/:id`                      | 🔒 owner / ADMIN / EXAMINER              | 查詢評測結果             |
+| 11  | `GET`    | `/users`                                | 🔒 ADMIN / EXAMINER                      | 使用者列表               |
+| 12  | `GET`    | `/users/:username/submissions`          | 🔒 owner / ADMIN / EXAMINER              | 使用者提交歷史           |
+| 13  | `GET`    | `/leaderboard`                          | ❌                                       | 排行榜                   |
+| 14  | `GET`    | `/health`                               | ❌                                       | 健康檢查                 |
+| 15  | `GET`    | `/health/live`                          | ❌                                       | Liveness                 |
+| 16  | `GET`    | `/health/ready`                         | ❌                                       | Readiness                |
+| 17  | `GET`    | `/internal/testcases/:id`               | 🔑 Internal                              | 評測機測資               |
+| 18  | `POST`   | `/interviews`                           | 🔒 ADMIN / EXAMINER                      | 建立面試                 |
+| 19  | `GET`    | `/interviews`                           | 🔒 ADMIN / EXAMINER                      | 取得面試列表             |
+| 20  | `PATCH`  | `/interviews/:id`                       | 🔒 ADMIN / EXAMINER                      | 更改面試名稱             |
+| 21  | `DELETE` | `/interviews/:id`                       | 🔒 ADMIN / EXAMINER                      | 刪除面試                 |
+| 22  | `POST`   | `/interview-candidates`                 | 🔒 ADMIN / EXAMINER                      | 新增面試者               |
+| 23  | `GET`    | `/interview-candidates`                 | 🔒 ADMIN / EXAMINER                      | 取得所有面試考生列表     |
+| 24  | `PATCH`  | `/interview-candidates/:id/time`        | 🔒 ADMIN / EXAMINER                      | 更新面試考生測驗時間     |
+| 25  | `GET`    | `/interview-candidates/:id/time-status` | 🔒 ADMIN / EXAMINER / CANDIDATE          | 取得伺服器時間與剩餘時間 |
+| 26  | `DELETE` | `/interview-candidates/:id`             | 🔒 ADMIN / EXAMINER                      | 移除面試者               |
+| 27  | `POST`   | `/assignments`                          | 🔒 ADMIN / EXAMINER / QUESTIONER         | 指派題目給考生           |
+| 28  | `GET`    | `/assignments`                          | 🔒 ADMIN / EXAMINER / QUESTIONER         | 取得題目指派列表         |
+| 29  | `GET`    | `/assignments/user/:userId`             | 🔒 owner / ADMIN / EXAMINER / QUESTIONER | 取得特定使用者的指派     |
+| 30  | `GET`    | `/assignments/:id`                      | 🔒 ADMIN / EXAMINER / QUESTIONER         | 取得單一指派             |
+| 31  | `DELETE` | `/assignments/:id`                      | 🔒 ADMIN / EXAMINER / QUESTIONER         | 刪除題目指派             |
+| 32  | `POST`   | `/stress-test-reports`                  | 🔑 Internal                              | 新增壓力測試報告         |
+| 33  | `GET`    | `/stress-test-reports`                  | ❌                                       | 取得壓力測試報告列表     |
+| 34  | `GET`    | `/stress-test-reports/latest`           | ❌                                       | 取得端點最新報告         |
+| 35  | `GET`    | `/stress-test-reports/summary`          | ❌                                       | 取得壓力測試摘要         |
+| 36  | `GET`    | `/stress-test-reports/dashboard`        | ❌                                       | 取得監控 Dashboard       |

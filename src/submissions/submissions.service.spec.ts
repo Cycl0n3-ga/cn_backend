@@ -7,6 +7,7 @@ import { ForbiddenException, NotFoundException } from '@nestjs/common';
 describe('SubmissionsService', () => {
   let service: SubmissionsService;
   let prisma: any;
+  let judgeQueueService: any;
 
   const mockProblem = { id: 1, title: 'Two Sum', isDeleted: false };
 
@@ -23,6 +24,12 @@ describe('SubmissionsService', () => {
     executionTimeMs: null,
     memoryUsageKb: null,
     createdAt: new Date('2026-05-13T12:00:00Z'),
+    judgeJobId: null,
+    queuedAt: null,
+    startedAt: null,
+    finishedAt: null,
+    attempts: 0,
+    lastError: null,
   };
   const ownerReader = { id: 'user-uuid-1', role: 'CANDIDATE' };
   const examinerReader = { id: 'examiner-uuid', role: 'EXAMINER' };
@@ -48,11 +55,18 @@ describe('SubmissionsService', () => {
       $transaction: jest.fn((cb: (tx: any) => Promise<any>) => cb(prisma)),
     };
 
+    judgeQueueService = {
+      enqueueSubmission: jest.fn().mockResolvedValue({
+        jobId: 'sub-uuid-1',
+        driver: 'inline',
+      }),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SubmissionsService,
         { provide: PrismaService, useValue: prisma },
-        { provide: JudgeQueueService, useValue: { enqueue: jest.fn() } },
+        { provide: JudgeQueueService, useValue: judgeQueueService },
       ],
     }).compile();
 
@@ -74,6 +88,8 @@ describe('SubmissionsService', () => {
       });
 
       expect(result).toHaveProperty('submission_id', 'sub-uuid-1');
+      expect(result).toHaveProperty('judge_job_id', 'sub-uuid-1');
+      expect(result).toHaveProperty('queue_driver', 'inline');
       expect(result).toHaveProperty('status', 'PENDING');
     });
 
@@ -96,8 +112,12 @@ describe('SubmissionsService', () => {
             userId: 'user-uuid-1',
             problemId: 1,
             language: 'cpp',
+            queuedAt: expect.any(Date),
           }),
         }),
+      );
+      expect(judgeQueueService.enqueueSubmission).toHaveBeenCalledWith(
+        'sub-uuid-1',
       );
     });
 
@@ -307,164 +327,6 @@ describe('SubmissionsService', () => {
       await expect(service.findOne('bad-id', ownerReader)).rejects.toThrow(
         'Submission "bad-id" not found.',
       );
-    });
-  });
-
-  // ── runJudgeForSubmission (integration via mock JudgeService) ─────────────
-  describe('runJudgeForSubmission (mock worker)', () => {
-    let judgeService: any;
-
-    beforeEach(() => {
-      // Get the mocked JudgeService instance from the testing module
-      judgeService = service['judgeQueueService'];
-
-      prisma.submission.update.mockResolvedValue({});
-      prisma.testCase.findMany.mockResolvedValue([
-        { input: '1', output: 'OK' },
-      ]);
-      prisma.submission.findUnique.mockResolvedValue({
-        ...mockSubmission,
-        id: 'sub-uuid-1',
-        userId: 'user-uuid-1',
-        problemId: 1,
-      });
-      prisma.submission.count.mockResolvedValue(0);
-      prisma.user.update.mockResolvedValue({});
-    });
-
-    afterEach(() => {
-      jest.restoreAllMocks();
-    });
-
-    it('should process statuses and finalize as ACCEPTED, then update user stats on first AC', async () => {
-      judgeService.enqueue.mockResolvedValue({
-        status: 'ACCEPTED',
-        executionTimeMs: 10,
-        stdout: 'OK',
-        stderr: '',
-        score: 100,
-      });
-
-      await (service as any).runJudgeForSubmission({
-        submissionId: 'sub-uuid-1',
-        problemId: 1,
-        userId: 'user-uuid-1',
-        language: 'javascript',
-        sourceCode: 'console.log("OK")',
-      });
-
-      expect(prisma.submission.update).toHaveBeenLastCalledWith({
-        where: { id: 'sub-uuid-1' },
-        data: expect.objectContaining({
-          status: 'ACCEPTED',
-          score: 100,
-          userOutput: 'OK',
-          executionTimeMs: 10,
-        }),
-      });
-
-      expect(prisma.submission.count).toHaveBeenCalledWith({
-        where: {
-          userId: 'user-uuid-1',
-          problemId: 1,
-          status: 'ACCEPTED',
-          id: { not: 'sub-uuid-1' },
-        },
-      });
-
-      expect(prisma.user.update).toHaveBeenCalledWith({
-        where: { id: 'user-uuid-1' },
-        data: {
-          solvedCount: { increment: 1 },
-          rating: { increment: 10 },
-        },
-      });
-    });
-
-    it('should not update user stats if there was a previous ACCEPTED submission', async () => {
-      judgeService.enqueue.mockResolvedValue({
-        status: 'ACCEPTED',
-        executionTimeMs: 10,
-        stdout: 'OK',
-      });
-      prisma.submission.count.mockResolvedValue(2);
-
-      await (service as any).runJudgeForSubmission({
-        submissionId: 'sub-uuid-1',
-        problemId: 1,
-        userId: 'user-uuid-1',
-        language: 'javascript',
-        sourceCode: '',
-      });
-
-      expect(prisma.user.update).not.toHaveBeenCalled();
-    });
-
-    it('should not update user stats for non-ACCEPTED outcomes', async () => {
-      judgeService.enqueue.mockResolvedValue({
-        status: 'WRONG_ANSWER',
-        executionTimeMs: 10,
-        stdout: 'wrong',
-      });
-
-      await (service as any).runJudgeForSubmission({
-        submissionId: 'sub-uuid-1',
-        problemId: 1,
-        userId: 'user-uuid-1',
-        language: 'javascript',
-        sourceCode: '',
-      });
-
-      expect(prisma.submission.update).toHaveBeenLastCalledWith({
-        where: { id: 'sub-uuid-1' },
-        data: expect.objectContaining({
-          status: 'WRONG_ANSWER',
-        }),
-      });
-      expect(prisma.user.update).not.toHaveBeenCalled();
-    });
-
-    it('should map INTERNAL_ERROR to RUNTIME_ERROR', async () => {
-      judgeService.enqueue.mockResolvedValue({
-        status: 'INTERNAL_ERROR',
-        executionTimeMs: 0,
-        stdout: '',
-      });
-
-      await (service as any).runJudgeForSubmission({
-        submissionId: 'sub-uuid-1',
-        problemId: 1,
-        userId: 'user-uuid-1',
-        language: 'javascript',
-        sourceCode: '',
-      });
-
-      expect(prisma.submission.update).toHaveBeenLastCalledWith({
-        where: { id: 'sub-uuid-1' },
-        data: expect.objectContaining({
-          status: 'RUNTIME_ERROR',
-        }),
-      });
-    });
-
-    it('should skip stats update when submission cannot be reloaded', async () => {
-      judgeService.enqueue.mockResolvedValue({
-        status: 'ACCEPTED',
-        executionTimeMs: 10,
-        stdout: 'OK',
-      });
-      prisma.submission.findUnique.mockResolvedValue(null);
-
-      await (service as any).runJudgeForSubmission({
-        submissionId: 'sub-uuid-1',
-        problemId: 1,
-        userId: 'user-uuid-1',
-        language: 'javascript',
-        sourceCode: '',
-      });
-
-      expect(prisma.submission.count).not.toHaveBeenCalled();
-      expect(prisma.user.update).not.toHaveBeenCalled();
     });
   });
 });

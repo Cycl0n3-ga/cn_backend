@@ -13,12 +13,10 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-# ── Production stage ──────────────────────────────────────────
-FROM node:22-alpine AS production
+# ── Runtime base ──────────────────────────────────────────────
+FROM node:22-alpine AS runtime-base
 
 WORKDIR /app
-
-RUN apk add --no-cache docker-cli
 
 # Copy package files and install ONLY production dependencies
 COPY --from=builder /app/package*.json ./
@@ -31,13 +29,21 @@ COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/clie
 
 # Copy built application
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma.config.js ./
+RUN mkdir -p /app/data && chown -R node:node /app
 
 # Expose port
 EXPOSE 4100
 
-# Start server
-# nosemgrep: dockerfile.security.missing-user.missing-user, dockerfile.security.last-user-is-root.last-user-is-root
-# Explicitly set USER to root since the NestJS backend needs root privileges to access the host's mounted docker.sock to execute user code sandboxes.
-USER root
+# API does not need Docker socket access.
+FROM runtime-base AS production-api
+USER node
 CMD ["npm", "run", "start:prod"]
 
+# Judge worker is the only process that may need Docker CLI/socket access.
+FROM runtime-base AS production-worker
+RUN apk add --no-cache docker-cli
+# nosemgrep: dockerfile.security.missing-user.missing-user, dockerfile.security.last-user-is-root.last-user-is-root
+# The worker is isolated from the public API and is the only service allowed to access the Docker daemon for sandbox execution.
+USER root
+CMD ["npm", "run", "start:worker:prod"]

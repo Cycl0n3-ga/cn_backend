@@ -1,65 +1,54 @@
 import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module.js';
+import { configureHttpApp } from './common/app-setup.js';
+import { validateRuntimeEnv } from './config/env.js';
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-
-  // Global prefix
-  app.setGlobalPrefix('api/v1');
-
-  // CORS — restrict to allowed origins
-  const allowedOrigins = process.env.CORS_ORIGINS
-    ? process.env.CORS_ORIGINS.split(',').map((s) => s.trim())
-    : ['http://localhost:3000'];
-
-  app.enableCors({
-    origin: allowedOrigins,
-    credentials: true,
-  });
-
-  // Validation pipe for DTO validation
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      transformOptions: { enableImplicitConversion: true },
-    }),
-  );
-
-  // Swagger / OpenAPI
-  const config = new DocumentBuilder()
-    .setTitle('Code Judge API')
-    .setDescription(
-      `## Online Code Judge 後端 API
+function buildSwaggerDescription() {
+  const baseDescription = `## Online Code Judge 後端 API
 
 完整的線上程式評測系統 API，支援：
-- 🔐 JWT 認證與 RBAC 授權
-- 📝 題目管理（CRUD + 指派）
-- 🚀 程式碼提交與非同步評測
-- 📊 排行榜
-- 💓 系統健康檢查
-- 🔒 內部評測機 API
+- JWT 認證與 RBAC 授權
+- 題目管理（CRUD + 指派）
+- 程式碼提交與非同步評測
+- Redis/BullMQ durable judge queue
+- API / judge worker 分離
+- 系統健康檢查與 readiness
+- 內部評測機 API
 
 ### 認證方式
 使用 \`POST /api/v1/auth/login\` 取得 JWT Token，然後在需要認證的端點加上 \`Authorization: Bearer <token>\` Header。
 
 ### 密碼傳輸規範
-本專案的 \`/auth/login\` 與 \`/auth/signup\` 之 \`password\` 欄位 **必須是前端計算完成的 SHA-256 (hex) 字串**（長度 64）。
-後端會將此值再以 bcrypt 儲存/比對。
+本專案的 \`/auth/login\` 與 \`/auth/signup\` 之 \`passwordSha256\` 欄位必須是前端計算完成的 SHA-256 hex 字串（長度 64）。
+後端會將此值再以 bcrypt 儲存/比對。`;
 
-### 測試帳號
-| 帳號 | 明文密碼（僅供人類閱讀） | password (sha256 hex) | 角色 |
+  if (process.env.NODE_ENV === 'production') {
+    return baseDescription;
+  }
+
+  return `${baseDescription}
+
+### 測試帳號（僅非 production 顯示）
+| 帳號 | 明文密碼（僅供人類閱讀） | passwordSha256 | 角色 |
 |------|------|------|------|
 | admin | admin123 | 240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9 | ADMIN |
 | examiner | user123 | e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446 | EXAMINER |
 | questioner | user123 | e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446 | QUESTIONER |
 | alice | user123 | e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446 | CANDIDATE |
-| bob | user123 | e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446 | CANDIDATE |`,
-    )
+| bob | user123 | e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446 | CANDIDATE |`;
+}
+
+async function bootstrap() {
+  validateRuntimeEnv('api');
+  const app = await NestFactory.create(AppModule);
+  configureHttpApp(app);
+
+  // Swagger / OpenAPI
+  const config = new DocumentBuilder()
+    .setTitle('Code Judge API')
+    .setDescription(buildSwaggerDescription())
     .setVersion('1.0')
     .addBearerAuth()
     .addServer(

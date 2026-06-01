@@ -3,6 +3,7 @@
 線上程式碼評測系統後端 - 完整的測試執行指南
 
 ## 目錄
+
 - [測試概覽](#測試概覽)
 - [單元測試](#單元測試)
 - [整合測試](#整合測試)
@@ -17,12 +18,13 @@
 
 項目套件含 4 種類型的測試：
 
-| 測試類型 | 工具 | 範圍 | 執行時間 |
-|---------|------|------|---------|
-| **單元測試** | Jest | 單個函數/方法 | ~2-5秒 |
-| **整合測試** | Jest + 真實DB | 模組交互 | ~10-30秒 |
-| **E2E測試** | Jest + Supertest | 完整API流程 | ~5-15秒 |
-| **效能測試** | 自訂腳本 | 效能基準 | ~30-60秒 |
+| 測試類型            | 工具             | 範圍               | 執行時間 |
+| ------------------- | ---------------- | ------------------ | -------- |
+| **單元測試**        | Jest             | 單個函數/方法      | ~2-5秒   |
+| **整合測試**        | Jest + 真實DB    | 模組交互           | ~10-30秒 |
+| **E2E測試**         | Jest + Supertest | 完整API流程        | ~5-15秒  |
+| **效能測試**        | 自訂腳本         | 效能基準           | ~30-60秒 |
+| **部署 smoke test** | Node fetch       | 已啟動服務健康檢查 | ~1-5秒   |
 
 ---
 
@@ -33,6 +35,13 @@
 ```bash
 npm run test
 ```
+
+目前單元測試涵蓋 queue-based judge 的核心風險：
+
+- `judge-job.processor.spec.ts`：submission job 狀態轉換、per-problem limit 傳遞、first accepted stats。
+- `judge-queue.service.spec.ts`：inline queue enqueue、sample run、queue stats。
+- `judge-recovery.service.spec.ts`：stuck `PENDING/RUNNING` submission requeue。
+- `health.controller.spec.ts`：liveness/readiness/stats。
 
 ### 監視模式（監視檔案變化，自動重跑）
 
@@ -125,6 +134,7 @@ npm run test:integration
 ```
 
 **說明：** 整合測試会：
+
 1. 自動建立独立的測試資料庫（`test/.tmp/test.db`）
 2. 執行資料庫遷移
 3. 灌入种子資料
@@ -143,12 +153,12 @@ npm run test:integration -- users.integration-spec.ts
 
 ### 現有整合測試清單
 
-| 測試檔案 | 涵蓋功能 |
-|---------|---------|
-| `auth.integration-spec.ts` | 登入、註冊、JWT驗證 |
-| `users.integration-spec.ts` | 使用者列表、使用者資訊、提交历史 |
-| `problems.integration-spec.ts` | 項目列表、項目詳情、項目建立 |
-| `leaderboard.integration-spec.ts` | 排行榜查詢、排名計算 |
+| 測試檔案                          | 涵蓋功能                         |
+| --------------------------------- | -------------------------------- |
+| `auth.integration-spec.ts`        | 登入、註冊、JWT驗證              |
+| `users.integration-spec.ts`       | 使用者列表、使用者資訊、提交历史 |
+| `problems.integration-spec.ts`    | 項目列表、項目詳情、項目建立     |
+| `leaderboard.integration-spec.ts` | 排行榜查詢、排名計算             |
 
 ### 整合測試示範
 
@@ -187,7 +197,8 @@ describe('Auth Integration Tests', () => {
         .send({
           username: 'newuser',
           email: null,
-          passwordSha256: 'e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446',
+          passwordSha256:
+            'e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446',
           role: 'CANDIDATE',
         })
         .expect(201)
@@ -204,7 +215,8 @@ describe('Auth Integration Tests', () => {
         .post('/api/v1/auth/login')
         .send({
           username: 'admin',
-          passwordSha256: '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9',
+          passwordSha256:
+            '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9',
         })
         .expect(200)
         .expect((res) => {
@@ -218,6 +230,37 @@ describe('Auth Integration Tests', () => {
 ---
 
 ## E2E測試
+
+### 執行 E2E 測試
+
+```bash
+npm run test:e2e
+```
+
+E2E 測試會使用 `JUDGE_QUEUE_DRIVER=inline`，因此不需要 Redis/worker 也能驗證 HTTP submission lifecycle。production queue 行為由 unit tests、CI compose smoke test 與 Docker health check 補上。
+
+目前 E2E 額外涵蓋：
+
+- auth matrix：未登入、candidate、examiner、admin 對敏感 API 的 401/403/200。
+- submission lifecycle：`POST /submissions` 回傳 `submission_id`、`judge_job_id`、`queue_driver`，再輪詢到 terminal status。
+- submission authorization：其他 candidate 無法讀取別人的 submission。
+- health probes：`/health/live`、`/health/ready`。
+- error schema：`statusCode`、`message`、`path`、`requestId`、`timestamp`。
+
+### 部署 smoke test
+
+```bash
+# 服務需先啟動
+npm run test:smoke
+```
+
+`test/deployment-smoke-test.js` 會檢查：
+
+1. `/api/v1/health/live`
+2. `/api/v1/health/ready`
+3. `/api/v1/problems?page=1&limit=1`
+
+CI 的 `docker-check` job 會用 Docker Compose 啟動 `redis`、`backend-api`、`judge-worker` 後執行 smoke test。
 
 ### 執行E2E測試
 
@@ -265,7 +308,8 @@ describe('App E2E', () => {
         .send({
           username: 'e2euser',
           email: null,
-          passwordSha256: 'e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446',
+          passwordSha256:
+            'e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446',
           role: 'CANDIDATE',
         })
         .expect(201);
@@ -284,7 +328,7 @@ describe('App E2E', () => {
         });
     });
 
-    it('3. 使用者應該能夠查看问题列表', () => {
+    it('3. 使用者應該能夠查看問題列表', () => {
       return request(app.getHttpServer())
         .get('/api/v1/problems')
         .set('Authorization', `Bearer ${token}`)
@@ -312,7 +356,7 @@ npm run test:perf
 npm run test:load
 ```
 
-**說明：** 負載測試会對API進行并發請求，評估系統容數
+**說明：** 負載測試会對API進行並發請求，評估系統容數
 
 ### 壓力測試
 
@@ -326,22 +370,25 @@ npm run test:stress
 ### 效能測試脚本說明
 
 **load-test.js** - 負載測試
+
 ```javascript
 // 測試场景：
-// - 1000个并發請求
+// - 1000個並發請求
 // - 针對GET /api/v1/problems
 // - 檢查響應時間和錯誤率
 ```
 
 **stress-test.js** - 壓力測試
+
 ```javascript
 // 測試场景：
-// - 從100增加到1000个并發連接
+// - 從100增加到1000個並發連接
 // - 監控效能下降曲线
 // - 找出系統極限
 ```
 
 **performance-test.js** - 效能門檻測試
+
 ```javascript
 // 效能標準：
 // - P99響應時間 < 500ms
@@ -361,6 +408,7 @@ npm run test:cov
 ```
 
 輸出：
+
 ```
 src/auth/auth.service.ts          95.2% (95/100)
 src/auth/auth.controller.ts       87.5% (35/40)
@@ -379,6 +427,7 @@ open coverage/lcov-report/index.html
 ### 设定涵蓋率阈值
 
 編辑 `jest.config.js`：
+
 ```javascript
 {
   collectCoverageFrom: [
@@ -415,7 +464,7 @@ bash test/api-test.sh
 # test/api-test.sh
 
 # 1. 健康檢查
-curl http://localhost:4100/api/v1/health
+curl http://localhost:4100/api/v1/health/ready
 
 # 2. 使用者註冊
 curl -X POST http://localhost:4100/api/v1/auth/signup \
@@ -427,7 +476,7 @@ curl -X POST http://localhost:4100/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","passwordSha256":"..."}'
 
-# 4. 得得问题列表
+# 4. 取得問題列表
 curl -H "Authorization: Bearer YOUR_TOKEN" \
   http://localhost:4100/api/v1/problems
 ```
@@ -485,14 +534,14 @@ const mockPrisma = {
 // ✅ 好：使用jest.spyOn()
 jest.spyOn(service, 'someMethod').mockReturnValue('mocked');
 
-// ❌ 避免：過度mock，失去真實測試价值
+// ❌ 避免：過度mock，失去真實測試價值
 ```
 
 ### 4. 異步測試
 
 ```typescript
 // ✅ 好：正确處理async/await
-it('應該成功得得使用者', async () => {
+it('應該成功取得使用者', async () => {
   const user = await userService.findById('id');
   expect(user).toBeDefined();
 });
@@ -506,7 +555,7 @@ it('should find user', () => {
 
 // ❌ 避免：忘记等待Promise
 it('should find user', () => {
-  userService.findById('id');  // 沒有等待！
+  userService.findById('id'); // 沒有等待！
 });
 ```
 
@@ -537,18 +586,18 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: '18'
-      
+
       - run: npm install
       - run: npm run lint
       - run: npm run test
       - run: npm run test:cov
-      
+
       - uses: codecov/codecov-action@v3
         with:
           files: ./coverage/coverage-final.json
@@ -561,7 +610,7 @@ jobs:
 ```bash
 # 單元測試
 npm run test                    # 執行所有單元測試
-npm run test:watch             # 观察模庫
+npm run test:watch             # 觀察模式
 npm run test:cov               # 涵蓋率報告
 
 # 整合和E2E測試

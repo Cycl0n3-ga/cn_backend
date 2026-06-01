@@ -1,5 +1,6 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { parsePagination } from '../common/pagination.js';
 import { LeaderboardService } from './leaderboard.service.js';
 
 @ApiTags('Leaderboard')
@@ -29,11 +30,10 @@ export class LeaderboardController {
     },
   })
   getRankings(@Query('page') page?: string, @Query('limit') limit?: string) {
-    const parsedPage = Math.max(1, parseInt(page || '1', 10) || 1);
-    const parsedLimit = Math.min(
-      100,
-      Math.max(1, parseInt(limit || '20', 10) || 20),
+    const pagination = parsePagination(page, limit);
+    return this.leaderboardService.getRankings(
+      pagination.page,
+      pagination.limit,
     );
-    return this.leaderboardService.getRankings(parsedPage, parsedLimit);
   }
 }

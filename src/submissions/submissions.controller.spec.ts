@@ -9,11 +9,14 @@ describe('SubmissionsController', () => {
 
   const mockCreateResult = {
     submission_id: 'sub-uuid-1',
+    judge_job_id: 'sub-uuid-1',
+    queue_driver: 'inline',
     status: 'PENDING',
   };
 
   const mockFindOneResult = {
     submission_id: 'sub-uuid-1',
+    judge_job_id: 'sub-uuid-1',
     problem_id: '1',
     language: 'python3',
     status: 'ACCEPTED',
@@ -24,6 +27,10 @@ describe('SubmissionsController', () => {
       execution_time_ms: '45',
       memory_usage_kb: '2048',
     },
+    last_error: '',
+    queued_at: new Date('2026-05-13T12:00:00Z'),
+    started_at: new Date('2026-05-13T12:00:01Z'),
+    finished_at: new Date('2026-05-13T12:00:02Z'),
     submitted_at: new Date('2026-05-13T12:00:00Z'),
   };
   const mockOwnerRequest = {
@@ -56,7 +63,7 @@ describe('SubmissionsController', () => {
   describe('create', () => {
     it('should create submission and return PENDING status', async () => {
       service.create.mockResolvedValue(
-        mockCreateResult as { submission_id: string; status: 'PENDING' },
+        mockCreateResult as Awaited<ReturnType<SubmissionsService['create']>>,
       );
 
       const result = await controller.create(
@@ -73,7 +80,7 @@ describe('SubmissionsController', () => {
 
     it('should pass req.user.id to service as userId', async () => {
       service.create.mockResolvedValue(
-        mockCreateResult as { submission_id: string; status: 'PENDING' },
+        mockCreateResult as Awaited<ReturnType<SubmissionsService['create']>>,
       );
 
       await controller.create(
@@ -94,7 +101,7 @@ describe('SubmissionsController', () => {
 
     it('should map DTO fields to service parameter names', async () => {
       service.create.mockResolvedValue(
-        mockCreateResult as { submission_id: string; status: 'PENDING' },
+        mockCreateResult as Awaited<ReturnType<SubmissionsService['create']>>,
       );
 
       await controller.create(

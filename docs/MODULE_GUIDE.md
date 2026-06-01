@@ -3,6 +3,7 @@
 線上程式碼評測系統後端 - 各功能模組詳解
 
 ## 目錄
+
 - [模組概覽](#模組概覽)
 - [Auth模組](#auth模組)
 - [Problems模組](#problems模組)
@@ -58,6 +59,7 @@ src/auth/
 ### 核心功能
 
 #### 使用者註冊
+
 ```typescript
 // POST /api/v1/auth/signup
 {
@@ -71,6 +73,7 @@ src/auth/
 `/auth/signup` 一律建立 `CANDIDATE`；`ADMIN`、`EXAMINER`、`QUESTIONER` 需由管理流程另外建置。`CANDIDATE` 可不填 email。
 
 #### 使用者登入
+
 ```typescript
 // POST /api/v1/auth/login
 {
@@ -103,12 +106,12 @@ curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
 
 ### 角色權限
 
-| 角色 | 權限 |
-|------|------|
-| ADMIN | 系統管理者，可通過所有角色保護端點 |
-| EXAMINER | 建立/修改/刪除面試、管理面試候選人、指派面試題目 |
-| QUESTIONER | 建立/刪除項目、指派項目 |
-| CANDIDATE | 查看項目、提交程式碼、查看排行榜、查詢測驗時間 |
+| 角色       | 權限                                             |
+| ---------- | ------------------------------------------------ |
+| ADMIN      | 系統管理者，可通過所有角色保護端點               |
+| EXAMINER   | 建立/修改/刪除面試、管理面試候選人、指派面試題目 |
+| QUESTIONER | 建立/刪除項目、指派項目                          |
+| CANDIDATE  | 查看項目、提交程式碼、查看排行榜、查詢測驗時間   |
 
 ### 裝飾器用法
 
@@ -154,13 +157,14 @@ src/problems/
 ```
 
 Response:
+
 ```json
 {
   "data": [
     {
       "id": 1,
       "title": "两數之和",
-      "description": "给定一个整數數组...",
+      "description": "给定一個整數數组...",
       "difficulty": "EASY",
       "acceptanceRate": 95.5,
       "createdAt": "2025-05-13T..."
@@ -179,6 +183,7 @@ Response:
 ```
 
 Response:
+
 ```json
 {
   "id": 1,
@@ -253,7 +258,8 @@ Response:
 
 ```
 src/submissions/
-├── submissions.service.ts    # 業務邏輯
+├── submission-status.ts      # typed submission status constants
+├── submissions.service.ts    # 建立 submission + enqueue judge job
 ├── submissions.controller.ts # API 端點
 ├── submissions.module.ts     # 模組定義
 ├── dto/
@@ -276,12 +282,17 @@ src/submissions/
 ```
 
 Response:
+
 ```json
 {
   "submission_id": "submission-uuid",
+  "judge_job_id": "submission-uuid",
+  "queue_driver": "redis",
   "status": "PENDING"
 }
 ```
+
+`SubmissionsService` 不直接跑 Docker。它只驗證題目、建立 `Submission`、寫入 `queuedAt`，再透過 `JudgeQueueService` 將 job 放入 queue。
 
 #### 查詢提交結果
 
@@ -293,6 +304,7 @@ Response:
 僅提交者本人、`ADMIN`、`EXAMINER` 可查詢。
 
 Response:
+
 ```json
 {
   "submission_id": "submission-uuid",
@@ -302,25 +314,29 @@ Response:
   "score": "100",
   "user_answer": "[0,1]",
   "compile_message": "",
+  "last_error": "",
   "metrics": {
     "execution_time_ms": "45",
     "memory_usage_kb": "2048"
   },
+  "queued_at": "2025-05-18T10:30:00Z",
+  "started_at": "2025-05-18T10:30:01Z",
+  "finished_at": "2025-05-18T10:30:02Z",
   "submitted_at": "2025-05-18T10:30:00Z"
 }
 ```
 
-#### 評測状态
+#### 評測狀態
 
-| 状态 | 說明 |
-|------|------|
-| PENDING | 待評測 |
-| COMPILING | 編譯中 |
-| RUNNING | 執行中 |
-| ACCEPTED | 通過 |
-| WRONG_ANSWER | 答案錯誤 |
-| TLE | 超時 |
-| MLE | 超記憶體 |
+| 狀態          | 說明     |
+| ------------- | -------- |
+| PENDING       | 待評測   |
+| COMPILING     | 編譯中   |
+| RUNNING       | 執行中   |
+| ACCEPTED      | 通過     |
+| WRONG_ANSWER  | 答案錯誤 |
+| TLE           | 超時     |
+| MLE           | 超記憶體 |
 | RUNTIME_ERROR | 執行錯誤 |
 | COMPILE_ERROR | 編譯錯誤 |
 
@@ -340,7 +356,7 @@ src/users/
 
 ### 核心功能
 
-#### 得得使用者列表
+#### 取得使用者列表
 
 ```typescript
 // GET /api/v1/users?page=1&limit=20
@@ -348,6 +364,7 @@ src/users/
 ```
 
 Response:
+
 ```json
 {
   "data": [
@@ -365,7 +382,7 @@ Response:
 }
 ```
 
-#### 得得使用者資訊
+#### 取得使用者資訊
 
 ```typescript
 // GET /api/v1/users/:username
@@ -378,6 +395,7 @@ Response:
 ```
 
 Response:
+
 ```json
 {
   "data": [
@@ -411,13 +429,14 @@ src/leaderboard/
 
 ### 核心功能
 
-#### 得得排行榜
+#### 取得排行榜
 
 ```typescript
 // GET /api/v1/leaderboard?page=1&limit=50&sortBy=rating
 ```
 
 Response:
+
 ```json
 {
   "data": [
@@ -485,13 +504,13 @@ src/interviews/
 
 `candidateUserId` 和 `problemCounts` 可省略；提供後會在建立面試時同步新增候選人，並依 EASY / MEDIUM / HARD 題數自動建立面試題目指派。
 
-#### 得得面試列表
+#### 取得面試列表
 
 ```typescript
 // GET /api/v1/interviews
 ```
 
-#### 得得面試詳情
+#### 取得面試詳情
 
 ```typescript
 // GET /api/v1/interviews/:id
@@ -554,6 +573,7 @@ src/interview-candidates/
 ```
 
 Response:
+
 ```json
 {
   "serverTime": 1770000300,
@@ -622,14 +642,20 @@ src/assignments/
 
 ```
 src/judge/
-├── judge.service.ts       # 評測核心邏輯
-├── judge.module.ts        # 模組定義
+├── judge.service.ts          # Docker sandbox execution
+├── judge-queue.service.ts    # BullMQ producer / inline test queue
+├── judge-job.processor.ts    # submission job 狀態流
+├── judge-worker.service.ts   # Redis worker consumer
+├── judge-recovery.service.ts # stuck job recovery
+├── judge-jobs.ts            # queue job types
+├── redis-connection.ts       # Redis connection helper
+├── judge.module.ts           # 模組定義
 └── *.spec.ts              # 測試
 ```
 
 ### 核心功能
 
-負責內部呼叫評測沙盒或外部 Judge0 API 執行提交程式碼並回傳結果。
+負責 queue-based judge pipeline：API enqueue、worker consume、Docker sandbox execution、terminal result writeback、startup recovery。production 使用 Redis/BullMQ；unit/e2e 測試使用 inline queue。
 
 ---
 
@@ -649,7 +675,8 @@ src/internal/
 ### 用途
 
 提供给外部評測机（Judge Worker）的內部API，用于：
-- 得得待評測的提交
+
+- 取得待評測的提交
 - 取得項目測試用例
 - 更新評測結果
 
@@ -665,11 +692,11 @@ curl -H "X-API-Key: internal-judge-worker-key" \
 ### API 端點
 
 ```typescript
-// 得得题目測試用例
+// 取得题目測試用例
 // GET /api/v1/internal/testcases/:problemId
 // Headers: X-API-Key
 
-// 得得待評測提交
+// 取得待評測提交
 // GET /api/v1/internal/submissions/pending
 // Headers: X-API-Key
 
@@ -691,7 +718,7 @@ curl -H "X-API-Key: internal-judge-worker-key" \
 
 ### Health模組
 
-健康检查端点，用于監控服務状态
+健康檢查端点，用于監控服務狀態
 
 ```typescript
 // GET /api/v1/health
@@ -717,7 +744,7 @@ const users = await this.prismaService.user.findMany();
 
 ## 模組間通訊
 
-### 相相性注入示範
+### 依賴注入示範
 
 ```typescript
 // submissions.service.ts
@@ -727,7 +754,7 @@ import { ProblemsService } from '../problems/problems.service';
 export class SubmissionsService {
   constructor(
     private prismaService: PrismaService,
-    private problemsService: ProblemsService,  // 注入其他服務
+    private problemsService: ProblemsService, // 注入其他服務
   ) {}
 
   async createSubmission(dto: CreateSubmissionDto) {

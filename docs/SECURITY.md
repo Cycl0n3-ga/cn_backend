@@ -3,6 +3,7 @@
 線上程式碼評測系統後端 - 安全性指南和最佳實踐
 
 ## 目錄
+
 - [安全概覽](#安全概覽)
 - [認證安全](#認證安全)
 - [資料加密](#資料加密)
@@ -35,12 +36,12 @@
 
 ### 安全級別定義
 
-| 級別 | 說明 | 示範 |
-|------|------|------|
-| 🔒 嚴格 | 需要認證+特定權限 | 建立/刪除項目 |
-| 🔐 高 | 需要認證 | 提交程式碼、查看排行榜 |
-| 🔓 中 | 部分內容需要認證 | 查看項目詳情 |
-| 🔓 低 | 公開存取 | 健康檢查 |
+| 級別    | 說明              | 示範                   |
+| ------- | ----------------- | ---------------------- |
+| 🔒 嚴格 | 需要認證+特定權限 | 建立/刪除項目          |
+| 🔐 高   | 需要認證          | 提交程式碼、查看排行榜 |
+| 🔓 中   | 部分內容需要認證  | 查看項目詳情           |
+| 🔓 低   | 公開存取          | 健康檢查               |
 
 ---
 
@@ -93,16 +94,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 }
 ```
 
-#### 3. 密钥管理
+#### 3. 金鑰管理
 
 ```bash
-# ✅ 生产環境使用強密钥 (256-bit)
+# ✅ 生產環境使用強金鑰 (256-bit)
 JWT_SECRET=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
 
-# ✅ 定期轮換密钥（每季度）
-# ✅ 不同環境使用不同密钥
-# ❌ 不要在程庫碼中硬編碼密钥
-# ❌ 不要在Git中提交密钥
+# ✅ 定期轮換金鑰（每季度）
+# ✅ 不同環境使用不同金鑰
+# ❌ 不要在程式碼中硬編碼金鑰
+# ❌ 不要在Git中提交金鑰
 ```
 
 ### 密碼安全
@@ -133,7 +134,7 @@ const isPasswordValid = await bcrypt.compare(inputPasswordSha256, storedHash);
 #### 3. 密碼重置
 
 ```typescript
-// ✅ 生成临時重置令牌（15分钟有效期）
+// ✅ 生成临時重置令牌（15分鐘有效期）
 // ✅ 傳送重置链接到註冊邮箱
 // ✅ 驗證身份后才能重置
 // ❌ 不要通過邮件傳送新密碼
@@ -143,7 +144,7 @@ const isPasswordValid = await bcrypt.compare(inputPasswordSha256, storedHash);
 
 ## 資料加密
 
-### 传輸层加密
+### 传輸層加密
 
 #### 1. 啟用HTTPS/TLS
 
@@ -155,7 +156,7 @@ certbot certonly --standalone -d api.example.com
 server {
   listen 443 ssl http2;
   server_name api.example.com;
-  
+
   ssl_certificate /etc/letsencrypt/live/api.example.com/fullchain.pem;
   ssl_certificate_key /etc/letsencrypt/live/api.example.com/privkey.pem;
 }
@@ -182,7 +183,7 @@ app.use(helmet());
 
 ```typescript
 // ✅ 密碼欄位：使用bcrypt加密
-// ✅ API密钥欄位：使用AES加密
+// ✅ API金鑰欄位：使用AES加密
 // ❌ 不要明文存存敏感資訊
 ```
 
@@ -232,7 +233,7 @@ app.use(express.json({ limit: '10kb' }));
 
 ### 輸出安全
 
-#### 1. 資料過滤
+#### 1. 資料過濾
 
 ```typescript
 // ❌ 不要返回敏感欄位
@@ -273,7 +274,7 @@ app.enableCors({
 ```typescript
 // 防止暴力破解
 @UseGuards(ThrottlerGuard)
-@Throttle(5, 60) // 5个請求/分钟
+@Throttle(5, 60) // 5個請求/分鐘
 @Post('auth/login')
 login(@Body() dto: LoginDto) {
   // ...
@@ -292,7 +293,7 @@ login(@Body() dto: LoginDto) {
 
 ## 資料庫安全
 
-### 存得控制
+### 存取控制
 
 #### 1. 最小權限原则
 
@@ -329,7 +330,7 @@ const user = await this.prismaService.user.findUnique({
 // const query = `SELECT * FROM users WHERE username = '${username}'`;
 ```
 
-### 資料庫审計
+### 資料庫審計
 
 ```sql
 -- 啟用日誌
@@ -342,16 +343,28 @@ SELECT * FROM pg_log;
 
 ---
 
-## 程庫碼評測安全
+## 程式碼評測安全
+
+### API / Worker 邊界
+
+目前部署已將公開 API 與評測執行分離：
+
+| Service        | Docker socket | User                        | 暴露給外部 |
+| -------------- | ------------- | --------------------------- | ---------- |
+| `backend-api`  | No            | non-root `node`             | Yes        |
+| `judge-worker` | Yes           | root（Compose runner 折衷） | No         |
+
+這個設計降低了公開 API 被攻擊後直接接觸 Docker daemon 的風險。`judge-worker` 仍是高風險邊界，production 若需要更高安全等級，應評估 rootless Docker、gVisor、Firecracker 或獨立 runner host。
 
 ### 沙箱隔离
 
 ```typescript
-// ✅ 在隔离的容器中執行使用者程庫碼
+// ✅ 在隔离的容器中執行使用者程式碼
 // ✅ 限制CPU和記憶體使用
 // ✅ 限制執行時間
 // ✅ 限制系統呼叫
-// ❌ 不要在主應用進程中執行
+// ✅ API process 不直接執行使用者程式碼
+// ❌ 不要讓公開 API container 掛 Docker socket
 ```
 
 ### 資源限制
@@ -366,54 +379,62 @@ docker run -d \
   judge-worker
 ```
 
-### 恶意程庫碼防護
+### 恶意程式碼防護
 
 ```typescript
-// ✅ 過滤危险系統呼叫
-// ✅ 禁止檔案系統存得
-// ✅ 禁止网络存得
-// ✅ 检查執行超時
-// ✅ 監控進程行为
+// ✅ 過濾危險系統呼叫
+// ✅ 禁止檔案系統存取
+// ✅ 禁止網路存取
+// ✅ 檢查執行超時
+// ✅ 監控進程行為
 ```
+
+### Rate limiting
+
+- 全域 rate limit 由 `RequestAwareThrottlerGuard` 控制；有 Bearer token 時以 JWT
+  `sub` 作為 user tracker，未登入流量回退到 IP tracker。
+- `/auth/login` 有較嚴格的登入嘗試限制。
+- `/submissions` 有提交頻率限制，避免候選人短時間大量建立 judge jobs。
+- 更高安全等級可再接 Redis-backed throttler，讓多台 API instance 共用 rate limit state。
 
 ---
 
-## 相相性安全
+## 依賴安全
 
-### 相相性扫描
+### 依賴扫描
 
 ```bash
-# 检查已知漏洞
+# 檢查已知漏洞
 npm audit
 
 # 修正漏洞
 npm audit fix
 
-# 更新相相性
+# 更新依賴
 npm update
 
-# 定期审查
+# 定期審查
 npm outdated
 ```
 
-### 相相性锁定
+### 依賴鎖定
 
 ```bash
-# 使用package-lock.json锁定版本
-npm ci  # 使用锁定的相相性安装
+# 使用package-lock.json鎖定版本
+npm ci  # 使用鎖定的依賴安裝
 
-# 不要使用npm install（可能更新相相性）
+# 不要使用npm install（可能更新依賴）
 ```
 
-### 安全相相性
+### 安全依賴
 
 ```json
 {
   "dependencies": {
     "@nestjs/common": "^11.0.1",
-    "bcryptjs": "^3.0.3",  // 密碼加密
-    "passport": "^0.7.0",  // 認證
-    "helmet": "^7.0.0"     // 安全头部
+    "bcryptjs": "^3.0.3", // 密碼加密
+    "passport": "^0.7.0", // 認證
+    "helmet": "^7.0.0" // 安全头部
   },
   "devDependencies": {
     "eslint": "^8.0.0",
@@ -424,16 +445,16 @@ npm ci  # 使用锁定的相相性安装
 
 ---
 
-## 安全审計
+## 安全審計
 
-### 定期审計清單
+### 定期審計清單
 
-- [ ] 相相性更新检查 (每月)
-- [ ] 密钥轮換 (每季度)
-- [ ] 存得日誌审計 (每周)
+- [ ] 依賴更新檢查 (每月)
+- [ ] 金鑰轮換 (每季度)
+- [ ] 存取日誌審計 (每周)
 - [ ] 渗透測試 (每年)
-- [ ] 安全程庫碼审查 (每个PR)
-- [ ] 合规性检查 (每半年)
+- [ ] 安全程式碼審查 (每個PR)
+- [ ] 合规性檢查 (每半年)
 
 ### 安全測試
 
@@ -445,7 +466,7 @@ docker run -t owasp/zap2docker-stable zap-baseline.py \
 # Snyk扫描
 snyk test
 
-# 程庫碼质數检查
+# 程式碼品質檢查
 npm run lint
 ```
 
@@ -453,12 +474,12 @@ npm run lint
 
 #### 安全事件處理流程
 
-1. **检測和報告** - 發現并報告安全问题
+1. **检測和報告** - 發現並報告安全問題
 2. **評估** - 評估影響和严重性
 3. **遏制** - 采得临時措施防止擴散
 4. **根除** - 修正根本原因
 5. **復原** - 復原系統正常執行
-6. **事后分析** - 分析原因并改進
+6. **事后分析** - 分析原因並改進
 
 ---
 
@@ -475,11 +496,11 @@ PORT=4100
 DATABASE_URL=postgresql://app_user:SECURE_PASSWORD@secure-db-host:5432/code_judge
 
 # JWT
-JWT_SECRET=<256位随机字符串>
+JWT_SECRET=<256位隨機字符串>
 JWT_EXPIRES_IN=86400
 
 # 內部API
-INTERNAL_API_KEY=<強随机密钥>
+INTERNAL_API_KEY=<強隨機金鑰>
 INTERNAL_API_ALLOWED_IPS=10.0.0.0/8
 
 # CORS
@@ -514,4 +535,4 @@ RATE_LIMIT_MAX_REQUESTS=100
 
 - [SETUP_GUIDE.md](SETUP_GUIDE.md) - 開發環境設置
 - [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) - 部署指南
-- [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) - 資料庫模庫
+- [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) - 資料庫模式

@@ -81,8 +81,12 @@ if [ ! -f "$ENV_FILE" ]; then
     echo "INTERNAL_API_KEY=$(random_hex)"
     echo "PORT=${PORT:-4100}"
     echo "HOST_PORT=${HOST_PORT:-4100}"
+    echo "JUDGE_QUEUE_DRIVER=redis"
+    echo "REDIS_URL=redis://redis:6379"
     echo "SEED_DB=${SEED_DB:-false}"
     echo "JUDGE_CONCURRENCY=${JUDGE_CONCURRENCY:-2}"
+    echo "JUDGE_JOB_ATTEMPTS=${JUDGE_JOB_ATTEMPTS:-3}"
+    echo "JUDGE_STUCK_AFTER_SECONDS=${JUDGE_STUCK_AFTER_SECONDS:-300}"
     echo "JUDGE_TMP_DIR=$JUDGE_TMP_DIR"
   } >"$ENV_FILE"
   chmod 600 "$ENV_FILE"
@@ -98,8 +102,12 @@ else
   ensure_env_var "INTERNAL_API_KEY" "$(random_hex)"
   ensure_env_var "PORT" "${PORT:-4100}"
   ensure_env_var "HOST_PORT" "${HOST_PORT:-4100}"
+  ensure_env_var "JUDGE_QUEUE_DRIVER" "redis"
+  ensure_env_var "REDIS_URL" "redis://redis:6379"
   ensure_env_var "SEED_DB" "${SEED_DB:-false}"
   ensure_env_var "JUDGE_CONCURRENCY" "${JUDGE_CONCURRENCY:-2}"
+  ensure_env_var "JUDGE_JOB_ATTEMPTS" "${JUDGE_JOB_ATTEMPTS:-3}"
+  ensure_env_var "JUDGE_STUCK_AFTER_SECONDS" "${JUDGE_STUCK_AFTER_SECONDS:-300}"
   ensure_env_var "JUDGE_TMP_DIR" "$JUDGE_TMP_DIR"
 fi
 
@@ -110,7 +118,7 @@ if [ ! -w "$JUDGE_TMP_DIR" ]; then
 fi
 
 HOST_PORT_VALUE="${HOST_PORT:-$(env_value HOST_PORT)}"
-HEALTH_URL="http://localhost:${HOST_PORT_VALUE}/api/v1/health"
+HEALTH_URL="http://localhost:${HOST_PORT_VALUE}/api/v1/health/ready"
 
 cd "$ROOT_DIR"
 
@@ -157,6 +165,6 @@ Deploy complete.
 API:      http://localhost:${HOST_PORT_VALUE}/api/v1
 Swagger:  http://localhost:${HOST_PORT_VALUE}/api/docs
 Health:   $HEALTH_URL
-Logs:     ${COMPOSE[*]} --env-file .deploy/deploy.env logs -f backend-api
+Logs:     ${COMPOSE[*]} --env-file .deploy/deploy.env logs -f backend-api judge-worker
 Stop:     ${COMPOSE[*]} --env-file .deploy/deploy.env down
 EOF

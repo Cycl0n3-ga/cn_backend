@@ -1,9 +1,10 @@
 import 'dotenv/config';
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
+import { configureHttpApp } from './../src/common/app-setup';
 
 jest.setTimeout(30000);
 
@@ -11,6 +12,9 @@ describe('Code Judge API (e2e)', () => {
   let app: INestApplication<App>;
   let adminToken: string;
   let aliceToken: string;
+  let bobToken: string;
+  let examinerToken: string;
+  let questionerToken: string;
 
   const adminSha256 =
     '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9'; // sha256('admin123')
@@ -23,15 +27,7 @@ describe('Code Judge API (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.setGlobalPrefix('api/v1');
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-        transformOptions: { enableImplicitConversion: true },
-      }),
-    );
+    configureHttpApp(app);
     await app.init();
 
     // Pre-login for authenticated e2e flows.
@@ -46,6 +42,24 @@ describe('Code Judge API (e2e)', () => {
       .send({ username: 'alice', passwordSha256: userSha256 })
       .expect(200);
     aliceToken = aliceLogin.body.token;
+
+    const bobLogin = await request(app.getHttpServer())
+      .post('/api/v1/auth/login')
+      .send({ username: 'bob', passwordSha256: userSha256 })
+      .expect(200);
+    bobToken = bobLogin.body.token;
+
+    const examinerLogin = await request(app.getHttpServer())
+      .post('/api/v1/auth/login')
+      .send({ username: 'examiner', passwordSha256: userSha256 })
+      .expect(200);
+    examinerToken = examinerLogin.body.token;
+
+    const questionerLogin = await request(app.getHttpServer())
+      .post('/api/v1/auth/login')
+      .send({ username: 'questioner', passwordSha256: userSha256 })
+      .expect(200);
+    questionerToken = questionerLogin.body.token;
   });
 
   afterAll(async () => {
@@ -95,6 +109,34 @@ describe('Code Judge API (e2e)', () => {
         .get('/api/v1/health')
         .expect(200);
       expect(res.body.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    });
+
+    it('GET /api/v1/health/live should return liveness only', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/api/v1/health/live')
+        .expect(200);
+
+      expect(res.body.status).toBe('UP');
+      expect(res.body).toHaveProperty('uptime');
+    });
+
+    it('GET /api/v1/health/ready should check dependencies', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/api/v1/health/ready')
+        .expect(200);
+
+      expect(res.body.status).toBe('UP');
+      expect(res.body.services).toHaveProperty('database', 'OK');
+      expect(res.body.services).toHaveProperty('judge_queue', 'OK');
+    });
+
+    it('should echo x-request-id for observability', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/api/v1/health/live')
+        .set('x-request-id', 'e2e-request-id')
+        .expect(200);
+
+      expect(res.headers['x-request-id']).toBe('e2e-request-id');
     });
   });
 
@@ -441,6 +483,102 @@ describe('Code Judge API (e2e)', () => {
       });
     });
 
+    describe('PATCH /api/v1/problems/:id', () => {
+      let problemId: string;
+
+      beforeAll(async () => {
+        // Create a temporary problem to patch
+        const res = await request(app.getHttpServer())
+          .post('/api/v1/problems')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({
+            title: `E2E Patch Target ${Date.now()}`,
+            description: 'Created for patch test',
+            difficulty: 'EASY',
+            test_cases: [{ input: '1', output: '1', is_hidden: false }],
+          })
+          .expect(201);
+        problemId = res.body.problem_id;
+      });
+
+      it('should return 401 without auth token', async () => {
+        await request(app.getHttpServer())
+          .patch(`/api/v1/problems/${problemId}`)
+          .send({ title: 'Updated Title' })
+          .expect(401);
+      });
+
+      it('should allow EXAMINER to update a problem', async () => {
+        const res = await request(app.getHttpServer())
+          .patch(`/api/v1/problems/${problemId}`)
+          .set('Authorization', `Bearer ${examinerToken}`)
+          .send({ title: 'Updated by Examiner' })
+          .expect(200);
+        expect(res.body).toHaveProperty('title', 'Updated by Examiner');
+      });
+
+      it('should allow QUESTIONER to update a problem', async () => {
+        const res = await request(app.getHttpServer())
+          .patch(`/api/v1/problems/${problemId}`)
+          .set('Authorization', `Bearer ${questionerToken}`)
+          .send({
+            title: 'Updated by Questioner',
+            description: 'Updated description',
+            difficulty: 'MEDIUM',
+            function_name: 'updatedSolve',
+            time_limit_ms: 1500,
+            memory_limit_mb: 384,
+            test_cases: [
+              { input: 'visible', output: 'ok', is_hidden: false },
+              { input: 'hidden', output: 'ok', is_hidden: true },
+            ],
+          })
+          .expect(200);
+        expect(res.body).toHaveProperty('title', 'Updated by Questioner');
+        expect(res.body).toHaveProperty('description', 'Updated description');
+        expect(res.body).toHaveProperty('difficulty', 'MEDIUM');
+        expect(res.body).toHaveProperty('function_name', 'updatedSolve');
+        expect(res.body.constraints).toMatchObject({
+          time_limit_ms: '1500',
+          memory_limit_mb: '384',
+        });
+        expect(res.body.sample_test_cases).toEqual([
+          { input: 'visible', output: 'ok' },
+        ]);
+
+        const detail = await request(app.getHttpServer())
+          .get(`/api/v1/problems/${problemId}`)
+          .expect(200);
+        expect(detail.body.sample_test_cases).toEqual([
+          { input: 'visible', output: 'ok' },
+        ]);
+      });
+
+      it('should return 403 when CANDIDATE tries to update a problem', async () => {
+        await request(app.getHttpServer())
+          .patch(`/api/v1/problems/${problemId}`)
+          .set('Authorization', `Bearer ${aliceToken}`)
+          .send({ title: 'Candidate Attempt' })
+          .expect(403);
+      });
+
+      it('should reject an empty update payload', async () => {
+        await request(app.getHttpServer())
+          .patch(`/api/v1/problems/${problemId}`)
+          .set('Authorization', `Bearer ${questionerToken}`)
+          .send({})
+          .expect(400);
+      });
+
+      it('should reject replacing test cases with an empty array', async () => {
+        await request(app.getHttpServer())
+          .patch(`/api/v1/problems/${problemId}`)
+          .set('Authorization', `Bearer ${questionerToken}`)
+          .send({ test_cases: [] })
+          .expect(400);
+      });
+    });
+
     describe('DELETE /api/v1/problems/:id', () => {
       it('should return 401 without auth token', async () => {
         await request(app.getHttpServer())
@@ -526,6 +664,8 @@ describe('Code Judge API (e2e)', () => {
           .expect(202);
 
         expect(submitRes.body).toHaveProperty('submission_id');
+        expect(submitRes.body).toHaveProperty('judge_job_id');
+        expect(submitRes.body).toHaveProperty('queue_driver');
         expect(submitRes.body).toHaveProperty('status', 'PENDING');
 
         const id = submitRes.body.submission_id;
@@ -548,6 +688,8 @@ describe('Code Judge API (e2e)', () => {
           const status = poll.body.status as string;
           if (terminal.includes(status)) {
             expect(poll.body).toHaveProperty('metrics');
+            expect(poll.body).toHaveProperty('queued_at');
+            expect(poll.body).toHaveProperty('finished_at');
             break;
           }
 
@@ -559,6 +701,11 @@ describe('Code Judge API (e2e)', () => {
 
           await new Promise((r) => setTimeout(r, 200));
         }
+
+        await request(app.getHttpServer())
+          .get(`/api/v1/submissions/${id}`)
+          .set('Authorization', `Bearer ${bobToken}`)
+          .expect(403);
       });
     });
 
@@ -629,6 +776,13 @@ describe('Code Judge API (e2e)', () => {
           .get('/api/v1/users')
           .set('Authorization', `Bearer ${aliceToken}`)
           .expect(403);
+      });
+
+      it('should allow examiner to list users for review workflows', async () => {
+        await request(app.getHttpServer())
+          .get('/api/v1/users')
+          .set('Authorization', `Bearer ${examinerToken}`)
+          .expect(200);
       });
     });
 
@@ -952,6 +1106,13 @@ describe('Code Judge API (e2e)', () => {
           .expect(200);
         expect(Array.isArray(res.body)).toBe(true);
       });
+
+      it('should reject candidate from listing all assignments', async () => {
+        await request(app.getHttpServer())
+          .get('/api/v1/assignments')
+          .set('Authorization', `Bearer ${aliceToken}`)
+          .expect(403);
+      });
     });
 
     describe('DELETE /api/v1/assignments/:id', () => {
@@ -974,6 +1135,9 @@ describe('Code Judge API (e2e)', () => {
 
       expect(res.body).toHaveProperty('statusCode', 404);
       expect(res.body).toHaveProperty('message');
+      expect(res.body).toHaveProperty('requestId');
+      expect(res.body).toHaveProperty('timestamp');
+      expect(res.body).toHaveProperty('path', '/api/v1/problems/99999');
     });
 
     it('should return standard error format for 401', async () => {

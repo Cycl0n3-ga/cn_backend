@@ -3,6 +3,7 @@
 線上程式碼評測系統後端 - 完整的開發環境配置指南
 
 ## 目錄
+
 - [系統要求](#系統要求)
 - [快速開始](#快速開始)
 - [詳細配置](#詳細配置)
@@ -14,20 +15,20 @@
 
 ### 必需軟體
 
-| 軟體 | 版本 | 用途 |
-|------|------|------|
+| 軟體    | 版本        | 用途       |
+| ------- | ----------- | ---------- |
 | Node.js | 18.x 或更高 | 執行時環境 |
-| npm | 9.x 或更高 | 套件管理器 |
-| Git | 最新版 | 版本控制 |
+| npm     | 9.x 或更高  | 套件管理器 |
+| Git     | 最新版      | 版本控制   |
 
 ### 可選軟體
 
-| 軟體 | 版本 | 用途 |
-|------|------|------|
-| Docker | 24.x 或更高 | 容器化 |
-| Docker Compose | 2.x 或更高 | 多容器編排 |
-| PostgreSQL | 15.x 或更高 | 規劃支援；目前 migrations 為 SQLite |
-| Redis | 7.x 或更高 | 快取層（未來功能） |
+| 軟體           | 版本        | 用途                                |
+| -------------- | ----------- | ----------------------------------- |
+| Docker         | 24.x 或更高 | 容器化                              |
+| Docker Compose | 2.x 或更高  | 多容器編排                          |
+| PostgreSQL     | 15.x 或更高 | 規劃支援；目前 migrations 為 SQLite |
+| Redis          | 7.x 或更高  | production judge queue（BullMQ）    |
 
 ---
 
@@ -61,6 +62,13 @@ JWT_EXPIRES_IN=86400
 # 內部API配置
 INTERNAL_API_KEY=internal-judge-worker-key-with-at-least-32-characters
 
+# Judge queue
+# 本機單 process 開發可用 inline；Docker/prod 使用 redis
+JUDGE_QUEUE_DRIVER=inline
+REDIS_URL=redis://localhost:6379
+JUDGE_CONCURRENCY=2
+JUDGE_JOB_ATTEMPTS=3
+
 # 服務配置
 PORT=4100
 NODE_ENV=development
@@ -83,6 +91,7 @@ npm run start:dev
 ```
 
 **驗證啟動：**
+
 ```
 [Nest] 123456   - 05/18/2025, 10:30:00 AM     LOG [NestFactory] Starting Nest application...
 [Nest] 123456   - 05/18/2025, 10:30:01 AM     LOG [InstanceLoader] AppModule dependencies initialized
@@ -93,7 +102,7 @@ npm run start:dev
 
 - **API檔案**: http://localhost:4100/api/docs
 - **API根路径**: http://localhost:4100/api/v1
-- **健康檢查**: http://localhost:4100/api/v1/health
+- **健康檢查**: http://localhost:4100/api/v1/health/ready
 
 ---
 
@@ -104,11 +113,13 @@ npm run start:dev
 #### 資料庫配置
 
 **SQLite (開發環境預設)**
+
 ```env
 DATABASE_URL=file:./data/code_judge.db
 ```
 
 **PostgreSQL (規劃支援)**
+
 ```env
 DATABASE_URL=postgresql://username:password@localhost:5432/code_judge
 ```
@@ -126,6 +137,7 @@ JWT_EXPIRES_IN=86400  # 24小時
 ```
 
 生成安全密鑰：
+
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
@@ -150,6 +162,28 @@ PORT=4100
 NODE_ENV=development  # development | production | test
 ```
 
+#### Judge queue 配置
+
+```env
+# local/test: inline
+# production/docker compose: redis
+JUDGE_QUEUE_DRIVER=inline
+
+# Redis/BullMQ durable queue
+REDIS_URL=redis://localhost:6379
+
+# worker 同時執行 sandbox job 數量
+JUDGE_CONCURRENCY=2
+
+# BullMQ retry 次數
+JUDGE_JOB_ATTEMPTS=3
+
+# 啟動時 requeue 卡住 submission 的秒數門檻
+JUDGE_STUCK_AFTER_SECONDS=300
+```
+
+production 會要求 `JUDGE_QUEUE_DRIVER=redis` 與 `REDIS_URL`，避免正式環境誤用 inline queue。
+
 ---
 
 ### IDE配置（VS Code推荐）
@@ -157,16 +191,20 @@ NODE_ENV=development  # development | production | test
 #### 推荐擴展插件
 
 1. **Prettier** (esbenp.prettier-vscode)
+
    - 程式碼格式化
 
 2. **ESLint** (dbaeumer.vscode-eslint)
-   - 程庫碼检查
+
+   - 程式碼檢查
 
 3. **REST Client** (humao.rest-client)
+
    - API測試
 
 4. **Prisma** (prisma.prisma)
-   - ORM支持
+
+   - ORM支援
 
 5. **Thunder Client** 或 **REST Client**
    - API調试工具
@@ -246,8 +284,9 @@ temp/
 #### 本地Docker開發
 
 **啟動服務：**
+
 ```bash
-# 構建并啟動
+# 構建並啟動
 docker compose up -d
 
 # 查看日誌
@@ -257,7 +296,8 @@ docker compose logs -f backend-api
 docker compose down
 ```
 
-**啟動并灌入种子資料：**
+**啟動並灌入种子資料：**
+
 ```bash
 SEED_DB=true docker compose up -d --build
 ```
@@ -268,16 +308,16 @@ SEED_DB=true docker compose up -d --build
 # docker-compose.yml
 services:
   backend-api:
-    build: .                      # 使用Dockerfile構建
+    build: . # 使用Dockerfile構建
     container_name: code-judge-backend
     ports:
-      - "4100:4100"              # 映射連接埠
+      - '4100:4100' # 映射連接埠
     environment:
       DATABASE_URL: file:./data/code_judge.db
       JWT_SECRET: your-secret-key-with-at-least-32-characters
       SEED_DB: false
     volumes:
-      - backend_data:/app/data   # 資料庫持久化
+      - backend_data:/app/data # 資料庫持久化
     restart: always
 ```
 
@@ -287,22 +327,25 @@ services:
 
 > 以下僅作為未來切換 PostgreSQL 的資料庫準備參考；目前專案不能只改 `DATABASE_URL` 就直接套用既有 SQLite migrations。
 
-**安装PostgreSQL：**
+**安裝PostgreSQL：**
 
-*macOS (Homebrew)*
+_macOS (Homebrew)_
+
 ```bash
 brew install postgresql@15
 brew services start postgresql@15
 ```
 
-*Ubuntu/Debian*
+_Ubuntu/Debian_
+
 ```bash
 sudo apt-get install postgresql postgresql-contrib
 sudo systemctl start postgresql
 ```
 
-*Windows*
-- 下載安装程序: https://www.postgresql.org/download/windows/
+_Windows_
+
+- 下載安裝程序: https://www.postgresql.org/download/windows/
 
 **建立資料庫和使用者：**
 
@@ -325,6 +368,7 @@ GRANT ALL PRIVILEGES ON DATABASE code_judge TO judge_user;
 ```
 
 **更新.env：**
+
 ```env
 DATABASE_URL=postgresql://judge_user:your_password@localhost:5432/code_judge
 ```
@@ -334,16 +378,19 @@ DATABASE_URL=postgresql://judge_user:your_password@localhost:5432/code_judge
 ### 程式碼檢查和格式化
 
 **ESLint 檢查：**
+
 ```bash
 npm run lint
 ```
 
 **Prettier 格式化：**
+
 ```bash
 npm run format
 ```
 
 **自動修正：**
+
 ```bash
 npm run lint -- --fix
 ```
@@ -368,11 +415,12 @@ npx prisma studio
 
 ---
 
-## 常见问题
+## 常见問題
 
 ### Q: 啟動時報错"找不到模組"
 
-**A:** 清理并重新安装：
+**A:** 清理並重新安裝：
+
 ```bash
 rm -rf node_modules package-lock.json
 npm install
@@ -382,6 +430,7 @@ npm run build
 ### Q: 資料庫連接失敗
 
 **A:** 檢查以下幾點：
+
 1. `.env`檔案中`DATABASE_URL`配置正确
 2. 資料庫服務已啟動
 3. 資料庫使用者有正确的權限
@@ -412,6 +461,7 @@ echo "PORT=4101" >> .env
 ### Q: JWT驗證失敗
 
 **A:** 確保：
+
 1. `JWT_SECRET`配置正确
 2. Token 格式正確：`Authorization: Bearer <token>`
 3. Token未過期
@@ -424,6 +474,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ### Q: Prisma遷移冲突
 
 **A:**
+
 ```bash
 # 重置開發資料庫（小心！会刪除資料）
 npx prisma migrate reset
@@ -432,12 +483,13 @@ npx prisma migrate reset
 npx prisma migrate dev --name <migration_name>
 ```
 
-### Q: 效能问题或慢查詢
+### Q: 效能問題或慢查詢
 
 **A:** 檢查：
+
 1. 資料庫索引是否正确建立
-2. 查詢是否有N+1问题
-3. 是否需要新增快得层
+2. 查詢是否有N+1問題
+3. 是否需要新增快取層
 
 ```bash
 # 生成Prisma查詢日誌
@@ -457,13 +509,13 @@ git checkout -b feature/my-feature
 # 建立資料庫遷移（如需要）
 npx prisma migrate dev --name add_my_feature
 
-# 開發并測試
+# 開發並測試
 npm run start:dev
 
 # 執行測試
 npm run test
 
-# 程庫碼检查和格庫化
+# 程式碼檢查和格式化
 npm run lint -- --fix
 npm run format
 
@@ -481,7 +533,7 @@ git push origin feature/my-feature
 # 執行所有測試
 npm run test
 
-# 观察模庫（自動重跑）
+# 觀察模式（自動重跑）
 npm run test:watch
 
 # 查看涵蓋率
@@ -514,4 +566,4 @@ npm run test:stress
 - [README.md](../README.md) - 快速開始
 - [TESTING_GUIDE.md](TESTING_GUIDE.md) - 測試指南
 - [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) - 部署指南
-- [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) - 資料庫模庫
+- [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) - 資料庫模式

@@ -1,6 +1,6 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { UsersModule } from './users/users.module.js';
@@ -13,10 +13,12 @@ import { InterviewsModule } from './interviews/interviews.module.js';
 import { InterviewCandidatesModule } from './interview-candidates/interview-candidates.module.js';
 import { AssignmentsModule } from './assignments/assignments.module.js';
 import { StressTestReportsModule } from './stress-test-reports/stress-test-reports.module.js';
+import { RequestIdMiddleware } from './common/request-id.middleware.js';
+import { RequestAwareThrottlerGuard } from './common/request-aware-throttler.guard.js';
 
 @Module({
   imports: [
-    // Global rate limiting: 60 requests per minute per IP
+    // Global rate limiting: 60 requests per minute per endpoint/user.
     ThrottlerModule.forRoot([
       {
         ttl: 60000,
@@ -39,8 +41,12 @@ import { StressTestReportsModule } from './stress-test-reports/stress-test-repor
   providers: [
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard,
+      useClass: RequestAwareThrottlerGuard,
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestIdMiddleware).forRoutes('{*path}');
+  }
+}

@@ -82,17 +82,19 @@ export class JudgeController {
       );
     }
 
-    return this.judgeQueueService.enqueue({
+    return this.judgeQueueService.runSample({
       language: dto.language,
       code: dto.source_code,
       input: sample.input,
       expectedOutput: sample.output,
+      timeLimitMs: problem.timeLimitMs,
+      memoryLimitMb: problem.memoryLimitMb,
     });
   }
 
   @Get('queue')
   @ApiOperation({ summary: '查詢 judge queue 狀態' })
-  getQueueStats() {
+  async getQueueStats() {
     return this.judgeQueueService.getStats();
   }
 }

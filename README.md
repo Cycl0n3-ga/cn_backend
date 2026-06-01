@@ -19,37 +19,39 @@ npm run start:dev
 ```
 
 啟動後：
+
 - 🚀 API: http://localhost:4100/api/v1
 - 📚 Swagger UI: http://localhost:4100/api/docs
 
 ## 📖 文件導覽
 
-| 類型 | 文件 | 說明 |
-|------|------|------|
-| **快速開始** | [SETUP_GUIDE.md](docs/SETUP_GUIDE.md) | 開發環境完整配置 |
-| **架構設計** | [BACKEND_ARCHITECTURE.md](docs/BACKEND_ARCHITECTURE.md) | 系統架構和設計模式 |
-| **API 文件** | [API_SPECIFICATION.md](docs/API_SPECIFICATION.md) | 所有 API 端點詳解 |
-| **資料庫** | [DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) | 資料庫模式和關係 |
-| **模組說明** | [MODULE_GUIDE.md](docs/MODULE_GUIDE.md) | 各功能模組詳細說明 |
-| **測試指南** | [TESTING_GUIDE.md](docs/TESTING_GUIDE.md) | 測試執行方法 |
-| **部署指南** | [DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) | 生產部署和優化 |
-| **安全文件** | [SECURITY.md](docs/SECURITY.md) | 安全性和最佳實踐 |
-| **故障排除** | [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | 常見問題和解決方案 |
-| **貢獻指南** | [CONTRIBUTING.md](docs/CONTRIBUTING.md) | 開發者貢獻流程 |
-| **版本日誌** | [CHANGELOG.md](docs/CHANGELOG.md) | 版本變更記錄 |
-| **全部文件** | [PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md) | 完整的文件結構導覽 |
+| 類型         | 文件                                                      | 說明                        |
+| ------------ | --------------------------------------------------------- | --------------------------- |
+| **快速開始** | [SETUP_GUIDE.md](docs/SETUP_GUIDE.md)                     | 開發環境完整配置            |
+| **架構總覽** | [ARCHITECTURE_OVERVIEW.md](docs/ARCHITECTURE_OVERVIEW.md) | API/worker/queue/部署資料流 |
+| **架構設計** | [BACKEND_ARCHITECTURE.md](docs/BACKEND_ARCHITECTURE.md)   | 系統架構和設計模式          |
+| **API 文件** | [API_SPECIFICATION.md](docs/API_SPECIFICATION.md)         | 所有 API 端點詳解           |
+| **資料庫**   | [DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md)             | 資料庫模式和關係            |
+| **模組說明** | [MODULE_GUIDE.md](docs/MODULE_GUIDE.md)                   | 各功能模組詳細說明          |
+| **測試指南** | [TESTING_GUIDE.md](docs/TESTING_GUIDE.md)                 | 測試執行方法                |
+| **部署指南** | [DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md)           | 生產部署和優化              |
+| **安全文件** | [SECURITY.md](docs/SECURITY.md)                           | 安全性和最佳實踐            |
+| **故障排除** | [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)             | 常見問題和解決方案          |
+| **貢獻指南** | [CONTRIBUTING.md](docs/CONTRIBUTING.md)                   | 開發者貢獻流程              |
+| **版本日誌** | [CHANGELOG.md](docs/CHANGELOG.md)                         | 版本變更記錄                |
+| **全部文件** | [PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md)         | 完整的文件結構導覽          |
 
 ## 🧪 測試帳號
 
 > `/auth/login` 與 `/auth/signup` 的 `passwordSha256` 欄位為 **SHA-256 hex**（前端送 sha256 後的值），後端再以 bcrypt 儲存/比對。
 
-| 帳號 | 明文密碼（僅供人類閱讀） | passwordSha256 (sha256 hex) | 角色 |
-|------|--------------------------|------------------------|------|
-| admin | admin123 | 240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9 | ADMIN |
-| examiner | user123 | e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446 | EXAMINER |
-| questioner | user123 | e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446 | QUESTIONER |
-| alice | user123 | e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446 | CANDIDATE |
-| bob | user123 | e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446 | CANDIDATE |
+| 帳號       | 明文密碼（僅供人類閱讀） | passwordSha256 (sha256 hex)                                      | 角色       |
+| ---------- | ------------------------ | ---------------------------------------------------------------- | ---------- |
+| admin      | admin123                 | 240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9 | ADMIN      |
+| examiner   | user123                  | e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446 | EXAMINER   |
+| questioner | user123                  | e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446 | QUESTIONER |
+| alice      | user123                  | e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446 | CANDIDATE  |
+| bob        | user123                  | e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446 | CANDIDATE  |
 
 ## 🧬 測試
 
@@ -90,43 +92,43 @@ npm run test:perf
 > `npm run deploy` 會建立本機部署設定、建置容器、執行 `prisma migrate deploy`、啟動服務，並等到 health check 通過才結束。
 
 ```bash
-# 一行部署並啟動 Backend API（SQLite）
+# 一行部署並啟動 API + Redis + Judge Worker（SQLite）
 npm run deploy
 
 # （可選）啟動時灌入 demo seed data（⚠️ seed 會清空既有資料）
 SEED_DB=true npm run deploy
 
-# 檢視日誌
-docker compose --env-file .deploy/deploy.env logs -f backend-api
+# 檢視 API / worker / queue 日誌
+docker compose --env-file .deploy/deploy.env logs -f backend-api judge-worker redis
 
 # 停止服務（若要連同 DB 一起刪除，可加 -v）
 docker compose --env-file .deploy/deploy.env down
 ```
 
-部署腳本會自動產生 `.deploy/deploy.env`（已被 git ignore），並掛載 Docker socket 讓評測服務可以建立隔離的 sandbox container。
+部署腳本會自動產生 `.deploy/deploy.env`（已被 git ignore）。API container 不掛 Docker socket；只有 `judge-worker` 會掛載 Docker socket 來建立 sandbox container，並透過 Redis/BullMQ 消費 submission jobs。
 
 詳細的部署指南請參考 [DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md)
 
 ## 🔌 API 端點
 
-| Method | Path | 說明 |
-|--------|------|------|
-| POST | `/api/v1/auth/login` | 使用者登入 |
-| POST | `/api/v1/auth/signup` | 使用者註冊 |
-| GET | `/api/v1/problems` | 題目列表 |
-| GET | `/api/v1/problems/:id` | 題目詳情 |
-| POST | `/api/v1/problems` | 新增題目 (Admin) |
-| DELETE | `/api/v1/problems/:id` | 刪除題目 (Admin) |
-| POST | `/api/v1/problems/:id/assign` | 指派題目 (Admin) |
-| POST | `/api/v1/judge/run` | 使用公開 sample 測資執行程式碼 |
-| GET | `/api/v1/judge/queue` | 查詢評測佇列狀態 |
-| POST | `/api/v1/submissions` | 提交程式碼 |
-| GET | `/api/v1/submissions/:id` | 查詢評測結果 |
-| GET | `/api/v1/users` | 使用者列表 (Admin/Examiner) |
-| GET | `/api/v1/users/:username/submissions` | 提交歷史 |
-| GET | `/api/v1/leaderboard` | 排行榜 |
-| GET | `/api/v1/health` | 健康檢查 |
-| GET | `/api/v1/internal/testcases/:id` | 評測機測資 |
+| Method | Path                                  | 說明                           |
+| ------ | ------------------------------------- | ------------------------------ |
+| POST   | `/api/v1/auth/login`                  | 使用者登入                     |
+| POST   | `/api/v1/auth/signup`                 | 使用者註冊                     |
+| GET    | `/api/v1/problems`                    | 題目列表                       |
+| GET    | `/api/v1/problems/:id`                | 題目詳情                       |
+| POST   | `/api/v1/problems`                    | 新增題目 (Admin)               |
+| DELETE | `/api/v1/problems/:id`                | 刪除題目 (Admin)               |
+| POST   | `/api/v1/problems/:id/assign`         | 指派題目 (Admin)               |
+| POST   | `/api/v1/judge/run`                   | 使用公開 sample 測資執行程式碼 |
+| GET    | `/api/v1/judge/queue`                 | 查詢評測佇列狀態               |
+| POST   | `/api/v1/submissions`                 | 提交程式碼                     |
+| GET    | `/api/v1/submissions/:id`             | 查詢評測結果                   |
+| GET    | `/api/v1/users`                       | 使用者列表 (Admin/Examiner)    |
+| GET    | `/api/v1/users/:username/submissions` | 提交歷史                       |
+| GET    | `/api/v1/leaderboard`                 | 排行榜                         |
+| GET    | `/api/v1/health`                      | 健康檢查                       |
+| GET    | `/api/v1/internal/testcases/:id`      | 評測機測資                     |
 
 完整的 API 文件請參考 [API_SPECIFICATION.md](docs/API_SPECIFICATION.md)
 
@@ -146,10 +148,12 @@ docker compose --env-file .deploy/deploy.env down
 
 ### Sandbox 與佇列
 
-- 使用 Docker container 執行不可信任程式碼，不直接在 backend process 執行。
+- API 與 judge worker 已分離：API 只建立 submission 並 enqueue，worker 才執行 sandbox。
+- production 使用 Redis/BullMQ durable queue；測試可用 `JUDGE_QUEUE_DRIVER=inline`。
+- 使用 Docker container 執行不可信任程式碼，不直接在 API process 執行。
 - 關閉 network，限制 CPU、memory、process 數量、timeout 與 stdout/stderr 大小。
 - `JUDGE_CONCURRENCY` 可控制同時執行的 container 數量，預設為 `2`。
-- `GET /api/v1/judge/queue` 可查看目前 active / queued / concurrency。
+- `GET /api/v1/judge/queue` 可查看目前 active / waiting / failed / completed / concurrency。
 
 ### Run 範例
 
@@ -167,7 +171,7 @@ curl -X POST http://localhost:4100/api/v1/judge/run \
 
 - **Auth** - JWT 認證、登入、註冊、角色管理
 - **Problems** - 題目管理（CRUD、難度、測試用例）
-- **Submissions** - 代碼提交、評測結果  
+- **Submissions** - 代碼提交、評測結果
 - **Users** - 使用者管理、排名統計
 - **Leaderboard** - 排行榜功能
 - **Interviews** - 面試系統管理
@@ -187,6 +191,7 @@ curl -X POST http://localhost:4100/api/v1/judge/run \
 - **測試:** Jest
 - **資料庫:** SQLite（目前可直接運行的預設；PostgreSQL 需另行提供 provider/migrations）
 - **容器:** Docker + Docker Compose
+- **佇列:** Redis + BullMQ（production），inline queue（test/local fallback）
 - **API 文件:** Swagger/OpenAPI
 
 ## 📋 命令列表
@@ -197,11 +202,15 @@ npm run start          # 啟動應用
 npm run start:dev      # 啟動開發模式（自動重載）
 npm run start:debug    # 啟動調試模式
 npm run start:prod     # 啟動生產模式
+npm run start:worker   # 啟動 judge worker（開發）
+npm run start:worker:prod # 啟動編譯後 judge worker
 
 # 構建
 npm run build          # 構建應用
 npm run format         # 格式化代碼
 npm run lint           # 代碼檢查
+npm run lint:check     # CI 用 lint，不自動修正
+npm run format:check   # CI 用格式檢查
 
 # 測試
 npm run test           # 運行所有測試
@@ -209,6 +218,7 @@ npm run test:watch     # 觀察模式
 npm run test:cov       # 生成涵蓋率報告
 npm run test:e2e       # E2E 測試
 npm run test:integration # 整合測試
+npm run test:smoke     # 部署 smoke test（需服務已啟動）
 
 # 資料庫
 npm run db:migrate     # 執行遷移
@@ -218,6 +228,7 @@ npm run db:seed        # 灌入種子資料
 ## 🔐 安全性
 
 本專案遵循安全最佳實踐：
+
 - JWT 認證和授權
 - 密碼加密 (bcrypt)
 - SQL 注入防護 (Prisma)
@@ -231,6 +242,7 @@ npm run db:seed        # 灌入種子資料
 遇到問題？請查閱 [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
 
 常見問題包括：
+
 - 連接埠已被佔用
 - 資料庫連接失敗
 - JWT 驗證失敗

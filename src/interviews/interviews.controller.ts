@@ -25,6 +25,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/roles.guard.js';
 import { Roles } from '../auth/roles.decorator.js';
 import { UserRole } from '../auth/user-role.js';
+import { parsePagination } from '../common/pagination.js';
 
 @ApiTags('Interviews')
 @Controller('interviews')
@@ -60,12 +61,8 @@ export class InterviewsController {
   @ApiResponse({ status: 401, description: '未認證' })
   @ApiResponse({ status: 403, description: '權限不足' })
   findAll(@Query('page') page?: string, @Query('limit') limit?: string) {
-    const parsedPage = Math.max(1, parseInt(page || '1', 10) || 1);
-    const parsedLimit = Math.min(
-      100,
-      Math.max(1, parseInt(limit || '20', 10) || 20),
-    );
-    return this.interviewsService.findAll(parsedPage, parsedLimit);
+    const pagination = parsePagination(page, limit);
+    return this.interviewsService.findAll(pagination.page, pagination.limit);
   }
 
   @Patch(':id')

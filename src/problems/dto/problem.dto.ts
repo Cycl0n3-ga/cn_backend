@@ -3,7 +3,9 @@ import {
   IsNotEmpty,
   IsOptional,
   IsInt,
+  Min,
   IsArray,
+  ArrayMinSize,
   ValidateNested,
   IsBoolean,
   IsEnum,
@@ -44,11 +46,13 @@ export class CreateProblemDto {
   @ApiPropertyOptional({ example: 1000, default: 1000 })
   @IsOptional()
   @IsInt()
+  @Min(1)
   time_limit_ms?: number;
 
   @ApiPropertyOptional({ example: 256, default: 256 })
   @IsOptional()
   @IsInt()
+  @Min(1)
   memory_limit_mb?: number;
 
   @ApiPropertyOptional({
@@ -61,6 +65,7 @@ export class CreateProblemDto {
 
   @ApiProperty({ type: [TestCaseDto] })
   @IsArray()
+  @ArrayMinSize(1)
   @ValidateNested({ each: true })
   @Type(() => TestCaseDto)
   test_cases: TestCaseDto[];
@@ -87,11 +92,13 @@ export class UpdateProblemDto {
   @ApiPropertyOptional({ example: 1000, default: 1000 })
   @IsOptional()
   @IsInt()
+  @Min(1)
   time_limit_ms?: number;
 
   @ApiPropertyOptional({ example: 256, default: 256 })
   @IsOptional()
   @IsInt()
+  @Min(1)
   memory_limit_mb?: number;
 
   @ApiPropertyOptional({
@@ -105,6 +112,7 @@ export class UpdateProblemDto {
   @ApiPropertyOptional({ type: [TestCaseDto] })
   @IsOptional()
   @IsArray()
+  @ArrayMinSize(1)
   @ValidateNested({ each: true })
   @Type(() => TestCaseDto)
   test_cases?: TestCaseDto[];

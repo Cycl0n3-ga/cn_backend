@@ -1,13 +1,14 @@
 # CONTRIBUTING.md - 貢獻指南
 
-線上程庫碼評測系統後端 - 開發者貢獻指南
+線上程式碼評測系統後端 - 開發者貢獻指南
 
 ## 目錄
+
 - [貢獻流程](#貢獻流程)
 - [開發規範](#開發規範)
-- [程庫碼風格](#程庫碼風格)
+- [程式碼風格](#程式碼風格)
 - [提交規範](#提交規範)
-- [PR审查](#pr审查)
+- [PR審查](#pr審查)
 - [發布流程](#發布流程)
 
 ---
@@ -28,7 +29,7 @@ git clone https://github.com/YOUR_USERNAME/cn_22_backend.git
 cd cn_22_backend
 ```
 
-### 3. 新增上游仓程庫庫
+### 3. 新增上游倉程式庫
 
 ```bash
 git remote add upstream https://github.com/example/cn_22_backend.git
@@ -51,14 +52,14 @@ git checkout -b docs/your-docs-update
 ### 5. 提交變更
 
 ```bash
-# 確保程庫碼通過检查
+# 確保程式碼通過檢查
 npm run lint -- --fix
 npm run format
 
 # 執行測試
 npm run test
 
-# 提交（遵迴提交規範）
+# 提交（遵循提交規範）
 git commit -m "feat: add new feature"
 ```
 
@@ -75,22 +76,22 @@ git push origin feature/your-feature-name
 - 链接相关Issue（如有）
 - 確保CI/CD通過
 
-### 8. 程庫碼审查和修改
+### 8. 程式碼審查和修改
 
 - 接受維護者的反馈
 - 進行必要的修改
 - 繼續推送更新
 
-### 9. 合并
+### 9. 合並
 
-- 維護者合并您的PR
+- 維護者合並您的PR
 - 刪除特性分支
 
 ---
 
 ## 開發規範
 
-### 項目結構遵迴
+### 項目結構遵循
 
 ```
 src/
@@ -298,7 +299,7 @@ CREATE INDEX "posts_authorId_idx" ON "posts"("authorId");
 
 ---
 
-## 程庫碼風格
+## 程式碼風格
 
 ### TypeScript風格
 
@@ -347,9 +348,9 @@ export class UsersController {
 // ❌ 避免：過度使用装饰器
 ```
 
-### 格庫化
+### 格式化
 
-所有程庫碼自動格庫化：
+所有程式碼自動格式化：
 
 ```bash
 npm run format
@@ -358,7 +359,7 @@ npm run format
 ### Linting
 
 ```bash
-# 检查程庫碼
+# 檢查程式碼
 npm run lint
 
 # 自動修正
@@ -369,9 +370,9 @@ npm run lint -- --fix
 
 ## 提交規範
 
-遵迴 [Conventional Commits](https://www.conventionalcommits.org/)
+遵循 [Conventional Commits](https://www.conventionalcommits.org/)
 
-### 提交格庫
+### 提交格式
 
 ```
 <type>(<scope>): <subject>
@@ -383,16 +384,16 @@ npm run lint -- --fix
 
 ### Type类型
 
-| 类型 | 說明 |
-|------|------|
-| **feat** | 新功能 |
-| **fix** | 修正bug |
-| **docs** | 檔案更新 |
-| **style** | 程庫碼風格（不影響功能） |
-| **refactor** | 重構程庫碼 |
-| **perf** | 效能優化 |
-| **test** | 新增或更新測試 |
-| **chore** | 構建工具、相相性更新 |
+| 类型         | 說明                     |
+| ------------ | ------------------------ |
+| **feat**     | 新功能                   |
+| **fix**      | 修正bug                  |
+| **docs**     | 檔案更新                 |
+| **style**    | 程式碼風格（不影響功能） |
+| **refactor** | 重構程式碼               |
+| **perf**     | 效能優化                 |
+| **test**     | 新增或更新測試           |
+| **chore**    | 構建工具、依賴更新       |
 
 ### 提交示範
 
@@ -421,58 +422,66 @@ Closes #123"
 
 ---
 
-## PR审查
+## PR審查
 
 ### PR模板
 
 ```markdown
 ## 描述
+
 請描述這個PR的目的和改動內容
 
 ## 类型
+
 - [ ] 新功能
 - [ ] bug修正
 - [ ] 檔案更新
-- [ ] 程庫碼重構
+- [ ] 程式碼重構
 
 ## 測試
+
 請描述如何測試這些變更
 
 - [ ] 單元測試已通過
 - [ ] 整合測試已通過
 - [ ] E2E測試已通過
 
-## 检查清單
-- [ ] 程庫碼遵迴風格指南
+## 檢查清單
+
+- [ ] 程式碼遵循風格指南
 - [ ] 自檔案化（清晰的變數名、注釋）
 - [ ] 新增了必要的注釋
 - [ ] 更新了相关檔案
 - [ ] 沒有产生新的警告
 
 ## 相关Issue
+
 Closes #<issue_number>
 ```
 
-### 审查流程
+### 審查流程
 
-1. **自動检查**
-   - 程庫碼風格检查 (ESLint)
+1. **自動檢查**
+
+   - 程式碼風格檢查 (ESLint)
    - 單元測試
    - 整合測試
-   - 涵蓋率检查
+   - 涵蓋率檢查
 
-2. **程庫碼审查**
-   - 至少1名維護者审查
-   - 检查逻辑正确性
-   - 检查效能影響
-   - 检查安全性
+2. **程式碼審查**
+
+   - 至少1名維護者審查
+   - 檢查逻辑正确性
+   - 檢查效能影響
+   - 檢查安全性
 
 3. **測試驗證**
+
    - 功能測試通過
    - 不影響其他功能
    - 效能基準達標
 
-4. **檔案审查**
+4. **檔案審查**
    - 更新了API檔案
    - 更新了相关README
    - 新增了變更日誌
@@ -483,7 +492,7 @@ Closes #<issue_number>
 
 ### 版本号規範
 
-遵迴 [Semantic Versioning](https://semver.org/)
+遵循 [Semantic Versioning](https://semver.org/)
 
 ```
 MAJOR.MINOR.PATCH
@@ -497,23 +506,27 @@ v1.2.3
 ### 發布步驟
 
 1. **更新版本号**
+
    ```bash
    npm version minor  # 或 patch, major
    ```
 
 2. **更新CHANGELOG**
+
    ```bash
    # 編辑docs/CHANGELOG.md
    # 新增新版本条目
    ```
 
 3. **建立Git標签**
+
    ```bash
    git tag -a v1.2.0 -m "Release v1.2.0"
    git push origin v1.2.0
    ```
 
 4. **發布NPM套件**（如适用）
+
    ```bash
    npm publish
    ```
@@ -536,7 +549,7 @@ git rebase upstream/main
 git checkout -b feat/add-caching
 
 # 3. 進行開發
-# - 修改程庫碼
+# - 修改程式碼
 # - 新增測試
 # - 更新檔案
 
@@ -553,14 +566,14 @@ git commit -m "feat(cache): add redis caching layer"
 # 6. 推送
 git push origin feat/add-caching
 
-# 7. 建立PR并等待审查
+# 7. 建立PR並等待審查
 
 # 8. 根据反馈進行修改
 git add .
 git commit -m "refactor: address review comments"
 git push origin feat/add-caching
 
-# 9. PR合并后，清理本地分支
+# 9. PR合並后，清理本地分支
 git checkout main
 git pull upstream main
 git branch -d feat/add-caching
@@ -568,11 +581,11 @@ git branch -d feat/add-caching
 
 ---
 
-## 常见问题
+## 常见問題
 
-### Q: 我的PR多久会被审查？
+### Q: 我的PR多久会被審查？
 
-A: 通常在1-2个工作日內。如果沒有及時回復，可以在PR中@維護者。
+A: 通常在1-2個工作日內。如果沒有及時回復，可以在PR中@維護者。
 
 ### Q: PR中途被要求改動，如何操作？
 
@@ -602,18 +615,18 @@ git rebase -i upstream/main
 
 ---
 
-## 行为準则
+## 行為準则
 
-我们致力於建立一个套件容、友好的社區。
+我们致力於建立一個套件容、友好的社區。
 
 - 尊重所有貢獻者
 - 使用套件容的语言
-- 专注於程庫碼讨论，而不是个人攻击
-- 報告不當行为給項目維護者
+- 专注於程式碼讨论，而不是個人攻击
+- 報告不當行為給項目維護者
 
 ---
 
-## 得得幫助
+## 取得幫助
 
 - **檔案**: [檔案目錄](PROJECT_STRUCTURE.md)
 - **讨论**: GitHub Discussions

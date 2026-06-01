@@ -6,6 +6,7 @@ import { join } from 'node:path';
 
 const MAX_OUTPUT_BYTES = 1024 * 1024;
 const TIMEOUT_MS = 5000;
+const DEFAULT_MEMORY_MB = 128;
 
 type SupportedLanguage = 'javascript' | 'python' | 'c' | 'cpp';
 
@@ -14,6 +15,8 @@ export type JudgeInput = {
   code: string;
   input: string;
   expectedOutput: string;
+  timeLimitMs?: number;
+  memoryLimitMb?: number;
 };
 
 export type JudgeResult = {
@@ -35,6 +38,8 @@ type DockerRunOptions = {
   command: string[];
   input: string;
   workdir: string;
+  timeoutMs: number;
+  memoryLimitMb: number;
 };
 
 @Injectable()
@@ -115,6 +120,8 @@ export class JudgeService {
         command: ['node', 'runner.js'],
         input: input.input,
         workdir,
+        timeoutMs: input.timeLimitMs ?? TIMEOUT_MS,
+        memoryLimitMb: input.memoryLimitMb ?? DEFAULT_MEMORY_MB,
       };
     }
 
@@ -130,6 +137,8 @@ export class JudgeService {
         command: ['python', 'runner.py'],
         input: input.input,
         workdir,
+        timeoutMs: input.timeLimitMs ?? TIMEOUT_MS,
+        memoryLimitMb: input.memoryLimitMb ?? DEFAULT_MEMORY_MB,
       };
     }
 
@@ -144,6 +153,8 @@ export class JudgeService {
         ],
         input: input.input,
         workdir,
+        timeoutMs: input.timeLimitMs ?? TIMEOUT_MS,
+        memoryLimitMb: input.memoryLimitMb ?? DEFAULT_MEMORY_MB,
       };
     }
 
@@ -157,6 +168,8 @@ export class JudgeService {
       ],
       input: input.input,
       workdir,
+      timeoutMs: input.timeLimitMs ?? TIMEOUT_MS,
+      memoryLimitMb: input.memoryLimitMb ?? DEFAULT_MEMORY_MB,
     };
   }
 
@@ -262,7 +275,9 @@ if output is not None:
             '--cpus',
             '0.5',
             '--memory',
-            '128m',
+            `${options.memoryLimitMb}m`,
+            '--memory-swap',
+            `${options.memoryLimitMb}m`,
             '--pids-limit',
             '64',
             '--security-opt',
@@ -289,7 +304,7 @@ if output is not None:
         let outputTooLarge = false;
         const timeout = setTimeout(() => {
           child.kill('SIGTERM');
-        }, TIMEOUT_MS);
+        }, options.timeoutMs);
 
         child.stdout.setEncoding('utf-8');
         child.stderr.setEncoding('utf-8');

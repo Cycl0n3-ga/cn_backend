@@ -18,6 +18,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/roles.guard.js';
 import { Roles } from '../auth/roles.decorator.js';
 import { UserRole } from '../auth/user-role.js';
+import { parsePagination } from '../common/pagination.js';
 import { UsersService } from './users.service.js';
 
 @ApiTags('Users')
@@ -39,12 +40,8 @@ export class UsersController {
   @ApiResponse({ status: 200, description: '成功取得使用者列表' })
   @ApiResponse({ status: 401, description: '未認證' })
   findAll(@Query('page') page?: string, @Query('limit') limit?: string) {
-    const parsedPage = Math.max(1, parseInt(page || '1', 10) || 1);
-    const parsedLimit = Math.min(
-      100,
-      Math.max(1, parseInt(limit || '20', 10) || 20),
-    );
-    return this.usersService.findAll(parsedPage, parsedLimit);
+    const pagination = parsePagination(page, limit);
+    return this.usersService.findAll(pagination.page, pagination.limit);
   }
 
   @Get(':username/submissions')
@@ -75,15 +72,11 @@ export class UsersController {
       );
     }
 
-    const parsedPage = Math.max(1, parseInt(page || '1', 10) || 1);
-    const parsedLimit = Math.min(
-      100,
-      Math.max(1, parseInt(limit || '20', 10) || 20),
-    );
+    const pagination = parsePagination(page, limit);
     return this.usersService.getSubmissionHistory(
       username,
-      parsedPage,
-      parsedLimit,
+      pagination.page,
+      pagination.limit,
     );
   }
 }
