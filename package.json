@@ -103,7 +103,13 @@
       "^@prisma/client/runtime/library$": "@prisma/client/runtime/library.js"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "**/*.(t|j)s",
+      "!main.ts",
+      "!worker.ts",
+      "!judge-worker.module.ts",
+      "!common/app-setup.ts",
+      "!common/logging.interceptor.ts",
+      "!common/http-exception.filter.ts"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
