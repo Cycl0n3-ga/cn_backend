@@ -14,6 +14,7 @@ describe('Code Judge API (e2e)', () => {
   let aliceToken: string;
   let bobToken: string;
   let examinerToken: string;
+  let questionerToken: string;
 
   const adminSha256 =
     '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9'; // sha256('admin123')
@@ -53,6 +54,12 @@ describe('Code Judge API (e2e)', () => {
       .send({ username: 'examiner', passwordSha256: userSha256 })
       .expect(200);
     examinerToken = examinerLogin.body.token;
+
+    const questionerLogin = await request(app.getHttpServer())
+      .post('/api/v1/auth/login')
+      .send({ username: 'questioner', passwordSha256: userSha256 })
+      .expect(200);
+    questionerToken = questionerLogin.body.token;
   });
 
   afterAll(async () => {
@@ -473,6 +480,102 @@ describe('Code Judge API (e2e)', () => {
             test_cases: [{ input: '1', output: '1' }],
           })
           .expect(403);
+      });
+    });
+
+    describe('PATCH /api/v1/problems/:id', () => {
+      let problemId: string;
+
+      beforeAll(async () => {
+        // Create a temporary problem to patch
+        const res = await request(app.getHttpServer())
+          .post('/api/v1/problems')
+          .set('Authorization', `Bearer ${adminToken}`)
+          .send({
+            title: `E2E Patch Target ${Date.now()}`,
+            description: 'Created for patch test',
+            difficulty: 'EASY',
+            test_cases: [{ input: '1', output: '1', is_hidden: false }],
+          })
+          .expect(201);
+        problemId = res.body.problem_id;
+      });
+
+      it('should return 401 without auth token', async () => {
+        await request(app.getHttpServer())
+          .patch(`/api/v1/problems/${problemId}`)
+          .send({ title: 'Updated Title' })
+          .expect(401);
+      });
+
+      it('should allow EXAMINER to update a problem', async () => {
+        const res = await request(app.getHttpServer())
+          .patch(`/api/v1/problems/${problemId}`)
+          .set('Authorization', `Bearer ${examinerToken}`)
+          .send({ title: 'Updated by Examiner' })
+          .expect(200);
+        expect(res.body).toHaveProperty('title', 'Updated by Examiner');
+      });
+
+      it('should allow QUESTIONER to update a problem', async () => {
+        const res = await request(app.getHttpServer())
+          .patch(`/api/v1/problems/${problemId}`)
+          .set('Authorization', `Bearer ${questionerToken}`)
+          .send({
+            title: 'Updated by Questioner',
+            description: 'Updated description',
+            difficulty: 'MEDIUM',
+            function_name: 'updatedSolve',
+            time_limit_ms: 1500,
+            memory_limit_mb: 384,
+            test_cases: [
+              { input: 'visible', output: 'ok', is_hidden: false },
+              { input: 'hidden', output: 'ok', is_hidden: true },
+            ],
+          })
+          .expect(200);
+        expect(res.body).toHaveProperty('title', 'Updated by Questioner');
+        expect(res.body).toHaveProperty('description', 'Updated description');
+        expect(res.body).toHaveProperty('difficulty', 'MEDIUM');
+        expect(res.body).toHaveProperty('function_name', 'updatedSolve');
+        expect(res.body.constraints).toMatchObject({
+          time_limit_ms: '1500',
+          memory_limit_mb: '384',
+        });
+        expect(res.body.sample_test_cases).toEqual([
+          { input: 'visible', output: 'ok' },
+        ]);
+
+        const detail = await request(app.getHttpServer())
+          .get(`/api/v1/problems/${problemId}`)
+          .expect(200);
+        expect(detail.body.sample_test_cases).toEqual([
+          { input: 'visible', output: 'ok' },
+        ]);
+      });
+
+      it('should return 403 when CANDIDATE tries to update a problem', async () => {
+        await request(app.getHttpServer())
+          .patch(`/api/v1/problems/${problemId}`)
+          .set('Authorization', `Bearer ${aliceToken}`)
+          .send({ title: 'Candidate Attempt' })
+          .expect(403);
+      });
+
+      it('should reject an empty update payload', async () => {
+        await request(app.getHttpServer())
+          .patch(`/api/v1/problems/${problemId}`)
+          .set('Authorization', `Bearer ${questionerToken}`)
+          .send({})
+          .expect(400);
+      });
+
+      it('should reject replacing test cases with an empty array', async () => {
+        await request(app.getHttpServer())
+          .patch(`/api/v1/problems/${problemId}`)
+          .set('Authorization', `Bearer ${questionerToken}`)
+          .send({ test_cases: [] })
+          .expect(400);
       });
     });
 

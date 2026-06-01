@@ -376,7 +376,7 @@ describe('ProblemsService', () => {
         description: 'Desc',
         difficulty: 'EASY',
         creatorId: 'admin-uuid',
-        testCases: [],
+        testCases: [{ input: '1', output: '1' }],
       });
 
       const createCall = prisma.problem.create.mock.calls[0][0];
@@ -394,7 +394,7 @@ describe('ProblemsService', () => {
         title: 'Test',
         description: 'Desc',
         difficulty: 'EASY',
-        testCases: [],
+        testCases: [{ input: '1', output: '1' }],
       });
 
       const createCall = prisma.problem.create.mock.calls[0][0];
@@ -415,7 +415,7 @@ describe('ProblemsService', () => {
         difficulty: 'HARD',
         timeLimitMs: 3000,
         memoryLimitMb: 512,
-        testCases: [],
+        testCases: [{ input: '1', output: '1' }],
       });
 
       const createCall = prisma.problem.create.mock.calls[0][0];
@@ -458,6 +458,18 @@ describe('ProblemsService', () => {
       const createCall = prisma.problem.create.mock.calls[0][0];
       expect(createCall.data.testCases.create[0].isHidden).toBe(false);
     });
+
+    it('should reject creating a problem without test cases', async () => {
+      await expect(
+        service.create({
+          title: 'Test',
+          description: 'Desc',
+          difficulty: 'EASY',
+          testCases: [],
+        }),
+      ).rejects.toThrow(BadRequestException);
+      expect(prisma.problem.create).not.toHaveBeenCalled();
+    });
   });
 
   // ── update ────────────────────────────────────────────────────────────
@@ -465,6 +477,7 @@ describe('ProblemsService', () => {
     it('should update problem details and return format', async () => {
       prisma.problem.findFirst.mockResolvedValue(mockProblem);
       prisma.problem.update.mockResolvedValue({
+        ...mockProblem,
         id: 1,
         title: 'Updated Two Sum',
         creator: {
@@ -472,6 +485,7 @@ describe('ProblemsService', () => {
           username: 'admin',
           email: 'admin@codejudge.dev',
         },
+        testCases: [{ input: '1', output: '1' }],
       });
 
       const result = await service.update(1, {
@@ -480,6 +494,15 @@ describe('ProblemsService', () => {
 
       expect(result).toHaveProperty('problem_id', '1');
       expect(result).toHaveProperty('title', 'Updated Two Sum');
+      expect(result).toHaveProperty('description', mockProblem.description);
+      expect(result).toHaveProperty('difficulty', 'EASY');
+      expect(result).toHaveProperty('constraints', {
+        time_limit_ms: '1000',
+        memory_limit_mb: '256',
+      });
+      expect(result).toHaveProperty('sample_test_cases', [
+        { input: '1', output: '1' },
+      ]);
       expect(result).toHaveProperty('creator', {
         id: 'admin-uuid',
         username: 'admin',
@@ -489,7 +512,11 @@ describe('ProblemsService', () => {
 
     it('should replace test cases if testCases are provided', async () => {
       prisma.problem.findFirst.mockResolvedValue(mockProblem);
-      prisma.problem.update.mockResolvedValue({ id: 1, title: 'Two Sum' });
+      prisma.problem.update.mockResolvedValue({
+        ...mockProblem,
+        creator: null,
+        testCases: [{ input: 'new-in', output: 'new-out' }],
+      });
 
       await service.update(1, {
         testCases: [{ input: 'new-in', output: 'new-out', isHidden: false }],
@@ -502,6 +529,34 @@ describe('ProblemsService', () => {
       expect(updateCall.data.testCases.create[0].input).toBe('new-in');
       expect(updateCall.data.testCases.create[0].output).toBe('new-out');
       expect(updateCall.data.testCases.create[0].isHidden).toBe(false);
+    });
+
+    it('should not replace test cases when testCases are omitted', async () => {
+      prisma.problem.findFirst.mockResolvedValue(mockProblem);
+      prisma.problem.update.mockResolvedValue({
+        ...mockProblem,
+        title: 'Renamed',
+        creator: null,
+        testCases: [],
+      });
+
+      await service.update(1, { title: 'Renamed' });
+
+      expect(prisma.testCase.deleteMany).not.toHaveBeenCalled();
+      const updateCall = prisma.problem.update.mock.calls[0][0];
+      expect(updateCall.data.testCases).toBeUndefined();
+    });
+
+    it('should reject an empty update payload', async () => {
+      await expect(service.update(1, {})).rejects.toThrow(BadRequestException);
+      expect(prisma.problem.findFirst).not.toHaveBeenCalled();
+    });
+
+    it('should reject replacing test cases with an empty array', async () => {
+      await expect(service.update(1, { testCases: [] })).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(prisma.problem.findFirst).not.toHaveBeenCalled();
     });
 
     it('should throw NotFoundException if problem does not exist or is deleted', async () => {

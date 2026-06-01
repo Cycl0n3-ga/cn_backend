@@ -299,13 +299,13 @@ Authorization: Bearer <JWT_TOKEN>
 
 ---
 
-### 3.4 編輯題目 (Admin Only)
+### 3.4 編輯題目
 
-| 項目       | 值                                      |
-| ---------- | --------------------------------------- |
-| **Method** | `PATCH`                                 |
-| **Path**   | `/problems/{id}`                        |
-| **認證**   | ✅ Bearer Token (`ADMIN`, `QUESTIONER`) |
+| 項目       | 值                                                  |
+| ---------- | --------------------------------------------------- |
+| **Method** | `PATCH`                                             |
+| **Path**   | `/problems/{id}`                                    |
+| **認證**   | ✅ Bearer Token (`ADMIN`, `EXAMINER`, `QUESTIONER`) |
 
 **Request Body:**
 
@@ -321,18 +321,20 @@ Authorization: Bearer <JWT_TOKEN>
 }
 ```
 
-| 欄位                     | 型別    | 必填 | 說明                                 |
-| ------------------------ | ------- | ---- | ------------------------------------ |
-| `title`                  | string  | 否   | 題目標題                             |
-| `description`            | string  | 否   | 題目描述 (Markdown)                  |
-| `difficulty`             | enum    | 否   | `EASY`, `MEDIUM`, `HARD`             |
-| `function_name`          | string  | 否   | 預期使用者實作的 function 名稱       |
-| `time_limit_ms`          | number  | 否   | 時間限制（毫秒）                     |
-| `memory_limit_mb`        | number  | 否   | 記憶體限制（MB）                     |
-| `test_cases`             | array   | 否   | 新的測試資料（傳入會完全覆蓋舊測資） |
-| `test_cases[].input`     | string  | ✅   | 輸入                                 |
-| `test_cases[].output`    | string  | ✅   | 預期輸出                             |
-| `test_cases[].is_hidden` | boolean | 否   | 是否隱藏，預設 true                  |
+| 欄位                     | 型別    | 必填 | 說明                                           |
+| ------------------------ | ------- | ---- | ---------------------------------------------- |
+| `title`                  | string  | 否   | 題目標題                                       |
+| `description`            | string  | 否   | 題目描述 (Markdown)                            |
+| `difficulty`             | enum    | 否   | `EASY`, `MEDIUM`, `HARD`                       |
+| `function_name`          | string  | 否   | 預期使用者實作的 function 名稱                 |
+| `time_limit_ms`          | number  | 否   | 時間限制（毫秒）                               |
+| `memory_limit_mb`        | number  | 否   | 記憶體限制（MB）                               |
+| `test_cases`             | array   | 否   | 新的測試資料（傳入會完全覆蓋舊測資，至少一筆） |
+| `test_cases[].input`     | string  | ✅   | 輸入                                           |
+| `test_cases[].output`    | string  | ✅   | 預期輸出                                       |
+| `test_cases[].is_hidden` | boolean | 否   | 是否隱藏，預設 true                            |
+
+> PATCH body 至少要提供一個欄位；`test_cases: []` 會回傳 400，避免題目被更新成沒有任何測資。
 
 **Response (200 OK):**
 
@@ -340,11 +342,23 @@ Authorization: Bearer <JWT_TOKEN>
 {
   "problem_id": "1",
   "title": "Updated Problem Title",
+  "description": "## Description\n\nNew markdown text...",
+  "difficulty": "MEDIUM",
+  "function_name": "solve",
   "creator": {
     "id": "uuid-string",
     "username": "admin",
     "email": "admin@codejudge.dev"
-  }
+  },
+  "assignedCount": "0",
+  "submittedCount": "0",
+  "acceptedCount": "0",
+  "failedCount": "0",
+  "constraints": {
+    "time_limit_ms": "1500",
+    "memory_limit_mb": "512"
+  },
+  "sample_test_cases": [{ "input": "[1,2,3]", "output": "6" }]
 }
 ```
 
@@ -1157,7 +1171,7 @@ x-internal-api-key: <INTERNAL_API_KEY>
 | 3   | `GET`    | `/problems`                             | ❌                                       | 題目列表                 |
 | 4   | `GET`    | `/problems/:id`                         | ❌                                       | 題目詳情                 |
 | 5   | `POST`   | `/problems`                             | 🔒 ADMIN / QUESTIONER                    | 新增題目                 |
-| 6   | `PATCH`  | `/problems/:id`                         | 🔒 ADMIN / QUESTIONER                    | 編輯題目                 |
+| 6   | `PATCH`  | `/problems/:id`                         | 🔒 ADMIN / EXAMINER / QUESTIONER         | 編輯題目                 |
 | 7   | `DELETE` | `/problems/:id`                         | 🔒 ADMIN / QUESTIONER                    | 刪除題目                 |
 | 8   | `POST`   | `/problems/:id/assign`                  | 🔒 ADMIN / EXAMINER / QUESTIONER         | 指派題目                 |
 | 9   | `POST`   | `/submissions`                          | 🔒 ADMIN / CANDIDATE                     | 提交程式碼               |

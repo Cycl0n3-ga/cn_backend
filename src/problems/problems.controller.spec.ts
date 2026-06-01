@@ -69,6 +69,28 @@ describe('ProblemsController', () => {
     },
   };
 
+  const mockUpdateResult = {
+    problem_id: '1',
+    title: 'Updated Problem',
+    description: 'Updated description',
+    difficulty: 'MEDIUM',
+    function_name: 'solve',
+    creator: {
+      id: 'admin-uuid',
+      username: 'admin',
+      email: 'admin@codejudge.dev',
+    },
+    assignedCount: '0',
+    submittedCount: '0',
+    acceptedCount: '0',
+    failedCount: '0',
+    constraints: {
+      time_limit_ms: '1500',
+      memory_limit_mb: '512',
+    },
+    sample_test_cases: [{ input: '1', output: '1' }],
+  };
+
   const mockAssignResult = {
     message: 'Assignment created successfully.',
     assignment_id: '1',
@@ -264,14 +286,14 @@ describe('ProblemsController', () => {
   // ── update ────────────────────────────────────────────────────────────
   describe('update', () => {
     it('should update problem and return result', async () => {
-      service.update.mockResolvedValue(mockCreateResult);
+      service.update.mockResolvedValue(mockUpdateResult);
 
       const result = await controller.update(1, {
         title: 'Updated Title',
         description: 'New desc',
       });
 
-      expect(result).toEqual(mockCreateResult);
+      expect(result).toEqual(mockUpdateResult);
       expect(service.update).toHaveBeenCalledWith(1, {
         title: 'Updated Title',
         description: 'New desc',
@@ -284,7 +306,7 @@ describe('ProblemsController', () => {
     });
 
     it('should map test cases DTO to service format', async () => {
-      service.update.mockResolvedValue(mockCreateResult);
+      service.update.mockResolvedValue(mockUpdateResult);
 
       await controller.update(1, {
         test_cases: [{ input: 'new-in', output: 'new-out', is_hidden: false }],

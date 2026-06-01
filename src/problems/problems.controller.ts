@@ -107,7 +107,7 @@ export class ProblemsController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.QUESTIONER)
+  @Roles(UserRole.EXAMINER, UserRole.QUESTIONER)
   @ApiBearerAuth()
   @ApiOperation({
     summary: '修改題目',

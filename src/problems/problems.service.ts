@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { hasUserRole, UserRole } from '../auth/user-role.js';
+import { SubmissionStatus } from '../submissions/submission-status.js';
 
 type ProblemFindAllWhere = {
   isDeleted: boolean;
@@ -12,11 +13,11 @@ type ProblemFindAllWhere = {
 };
 
 const FAILED_SUBMISSION_STATUSES = [
-  'WRONG_ANSWER',
-  'TLE',
-  'MLE',
-  'RUNTIME_ERROR',
-  'COMPILE_ERROR',
+  SubmissionStatus.WRONG_ANSWER,
+  SubmissionStatus.TLE,
+  SubmissionStatus.MLE,
+  SubmissionStatus.RUNTIME_ERROR,
+  SubmissionStatus.COMPILE_ERROR,
 ] as const;
 
 type FailedSubmissionStatus = (typeof FAILED_SUBMISSION_STATUSES)[number];
@@ -131,6 +132,8 @@ export class ProblemsService {
     memoryLimitMb?: number;
     testCases: { input: string; output: string; isHidden?: boolean }[];
   }) {
+    this.assertHasTestCases(data.testCases);
+
     const problem = await this.prisma.problem.create({
       data: {
         title: data.title,
@@ -179,6 +182,13 @@ export class ProblemsService {
       testCases?: { input: string; output: string; isHidden?: boolean }[];
     },
   ) {
+    if (!this.hasUpdatePayload(data)) {
+      throw new BadRequestException('At least one field must be provided.');
+    }
+    if (data.testCases !== undefined) {
+      this.assertHasTestCases(data.testCases);
+    }
+
     const existing = await this.prisma.problem.findFirst({
       where: { id, isDeleted: false },
     });
@@ -188,7 +198,6 @@ export class ProblemsService {
 
     const updated = await this.prisma.$transaction(async (tx) => {
       if (data.testCases) {
-        // Delete all old test cases first
         await tx.testCase.deleteMany({
           where: { problemId: id },
         });
@@ -221,14 +230,28 @@ export class ProblemsService {
               email: true,
             },
           },
+          testCases: {
+            where: { isHidden: false },
+            select: { input: true, output: true },
+          },
         },
       });
     });
+    const analytics = await this.getProblemAnalytics([updated.id]);
 
     return {
       problem_id: updated.id.toString(),
       title: updated.title,
+      description: updated.description,
+      difficulty: updated.difficulty,
+      function_name: updated.functionName || '',
       creator: this.formatCreator(updated.creator),
+      ...this.formatAnalytics(analytics.get(updated.id)),
+      constraints: {
+        time_limit_ms: updated.timeLimitMs.toString(),
+        memory_limit_mb: updated.memoryLimitMb.toString(),
+      },
+      sample_test_cases: updated.testCases,
     };
   }
 
@@ -365,5 +388,27 @@ export class ProblemsService {
       username: creator.username,
       email: creator.email,
     };
+  }
+
+  private assertHasTestCases(
+    testCases: { input: string; output: string; isHidden?: boolean }[],
+  ) {
+    if (testCases.length === 0) {
+      throw new BadRequestException(
+        'test_cases must contain at least one item.',
+      );
+    }
+  }
+
+  private hasUpdatePayload(data: {
+    title?: string;
+    description?: string;
+    difficulty?: string;
+    functionName?: string;
+    timeLimitMs?: number;
+    memoryLimitMb?: number;
+    testCases?: { input: string; output: string; isHidden?: boolean }[];
+  }) {
+    return Object.values(data).some((value) => value !== undefined);
   }
 }
