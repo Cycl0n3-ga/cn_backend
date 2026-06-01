@@ -5,7 +5,7 @@ module.exports = defineConfig({
   schema: 'prisma/schema.prisma',
   migrations: {
     path: 'prisma/migrations',
-    seed: 'node dist/prisma/seed.js',
+    seed: 'node prisma/seed-runner.js',
   },
   datasource: {
     url: process.env.DATABASE_URL,
