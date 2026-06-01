@@ -79,7 +79,6 @@ async function bootstrap() {
     customSiteTitle: 'Code Judge API Docs',
   });
 
-  const port = process.env.PORT ?? 4100;
   await app.listen(port);
   console.log(`\n🚀 Code Judge API running on http://localhost:${port}`);
   console.log(`📚 Swagger UI: http://localhost:${port}/api/docs`);
