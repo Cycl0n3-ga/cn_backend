@@ -10,13 +10,12 @@ export function isProduction() {
 
 export function getQueueDriver() {
   const configured = (process.env.JUDGE_QUEUE_DRIVER || '').trim();
-  if (!configured) {
-    return isProduction() ? 'redis' : 'inline';
+
+  if (isProduction()) {
+    return configured === 'inline' ? 'inline' : 'redis';
   }
-  if (configured === 'redis' || configured === 'inline') {
-    return configured;
-  }
-  throw new Error('JUDGE_QUEUE_DRIVER must be either "inline" or "redis".');
+
+  return configured === 'redis' ? 'redis' : 'inline';
 }
 
 export function getPositiveIntEnv(name: string, fallback: number) {
@@ -38,9 +37,16 @@ export function getRedisUrl() {
 }
 
 export function validateRuntimeEnv(processName: RuntimeProcess) {
-  const queueDriver = getQueueDriver();
+  const env = process.env;
+  const isProductionEnv = env.NODE_ENV === 'production';
+  const effectiveQueueDriver =
+    env.NODE_ENV === 'production'
+      ? (env.JUDGE_QUEUE_DRIVER ?? 'redis')
+      : env.JUDGE_QUEUE_DRIVER === 'redis'
+        ? 'redis'
+        : 'inline';
 
-  if (isProduction()) {
+  if (isProductionEnv) {
     if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
       throw new Error(
         'JWT_SECRET is required in production and must be at least 32 characters.',
@@ -54,17 +60,24 @@ export function validateRuntimeEnv(processName: RuntimeProcess) {
         'INTERNAL_API_KEY is required in production and must be at least 32 characters.',
       );
     }
-    if (queueDriver !== 'redis') {
+    if (
+      isProductionEnv &&
+      effectiveQueueDriver !== 'inline' &&
+      effectiveQueueDriver !== 'redis'
+    ) {
+      throw new Error('JUDGE_QUEUE_DRIVER must be either "inline" or "redis".');
+    }
+    if (effectiveQueueDriver !== 'redis') {
       throw new Error('JUDGE_QUEUE_DRIVER must be "redis" in production.');
     }
-    if (!process.env.REDIS_URL) {
+    if (isProductionEnv && effectiveQueueDriver === 'redis' && !env.REDIS_URL) {
       throw new Error(
         'REDIS_URL is required when using the Redis judge queue.',
       );
     }
   }
 
-  if (processName === 'worker' && queueDriver !== 'redis') {
+  if (processName === 'worker' && effectiveQueueDriver !== 'redis') {
     logger.warn(
       'Judge worker started with inline queue driver. No durable Redis jobs will be consumed.',
     );
