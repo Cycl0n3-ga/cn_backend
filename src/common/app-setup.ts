@@ -21,10 +21,14 @@ export function configureHttpApp(app: INestApplication) {
       allowedOrigins.push(origin);
 
       // Automatically support Vercel dynamic preview domains if a Vercel domain is configured
-      const vercelMatch = origin.match(/^https:\/\/([a-zA-Z0-9_.-]+)\.vercel\.app$/);
+      const vercelMatch = origin.match(
+        /^https:\/\/([a-zA-Z0-9_.-]+)\.vercel\.app$/,
+      );
       if (vercelMatch) {
         const projectName = vercelMatch[1];
-        allowedOrigins.push(new RegExp(`^https://${projectName}-[a-zA-Z0-9_.-]+\\.vercel\\.app$`));
+        allowedOrigins.push(
+          new RegExp(`^https://${projectName}-[a-zA-Z0-9_.-]+\\.vercel\\.app$`),
+        );
       }
     }
   }

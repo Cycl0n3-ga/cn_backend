@@ -1,5 +1,4 @@
 import { configureHttpApp } from './app-setup.js';
-import { INestApplication } from '@nestjs/common';
 
 describe('configureHttpApp CORS configurations', () => {
   let mockApp: any;
@@ -29,7 +28,10 @@ describe('configureHttpApp CORS configurations', () => {
     return capturedCorsOptions.origin;
   }
 
-  function testOrigin(origins: (string | RegExp)[], originToTest: string): boolean {
+  function testOrigin(
+    origins: (string | RegExp)[],
+    originToTest: string,
+  ): boolean {
     return origins.some((pattern) => {
       if (pattern instanceof RegExp) {
         return pattern.test(originToTest);
@@ -45,7 +47,9 @@ describe('configureHttpApp CORS configurations', () => {
     expect(testOrigin(origins, 'http://localhost:3000')).toBe(true);
     expect(testOrigin(origins, 'https://cn-22.vercel.app')).toBe(true);
     // Vercel preview domain for cn-22
-    expect(testOrigin(origins, 'https://cn-22-git-main-username.vercel.app')).toBe(true);
+    expect(
+      testOrigin(origins, 'https://cn-22-git-main-username.vercel.app'),
+    ).toBe(true);
     // Rejected non-matching vercel domains
     expect(testOrigin(origins, 'https://another-app.vercel.app')).toBe(false);
   });
@@ -64,6 +68,8 @@ describe('configureHttpApp CORS configurations', () => {
 
     expect(testOrigin(origins, 'https://my-custom-app.vercel.app')).toBe(true);
     // With the current bug, this preview domain will fail because 'cn-22' is hardcoded!
-    expect(testOrigin(origins, 'https://my-custom-app-git-main-username.vercel.app')).toBe(true);
+    expect(
+      testOrigin(origins, 'https://my-custom-app-git-main-username.vercel.app'),
+    ).toBe(true);
   });
 });
