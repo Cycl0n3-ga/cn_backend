@@ -14,19 +14,20 @@ export function configureHttpApp(app: INestApplication) {
   for (const origin of rawOrigins) {
     if (origin.includes('*')) {
       // Convert wildcard (e.g. "https://*.vercel.app") to a RegExp object
-      const escaped = origin.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+      const escaped = origin.replace(/[.+*?^${}()|[\]\\]/g, '\\$&');
       const regexStr = '^' + escaped.replace(/\\\*/g, '.*') + '$';
       allowedOrigins.push(new RegExp(regexStr));
     } else {
       allowedOrigins.push(origin);
+
+      // Automatically support Vercel dynamic preview domains if a Vercel domain is configured
+      const vercelMatch = origin.match(/^https:\/\/([a-zA-Z0-9_.-]+)\.vercel\.app$/);
+      if (vercelMatch) {
+        const projectName = vercelMatch[1];
+        allowedOrigins.push(new RegExp(`^https://${projectName}-[a-zA-Z0-9_.-]+\\.vercel\\.app$`));
+      }
     }
   }
-
-  // Automatically support Vercel dynamic preview domains if the production domain is configured
-  if (rawOrigins.includes('https://cn-22.vercel.app')) {
-    allowedOrigins.push(/^https:\/\/cn-22-[a-zA-Z0-9_.-]+\.vercel\.app$/);
-  }
-  //by gemini 3.5 flash
 
   app.enableCors({
     origin: allowedOrigins,
