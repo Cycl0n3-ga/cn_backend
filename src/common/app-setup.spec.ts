@@ -40,34 +40,37 @@ describe('configureHttpApp CORS configurations', () => {
     });
   }
 
-  it('should support default origins (localhost and cn-22.vercel.app)', () => {
+  it('should support default origins (localhost and online-code-judge-phi.vercel.app)', () => {
     delete process.env.CORS_ORIGINS;
     const origins = getOrigins();
 
     expect(testOrigin(origins, 'http://localhost:3000')).toBe(true);
-    expect(testOrigin(origins, 'https://cn-22.vercel.app')).toBe(true);
-    // Vercel preview domain for cn-22
+    expect(testOrigin(origins, 'https://online-code-judge-phi.vercel.app')).toBe(
+      true,
+    );
+    // Vercel preview domain for online-code-judge-phi
     expect(
-      testOrigin(origins, 'https://cn-22-git-main-username.vercel.app'),
+      testOrigin(
+        origins,
+        'https://online-code-judge-phi-git-main-username.vercel.app',
+      ),
     ).toBe(true);
     // Rejected non-matching vercel domains
     expect(testOrigin(origins, 'https://another-app.vercel.app')).toBe(false);
   });
 
-  it('should support wildcard domains in CORS_ORIGINS (demonstrating current wildcard bug)', () => {
+  it('should support wildcard domains in CORS_ORIGINS', () => {
     process.env.CORS_ORIGINS = 'https://*.vercel.app';
     const origins = getOrigins();
 
-    // With the current bug, these will fail!
     expect(testOrigin(origins, 'https://abc.vercel.app')).toBe(true);
   });
 
-  it('should support dynamic preview domains for custom Vercel production domains (demonstrating custom domain preview bug)', () => {
+  it('should support dynamic preview domains for custom Vercel production domains', () => {
     process.env.CORS_ORIGINS = 'https://my-custom-app.vercel.app';
     const origins = getOrigins();
 
     expect(testOrigin(origins, 'https://my-custom-app.vercel.app')).toBe(true);
-    // With the current bug, this preview domain will fail because 'cn-22' is hardcoded!
     expect(
       testOrigin(origins, 'https://my-custom-app-git-main-username.vercel.app'),
     ).toBe(true);

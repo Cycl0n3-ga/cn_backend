@@ -7,7 +7,7 @@ export function configureHttpApp(app: INestApplication) {
 
   const rawOrigins = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',').map((s) => s.trim())
-    : ['http://localhost:3000', 'https://cn-22.vercel.app'];
+    : ['http://localhost:3000', 'https://online-code-judge-phi.vercel.app'];
 
   const allowedOrigins: (string | RegExp)[] = [];
 
