@@ -45,9 +45,9 @@ describe('configureHttpApp CORS configurations', () => {
     const origins = getOrigins();
 
     expect(testOrigin(origins, 'http://localhost:3000')).toBe(true);
-    expect(testOrigin(origins, 'https://online-code-judge-phi.vercel.app')).toBe(
-      true,
-    );
+    expect(
+      testOrigin(origins, 'https://online-code-judge-phi.vercel.app'),
+    ).toBe(true);
     // Vercel preview domain for online-code-judge-phi
     expect(
       testOrigin(
