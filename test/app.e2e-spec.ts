@@ -138,6 +138,17 @@ describe('Code Judge API (e2e)', () => {
 
       expect(res.headers['x-request-id']).toBe('e2e-request-id');
     });
+
+    it('GET /api/v1/metrics should return Prometheus metrics', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/api/v1/metrics')
+        .expect(200);
+
+      expect(res.headers['content-type']).toContain('text/plain');
+      expect(res.text).toContain('code_judge_http_requests_total');
+      expect(res.text).toContain('code_judge_database_up');
+      expect(res.text).toContain('code_judge_judge_queue_jobs');
+    });
   });
 
   // ═══════════════════════════════════════════════════════════════════════

@@ -98,8 +98,17 @@ Production 會由 env validation 強制使用 `redis`，避免正式部署不小
 | `GET /api/v1/health/ready` | readiness                     | DB + judge queue                                            |
 | `GET /api/v1/health`       | backward compatible readiness | 同 `/ready`                                                 |
 | `GET /api/v1/health/stats` | dashboard/stats               | DB latency、submission counts、queue stats、process metrics |
+| `GET /api/v1/metrics`      | Prometheus scrape endpoint    | HTTP latency/counts、DB、queue、submission、worker metrics  |
 
-## 8. Security Boundary
+## 8. Observability
+
+系統目前具備三層可觀測性：
+
+- Correlation：所有 HTTP response 都會 echo `x-request-id`，錯誤 response 與 request log 也會帶同一個 request id。
+- Logs：HTTP completion、5xx error、judge worker started/completed/failed 都輸出 JSON event，方便用 request id、submission id、job id 搜尋。
+- Metrics：`GET /api/v1/metrics` 輸出 Prometheus text format，包含 HTTP request total/duration、DB up/latency、judge queue jobs/concurrency、submission status counts、worker job lifecycle/duration 與 Node.js default metrics。
+
+## 9. Security Boundary
 
 ```mermaid
 flowchart TD
@@ -115,7 +124,7 @@ flowchart TD
 - Worker 仍需 Docker daemon access。這是 Compose 部署下的務實折衷。
 - 若要更高安全等級，下一步應改成 rootless Docker、gVisor、Firecracker 或獨立 runner host。
 
-## 9. Test Strategy
+## 10. Test Strategy
 
 | Layer       | Coverage                                                                                                              |
 | ----------- | --------------------------------------------------------------------------------------------------------------------- |
@@ -124,10 +133,11 @@ flowchart TD
 | E2E         | auth flows、authorization matrix、submission lifecycle、health probes、internal API、error schema                     |
 | CI          | lint check、format check、coverage threshold、migration status、build、worker entrypoint、docker compose health smoke |
 
-## 10. Operational Runbook Summary
+## 11. Operational Runbook Summary
 
 1. Deploy with `npm run deploy`.
 2. Check `GET /api/v1/health/ready`.
-3. Watch `docker compose logs -f backend-api judge-worker redis`.
-4. If submissions remain `PENDING/RUNNING`, inspect `judgeJobId`, `lastError`, worker logs and Redis health.
-5. Roll back by deploying the previous image/commit and running `docker compose up -d --build`; do not run `SEED_DB=true` on production data.
+3. Scrape `GET /api/v1/metrics` or check the same endpoint from Prometheus/Grafana.
+4. Watch `docker compose logs -f backend-api judge-worker redis`.
+5. If submissions remain `PENDING/RUNNING`, inspect `judgeJobId`, `lastError`, worker logs, Redis health and `code_judge_judge_queue_jobs`.
+6. Roll back by deploying the previous image/commit and running `docker compose up -d --build`; do not run `SEED_DB=true` on production data.

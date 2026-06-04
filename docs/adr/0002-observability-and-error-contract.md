@@ -27,6 +27,7 @@ Code judge failures can come from HTTP validation, authorization, DB state, queu
 
 - Request completion is logged as structured JSON with method, path, status and duration.
 - Judge jobs log `judge_job_started`, `judge_job_completed`, and `judge_job_failed`.
+- `GET /api/v1/metrics` exposes Prometheus text metrics for HTTP request totals/durations, database up/latency, submission status counts, judge queue depth/concurrency, judge worker lifecycle/duration and Node.js process defaults.
 
 ## Consequences
 
@@ -35,8 +36,10 @@ Positive:
 - Frontend and backend can report the same request id.
 - Logs can be searched by request/job id.
 - Error response shape is stable across modules.
+- Prometheus/Grafana can monitor latency, 5xx spikes, queue backlog, worker failures and database availability without parsing application logs.
 
 Trade-offs:
 
 - Existing clients should tolerate additional fields in error bodies.
 - Full distributed tracing is still future work.
+- Metrics labels are intentionally low-cardinality; dynamic numeric ids and UUID segments are normalized before recording HTTP route metrics.

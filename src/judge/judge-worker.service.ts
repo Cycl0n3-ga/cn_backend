@@ -9,6 +9,7 @@ import { getPositiveIntEnv, getQueueDriver } from '../config/env.js';
 import { JudgeJobProcessor } from './judge-job.processor.js';
 import { JudgeJobData, JUDGE_QUEUE_NAME } from './judge-jobs.js';
 import { createRedisConnectionOptions } from './redis-connection.js';
+import { MetricsService } from '../observability/metrics.service.js';
 
 @Injectable()
 export class JudgeWorkerService implements OnModuleInit, OnModuleDestroy {
@@ -17,7 +18,10 @@ export class JudgeWorkerService implements OnModuleInit, OnModuleDestroy {
   private readonly concurrency = getPositiveIntEnv('JUDGE_CONCURRENCY', 2);
   private worker?: Worker<JudgeJobData>;
 
-  constructor(private readonly processor: JudgeJobProcessor) {}
+  constructor(
+    private readonly processor: JudgeJobProcessor,
+    private readonly metrics: MetricsService,
+  ) {}
 
   onModuleInit() {
     if (this.driver !== 'redis') {
@@ -31,24 +35,35 @@ export class JudgeWorkerService implements OnModuleInit, OnModuleDestroy {
       JUDGE_QUEUE_NAME,
       async (job) => {
         const jobId = String(job.id);
+        const name = job.name;
+        const startedAt = Date.now();
+        this.metrics.recordJudgeJobStarted(name);
         this.logger.log(
           JSON.stringify({
             event: 'judge_job_started',
             jobId,
-            name: job.name,
+            name,
             attempt: job.attemptsMade + 1,
           }),
         );
 
-        if (job.data.kind === 'submission') {
-          await this.processor.processSubmission(job.data.submissionId, {
-            jobId,
-            attempt: job.attemptsMade + 1,
-          });
-          return { ok: true };
-        }
+        try {
+          if (job.data.kind === 'submission') {
+            await this.processor.processSubmission(job.data.submissionId, {
+              jobId,
+              attempt: job.attemptsMade + 1,
+            });
+            this.metrics.recordJudgeJobCompleted(name, Date.now() - startedAt);
+            return { ok: true };
+          }
 
-        return this.processor.runSample(job.data.input);
+          const result = await this.processor.runSample(job.data.input);
+          this.metrics.recordJudgeJobCompleted(name, Date.now() - startedAt);
+          return result;
+        } catch (error) {
+          this.metrics.recordJudgeJobFailed(name, Date.now() - startedAt);
+          throw error;
+        }
       },
       {
         connection: createRedisConnectionOptions(),

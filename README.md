@@ -128,6 +128,7 @@ docker compose --env-file .deploy/deploy.env down
 | GET    | `/api/v1/users/:username/submissions` | 提交歷史                       |
 | GET    | `/api/v1/leaderboard`                 | 排行榜                         |
 | GET    | `/api/v1/health`                      | 健康檢查                       |
+| GET    | `/api/v1/metrics`                     | Prometheus 觀測指標            |
 | GET    | `/api/v1/internal/testcases/:id`      | 評測機測資                     |
 
 完整的 API 文件請參考 [API_SPECIFICATION.md](docs/API_SPECIFICATION.md)

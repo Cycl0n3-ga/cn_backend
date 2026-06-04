@@ -13,6 +13,7 @@ import { InterviewsModule } from './interviews/interviews.module.js';
 import { InterviewCandidatesModule } from './interview-candidates/interview-candidates.module.js';
 import { AssignmentsModule } from './assignments/assignments.module.js';
 import { StressTestReportsModule } from './stress-test-reports/stress-test-reports.module.js';
+import { ObservabilityModule } from './observability/observability.module.js';
 import { RequestIdMiddleware } from './common/request-id.middleware.js';
 import { RequestAwareThrottlerGuard } from './common/request-aware-throttler.guard.js';
 
@@ -37,6 +38,7 @@ import { RequestAwareThrottlerGuard } from './common/request-aware-throttler.gua
     InterviewCandidatesModule,
     AssignmentsModule,
     StressTestReportsModule,
+    ObservabilityModule,
   ],
   providers: [
     {
