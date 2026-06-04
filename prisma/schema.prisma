@@ -5,6 +5,13 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator erd {
+  provider                  = "prisma-erd-generator"
+  output                    = "../docs/ERD.md"
+  includeRelationFromFields = true
+  disableEmoji              = true
+}
+
 datasource db {
   provider = "sqlite"
 }
