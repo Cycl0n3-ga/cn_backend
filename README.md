@@ -109,6 +109,22 @@ docker compose --env-file .deploy/deploy.env down
 
 詳細的部署指南請參考 [DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md)
 
+## 📈 Observability
+
+本專案提供 Prometheus/Grafana 可觀測性最小可交付版：
+
+- `GET /api/v1/metrics`：API Prometheus text metrics
+- `judge-worker:4101/metrics`：worker Prometheus text metrics（Compose network 內部 scrape）
+- Prometheus scrape config：`observability/prometheus/prometheus.yml`
+- Prometheus alert rules：`observability/prometheus/alerts/code-judge.rules.yml`
+- Grafana dashboard provisioning：`observability/grafana`
+- SLI/SLO、alert 與 runbook 文件：[OBSERVABILITY.md](docs/OBSERVABILITY.md)
+
+啟動後可開啟：
+
+- Prometheus: http://localhost:9090
+- Grafana: http://localhost:3001
+
 ## 🔌 API 端點
 
 | Method | Path                                  | 說明                           |

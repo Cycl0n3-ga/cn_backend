@@ -107,6 +107,7 @@ Production 會由 env validation 強制使用 `redis`，避免正式部署不小
 - Correlation：所有 HTTP response 都會 echo `x-request-id`，錯誤 response 與 request log 也會帶同一個 request id。
 - Logs：HTTP completion、5xx error、judge worker started/completed/failed 都輸出 JSON event，方便用 request id、submission id、job id 搜尋。
 - Metrics：`GET /api/v1/metrics` 輸出 Prometheus text format，包含 HTTP request total/duration、DB up/latency、judge queue jobs/concurrency、submission status counts、worker job lifecycle/duration 與 Node.js default metrics。
+- Stack：Docker Compose 會啟動 Prometheus 與 Grafana；Prometheus scrape `/api/v1/metrics` 並載入 alert rules，Grafana 自動 provision dashboard。細節見 `docs/OBSERVABILITY.md`。
 
 ## 9. Security Boundary
 

@@ -4,6 +4,12 @@ import {
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
+import {
+  createServer,
+  type IncomingMessage,
+  type Server,
+  type ServerResponse,
+} from 'node:http';
 import { Worker } from 'bullmq';
 import { getPositiveIntEnv, getQueueDriver } from '../config/env.js';
 import { JudgeJobProcessor } from './judge-job.processor.js';
@@ -16,7 +22,9 @@ export class JudgeWorkerService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(JudgeWorkerService.name);
   private readonly driver = getQueueDriver();
   private readonly concurrency = getPositiveIntEnv('JUDGE_CONCURRENCY', 2);
+  private readonly metricsPort = getPositiveIntEnv('WORKER_METRICS_PORT', 4101);
   private worker?: Worker<JudgeJobData>;
+  private metricsServer?: Server;
 
   constructor(
     private readonly processor: JudgeJobProcessor,
@@ -24,6 +32,8 @@ export class JudgeWorkerService implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   onModuleInit() {
+    this.startMetricsServer();
+
     if (this.driver !== 'redis') {
       this.logger.warn(
         'JudgeWorkerService is idle because JUDGE_QUEUE_DRIVER is not redis.',
@@ -95,5 +105,49 @@ export class JudgeWorkerService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleDestroy() {
     await this.worker?.close();
+    await new Promise<void>((resolve, reject) => {
+      if (!this.metricsServer) {
+        resolve();
+        return;
+      }
+
+      this.metricsServer.close((error) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve();
+      });
+    });
+  }
+
+  private startMetricsServer() {
+    this.metricsServer = createServer((request, response) => {
+      void this.handleMetricsRequest(request, response);
+    });
+
+    this.metricsServer.listen(this.metricsPort, () => {
+      this.logger.log(`Judge worker metrics listening on :${this.metricsPort}`);
+    });
+  }
+
+  private async handleMetricsRequest(
+    request: IncomingMessage,
+    response: ServerResponse,
+  ) {
+    if (request.url === '/health/live') {
+      response.writeHead(200, { 'content-type': 'application/json' });
+      response.end(JSON.stringify({ status: 'UP' }));
+      return;
+    }
+
+    if (request.url === '/metrics') {
+      response.writeHead(200, { 'content-type': this.metrics.contentType });
+      response.end(await this.metrics.metrics());
+      return;
+    }
+
+    response.writeHead(404, { 'content-type': 'application/json' });
+    response.end(JSON.stringify({ statusCode: 404, message: 'Not Found' }));
   }
 }

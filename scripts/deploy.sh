@@ -87,7 +87,13 @@ if [ ! -f "$ENV_FILE" ]; then
     echo "JUDGE_CONCURRENCY=${JUDGE_CONCURRENCY:-2}"
     echo "JUDGE_JOB_ATTEMPTS=${JUDGE_JOB_ATTEMPTS:-3}"
     echo "JUDGE_STUCK_AFTER_SECONDS=${JUDGE_STUCK_AFTER_SECONDS:-300}"
+    echo "WORKER_METRICS_PORT=${WORKER_METRICS_PORT:-4101}"
     echo "JUDGE_TMP_DIR=$JUDGE_TMP_DIR"
+    echo "PROMETHEUS_PORT=${PROMETHEUS_PORT:-9090}"
+    echo "PROMETHEUS_RETENTION=${PROMETHEUS_RETENTION:-15d}"
+    echo "GRAFANA_PORT=${GRAFANA_PORT:-3001}"
+    echo "GRAFANA_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}"
+    echo "GRAFANA_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-$(random_hex)}"
   } >"$ENV_FILE"
   chmod 600 "$ENV_FILE"
 else
@@ -108,7 +114,13 @@ else
   ensure_env_var "JUDGE_CONCURRENCY" "${JUDGE_CONCURRENCY:-2}"
   ensure_env_var "JUDGE_JOB_ATTEMPTS" "${JUDGE_JOB_ATTEMPTS:-3}"
   ensure_env_var "JUDGE_STUCK_AFTER_SECONDS" "${JUDGE_STUCK_AFTER_SECONDS:-300}"
+  ensure_env_var "WORKER_METRICS_PORT" "${WORKER_METRICS_PORT:-4101}"
   ensure_env_var "JUDGE_TMP_DIR" "$JUDGE_TMP_DIR"
+  ensure_env_var "PROMETHEUS_PORT" "${PROMETHEUS_PORT:-9090}"
+  ensure_env_var "PROMETHEUS_RETENTION" "${PROMETHEUS_RETENTION:-15d}"
+  ensure_env_var "GRAFANA_PORT" "${GRAFANA_PORT:-3001}"
+  ensure_env_var "GRAFANA_ADMIN_USER" "${GRAFANA_ADMIN_USER:-admin}"
+  ensure_env_var "GRAFANA_ADMIN_PASSWORD" "${GRAFANA_ADMIN_PASSWORD:-$(random_hex)}"
 fi
 
 mkdir -p "$JUDGE_TMP_DIR"
@@ -118,6 +130,8 @@ if [ ! -w "$JUDGE_TMP_DIR" ]; then
 fi
 
 HOST_PORT_VALUE="${HOST_PORT:-$(env_value HOST_PORT)}"
+PROMETHEUS_PORT_VALUE="${PROMETHEUS_PORT:-$(env_value PROMETHEUS_PORT)}"
+GRAFANA_PORT_VALUE="${GRAFANA_PORT:-$(env_value GRAFANA_PORT)}"
 HEALTH_URL="http://localhost:${HOST_PORT_VALUE}/api/v1/health/ready"
 
 cd "$ROOT_DIR"
@@ -165,6 +179,10 @@ Deploy complete.
 API:      http://localhost:${HOST_PORT_VALUE}/api/v1
 Swagger:  http://localhost:${HOST_PORT_VALUE}/api/docs
 Health:   $HEALTH_URL
+Metrics:  http://localhost:${HOST_PORT_VALUE}/api/v1/metrics
+Prom:     http://localhost:${PROMETHEUS_PORT_VALUE}
+Grafana:  http://localhost:${GRAFANA_PORT_VALUE}
+Grafana credentials: see .deploy/deploy.env
 Logs:     ${COMPOSE[*]} --env-file .deploy/deploy.env logs -f backend-api judge-worker
 Stop:     ${COMPOSE[*]} --env-file .deploy/deploy.env down
 EOF

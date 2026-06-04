@@ -2,12 +2,11 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '../prisma/prisma.module.js';
 import { JudgeModule } from '../judge/judge.module.js';
 import { MetricsController } from './metrics.controller.js';
-import { defaultMetricsService, MetricsService } from './metrics.service.js';
+import { MetricsModule } from './metrics.module.js';
 
 @Module({
-  imports: [PrismaModule, JudgeModule],
+  imports: [PrismaModule, JudgeModule, MetricsModule],
   controllers: [MetricsController],
-  providers: [{ provide: MetricsService, useValue: defaultMetricsService }],
-  exports: [MetricsService],
+  exports: [MetricsModule],
 })
 export class ObservabilityModule {}

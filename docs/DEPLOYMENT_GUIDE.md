@@ -30,9 +30,9 @@ docker compose --env-file .deploy/deploy.env logs -f backend-api judge-worker re
 docker compose --env-file .deploy/deploy.env down
 ```
 
-`scripts/deploy.sh` 會自動產生 `.deploy/deploy.env`，其中包含 SQLite DB URL、JWT secret、internal API key、`HOST_PORT`、Redis queue 與 judge 暫存目錄設定。Backend 會映射到 `HOST_PORT`（預設 `4100`），Caddy 另提供 80/443 反向代理。
+`scripts/deploy.sh` 會自動產生 `.deploy/deploy.env`，其中包含 SQLite DB URL、JWT secret、internal API key、`HOST_PORT`、Redis queue、judge 暫存目錄、Prometheus port 與 Grafana admin password。Backend 會映射到 `HOST_PORT`（預設 `4100`），Caddy 另提供 80/443 反向代理。
 
-部署會啟動 `backend-api`、`judge-worker`、`redis` 與 `caddy`。API container 不掛 Docker socket；只有 `judge-worker` 透過 Docker socket 建立隔離的程式執行容器。請只在信任的主機上使用這份預設 Compose 設定。
+部署會啟動 `backend-api`、`judge-worker`、`redis`、`caddy`、`prometheus` 與 `grafana`。API container 不掛 Docker socket；只有 `judge-worker` 透過 Docker socket 建立隔離的程式執行容器。請只在信任的主機上使用這份預設 Compose 設定。
 
 #### 2. 啟動時灌入种子資料
 
@@ -188,20 +188,31 @@ REDIS_URL=redis://redis:6379
 JUDGE_CONCURRENCY=2
 JUDGE_JOB_ATTEMPTS=3
 JUDGE_STUCK_AFTER_SECONDS=300
+WORKER_METRICS_PORT=4101
 
 # 日誌
 LOG_LEVEL=info
+
+# Observability
+PROMETHEUS_PORT=9090
+PROMETHEUS_RETENTION=15d
+GRAFANA_PORT=3001
+GRAFANA_ADMIN_USER=admin
+GRAFANA_ADMIN_PASSWORD=<改成強密碼>
 ```
 
-### Health checks
+### Health checks and observability
 
 | Endpoint               | 用途                        |
 | ---------------------- | --------------------------- |
 | `/api/v1/health/live`  | process liveness            |
 | `/api/v1/health/ready` | DB + Redis/BullMQ readiness |
 | `/api/v1/health/stats` | dashboard/statistics        |
+| `/api/v1/metrics`      | Prometheus metrics          |
 
 Docker Compose healthcheck 使用 `/health/ready`，因此 Redis 或 DB 不可用時，API 不會被標記為 healthy。
+
+Prometheus 預設開在 `http://localhost:9090`，Grafana 預設開在 `http://localhost:3001`。Grafana 會自動載入 Prometheus datasource 與 Code Judge dashboard；詳細說明見 [OBSERVABILITY.md](OBSERVABILITY.md)。
 
 ### Rollback
 
