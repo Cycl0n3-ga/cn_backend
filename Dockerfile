@@ -3,6 +3,10 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
+# ERD docs are generated locally; Docker builds only need Prisma Client.
+ENV DISABLE_ERD=true \
+    PUPPETEER_SKIP_DOWNLOAD=true
+
 # Install native build dependencies
 RUN apk add --no-cache python3 make g++
 COPY package*.json ./
