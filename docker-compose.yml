@@ -3,11 +3,11 @@ services:
     image: redis:7-alpine
     container_name: code-judge-redis
     restart: unless-stopped
-    command: [ 'redis-server', '--appendonly', 'yes' ]
+    command: ['redis-server', '--appendonly', 'yes']
     volumes:
       - redis_data:/data
     healthcheck:
-      test: [ 'CMD', 'redis-cli', 'ping' ]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 5s
       retries: 6
@@ -43,7 +43,11 @@ services:
     command: >
       sh -c "DB_DIR=$${SQLITE_DB_FILE%/*} && mkdir -p \"$$DB_DIR\" && touch \"$$SQLITE_DB_FILE\" && npx prisma migrate deploy --schema prisma/schema.prisma && if [ \"$$SEED_DB\" = \"true\" ]; then node dist/prisma/seed.js; fi && npm run start:prod"
     healthcheck:
-      test: [ 'CMD-SHELL', 'node -e "fetch(''http://127.0.0.1:'' + (process.env.PORT || 4100) + ''/api/v1/health/ready'').then(r => r.ok ? r.json() : Promise.reject(new Error(''bad status''))).then(body => process.exit(body.status === ''UP'' ? 0 : 1)).catch(() => process.exit(1))"' ]
+      test:
+        [
+          'CMD-SHELL',
+          'node -e "fetch(''http://127.0.0.1:'' + (process.env.PORT || 4100) + ''/api/v1/health/ready'').then(r => r.ok ? r.json() : Promise.reject(new Error(''bad status''))).then(body => process.exit(body.status === ''UP'' ? 0 : 1)).catch(() => process.exit(1))"',
+        ]
       interval: 10s
       timeout: 5s
       retries: 6
@@ -122,7 +126,11 @@ services:
       backend-api:
         condition: service_healthy
     healthcheck:
-      test: [ 'CMD-SHELL', 'promtool query instant http://127.0.0.1:9090/prometheus up >/dev/null 2>&1 || exit 1' ]
+      test:
+        [
+          'CMD-SHELL',
+          'promtool query instant http://127.0.0.1:9090/prometheus up >/dev/null 2>&1 || exit 1',
+        ]
       interval: 10s
       timeout: 5s
       retries: 6
@@ -154,9 +162,9 @@ services:
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
     ports:
-      - "9200:9200"
+      - '9200:9200'
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
 
@@ -165,7 +173,7 @@ services:
     container_name: code-judge-kibana
     restart: unless-stopped
     ports:
-      - "5601:5601"
+      - '5601:5601'
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
       - SERVER_BASEPATH=/kibana

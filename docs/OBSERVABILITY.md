@@ -188,21 +188,24 @@ Useful fields:
 目前本機日誌僅輸出至 stdout/container logs。若要升級為生產規格的集中式日誌，可採用以下 ELK 整合方案，讓所有日誌可於 Kibana 中進行全文檢索與 Correlation ID 追蹤。
 
 #### Step 1: 新增 Filebeat 配置 (`observability/filebeat/filebeat.yml`)
+
 在專案中建立 Filebeat 設定檔，用以收集容器日誌並送至 Elasticsearch：
+
 ```yaml
 filebeat.inputs:
-- type: container
-  paths:
-    - '/var/lib/docker/containers/*/*.log'
+  - type: container
+    paths:
+      - '/var/lib/docker/containers/*/*.log'
 
 output.elasticsearch:
-  hosts: ["elasticsearch:9200"]
+  hosts: ['elasticsearch:9200']
 
 setup.kibana:
-  host: "kibana:5601"
+  host: 'kibana:5601'
 ```
 
 #### Step 2: 於 `docker-compose.yml` 部署 ELK 服務
+
 ```yaml
 services:
   # ... 現有服務 ...
@@ -214,9 +217,9 @@ services:
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
     ports:
-      - "9200:9200"
+      - '9200:9200'
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
 
@@ -225,7 +228,7 @@ services:
     container_name: code-judge-kibana
     restart: unless-stopped
     ports:
-      - "5601:5601"
+      - '5601:5601'
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
       - SERVER_BASEPATH=/kibana
@@ -251,9 +254,11 @@ volumes:
 ```
 
 #### Step 3: Caddy 統一路由與反向代理
+
 為了使用單一域名或 localhost 的子路徑存取所有觀測工具，需修改 `Caddyfile` 並設定對應的環境變數：
 
 ##### 1. 修改 `Caddyfile`：
+
 ```caddy
 {$DOMAIN_NAME:localhost} {
     # Observability 路由代理
@@ -267,29 +272,34 @@ volumes:
 ```
 
 ##### 2. 修改 `docker-compose.yml` 中各服務的 subpath 設定：
-*   **Prometheus** (於 `command` 中加入並更新 `healthcheck`)：
-    ```yaml
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention.time=${PROMETHEUS_RETENTION:-15d}'
-      - '--web.enable-lifecycle'
-      - '--web.external-url=/prometheus/' # 新增此行
-    healthcheck:
-      test: [ 'CMD-SHELL', 'promtool query instant http://127.0.0.1:9090/prometheus up >/dev/null 2>&1 || exit 1' ]
-    ```
-*   **Grafana** (於 `environment` 中加入)：
-    ```yaml
-    environment:
-      GF_SERVER_ROOT_URL: '%(protocol)s://%(domain)s:%(port)s/grafana/'
-      GF_SERVER_SERVE_FROM_SUB_PATH: 'true'
-    ```
-*   **Kibana** (於 `environment` 中已於 Step 2 帶入)：
-    ```yaml
-    environment:
-      - SERVER_BASEPATH=/kibana
-      - SERVER_REWRITEBASEPATH=true
-    ```
+
+- **Prometheus** (於 `command` 中加入並更新 `healthcheck`)：
+  ```yaml
+  command:
+    - '--config.file=/etc/prometheus/prometheus.yml'
+    - '--storage.tsdb.path=/prometheus'
+    - '--storage.tsdb.retention.time=${PROMETHEUS_RETENTION:-15d}'
+    - '--web.enable-lifecycle'
+    - '--web.external-url=/prometheus/' # 新增此行
+  healthcheck:
+    test:
+      [
+        'CMD-SHELL',
+        'promtool query instant http://127.0.0.1:9090/prometheus up >/dev/null 2>&1 || exit 1',
+      ]
+  ```
+- **Grafana** (於 `environment` 中加入)：
+  ```yaml
+  environment:
+    GF_SERVER_ROOT_URL: '%(protocol)s://%(domain)s:%(port)s/grafana/'
+    GF_SERVER_SERVE_FROM_SUB_PATH: 'true'
+  ```
+- **Kibana** (於 `environment` 中已於 Step 2 帶入)：
+  ```yaml
+  environment:
+    - SERVER_BASEPATH=/kibana
+    - SERVER_REWRITEBASEPATH=true
+  ```
 
 ---
 
