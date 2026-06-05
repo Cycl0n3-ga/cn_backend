@@ -1,0 +1,66 @@
+groups:
+  - name: code-judge-api
+    rules:
+      - alert: CodeJudgeHigh5xxRate
+        expr: |
+          (
+            sum(rate(code_judge_http_requests_total{status_code=~"5.."}[5m]))
+            /
+            sum(rate(code_judge_http_requests_total[5m]))
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: page
+          service: backend-api
+        annotations:
+          summary: Code Judge API 5xx rate is above 5%
+          description: More than 5% of HTTP requests returned 5xx during the last 5 minutes.
+
+      - alert: CodeJudgeHighP95Latency
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum(rate(code_judge_http_request_duration_seconds_bucket[5m])) by (le)
+          ) > 0.5
+        for: 10m
+        labels:
+          severity: ticket
+          service: backend-api
+        annotations:
+          summary: Code Judge API P95 latency is above 500ms
+          description: P95 HTTP request duration has stayed above the API latency SLO target.
+
+      - alert: CodeJudgeDatabaseDown
+        expr: code_judge_database_up == 0
+        for: 1m
+        labels:
+          severity: page
+          service: database
+        annotations:
+          summary: Code Judge database health check is failing
+          description: The API metrics endpoint reports database_up as 0.
+
+      - alert: CodeJudgeQueueBacklog
+        expr: sum(code_judge_judge_queue_jobs{state="waiting"}) > 100
+        for: 5m
+        labels:
+          severity: ticket
+          service: judge-worker
+        annotations:
+          summary: Judge queue backlog is above 100 waiting jobs
+          description: Submissions are accumulating faster than workers can process them.
+
+      - alert: CodeJudgeHighJudgeFailureRate
+        expr: |
+          (
+            sum(rate(code_judge_judge_jobs_total{status="failed"}[10m]))
+            /
+            sum(rate(code_judge_judge_jobs_total{status=~"completed|failed"}[10m]))
+          ) > 0.1
+        for: 10m
+        labels:
+          severity: ticket
+          service: judge-worker
+        annotations:
+          summary: Judge worker failure rate is above 10%
+          description: Judge jobs are failing at a rate that may indicate sandbox, worker or dependency problems.

@@ -63,6 +63,8 @@ services:
       dockerfile: Dockerfile
       target: production-worker
     container_name: code-judge-worker
+    expose:
+      - '4101'
     environment:
       DATABASE_URL: ${DATABASE_URL:-file:/app/data/code_judge.db}
       SQLITE_DB_FILE: ${SQLITE_DB_FILE:-/app/data/code_judge.db}
@@ -74,6 +76,7 @@ services:
       JUDGE_CONCURRENCY: ${JUDGE_CONCURRENCY:-2}
       JUDGE_JOB_ATTEMPTS: ${JUDGE_JOB_ATTEMPTS:-3}
       JUDGE_STUCK_AFTER_SECONDS: ${JUDGE_STUCK_AFTER_SECONDS:-300}
+      WORKER_METRICS_PORT: ${WORKER_METRICS_PORT:-4101}
       TMPDIR: ${JUDGE_TMP_DIR:-/tmp/code-judge-workspaces}
     volumes:
       - backend_data:/app/data
@@ -103,8 +106,56 @@ services:
       backend-api:
         condition: service_healthy
 
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: code-judge-prometheus
+    restart: unless-stopped
+    ports:
+      - '${PROMETHEUS_PORT:-9090}:9090'
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=${PROMETHEUS_RETENTION:-15d}'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./observability/prometheus/alerts:/etc/prometheus/alerts:ro
+      - prometheus_data:/prometheus
+    depends_on:
+      backend-api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'promtool query instant http://127.0.0.1:9090 up >/dev/null 2>&1 || exit 1',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  grafana:
+    image: grafana/grafana:10.4.5
+    container_name: code-judge-grafana
+    restart: unless-stopped
+    ports:
+      - '${GRAFANA_PORT:-3001}:3000'
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      prometheus:
+        condition: service_started
+
 volumes:
   backend_data:
   redis_data:
   caddy_data:
   caddy_config:
+  prometheus_data:
+  grafana_data:

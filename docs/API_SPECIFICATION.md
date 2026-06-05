@@ -646,6 +646,18 @@ Authorization: Bearer <JWT_TOKEN>
 
 ---
 
+### 7.1.2 Observability Metrics
+
+| 項目       | 值         |
+| ---------- | ---------- |
+| **Method** | `GET`      |
+| **Path**   | `/metrics` |
+| **認證**   | 不需要     |
+
+Prometheus text format 指標，包含 HTTP request count/duration、DB up/latency、submission status counts、judge queue stats、judge worker job lifecycle/duration 與 Node.js process metrics。實際路徑為 `/api/v1/metrics`。
+
+---
+
 ### 7.2 評測機獲取測資 (Internal Only)
 
 | 項目       | 值                         |
