@@ -155,43 +155,16 @@ services:
       prometheus:
         condition: service_started
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
-    container_name: code-judge-elasticsearch
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: code-judge-dozzle
     restart: unless-stopped
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
-    ports:
-      - '9200:9200'
     volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data
-
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.13.4
-    container_name: code-judge-kibana
-    restart: unless-stopped
-    ports:
-      - '5601:5601'
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-      - SERVER_BASEPATH=/kibana
-      - SERVER_REWRITEBASEPATH=true
-    depends_on:
-      - elasticsearch
-
-  filebeat:
-    image: docker.elastic.co/beats/filebeat:8.13.4
-    container_name: code-judge-filebeat
-    restart: unless-stopped
-    user: root
-    volumes:
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./observability/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
-    depends_on:
-      - elasticsearch
+    environment:
+      - DOZZLE_BASE=/dozzle
+    ports:
+      - '8888:8080'
 
 volumes:
   backend_data:
@@ -200,4 +173,3 @@ volumes:
   caddy_config:
   prometheus_data:
   grafana_data:
-  elasticsearch_data:
