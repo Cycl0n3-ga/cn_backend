@@ -6,5 +6,11 @@
 # If $DOMAIN_NAME is not set, it defaults to "localhost" with local self-signed HTTPS certificates.
 
 {$DOMAIN_NAME:localhost} {
+    # Observability routes
+    reverse_proxy /grafana* grafana:3000
+    reverse_proxy /kibana* kibana:5601
+    reverse_proxy /prometheus* prometheus:9090
+
+    # Backend API route
     reverse_proxy backend-api:4100
 }
