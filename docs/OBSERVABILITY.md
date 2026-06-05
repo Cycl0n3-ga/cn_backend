@@ -183,17 +183,136 @@ Useful fields:
 | `statusCode`   | HTTP outcome                                                                                 |
 | `durationMs`   | Request latency                                                                              |
 
-Current limitation: logs are still stdout/container logs. Production should add a centralized log pipeline:
+### 7.1 集中式日誌方案：ELK (Elasticsearch + Kibana + Filebeat) 整合
 
-```txt
-backend-api stdout
-judge-worker stdout
-caddy access log
-redis log
-  -> Promtail or Fluent Bit
-  -> Loki or Elasticsearch
-  -> Grafana or Kibana
+目前本機日誌僅輸出至 stdout/container logs。若要升級為生產規格的集中式日誌，可採用以下 ELK 整合方案，讓所有日誌可於 Kibana 中進行全文檢索與 Correlation ID 追蹤。
+
+#### Step 1: 新增 Filebeat 配置 (`observability/filebeat/filebeat.yml`)
+
+在專案中建立 Filebeat 設定檔，用以收集容器日誌並送至 Elasticsearch：
+
+```yaml
+filebeat.inputs:
+  - type: container
+    paths:
+      - '/var/lib/docker/containers/*/*.log'
+
+output.elasticsearch:
+  hosts: ['elasticsearch:9200']
+
+setup.kibana:
+  host: 'kibana:5601'
 ```
+
+#### Step 2: 於 `docker-compose.yml` 部署 ELK 服務
+
+```yaml
+services:
+  # ... 現有服務 ...
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    container_name: code-judge-elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
+    ports:
+      - '9200:9200'
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.13.4
+    container_name: code-judge-kibana
+    restart: unless-stopped
+    ports:
+      - '5601:5601'
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - SERVER_BASEPATH=/kibana
+      - SERVER_REWRITEBASEPATH=true
+    depends_on:
+      - elasticsearch
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.13.4
+    container_name: code-judge-filebeat
+    restart: unless-stopped
+    user: root
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./observability/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+    depends_on:
+      - elasticsearch
+
+volumes:
+  # ... 現有 volumes ...
+  elasticsearch_data:
+```
+
+#### Step 3: Caddy 統一路由與反向代理
+
+為了使用單一域名或 localhost 的子路徑存取所有觀測工具，需修改 `Caddyfile` 並設定對應的環境變數：
+
+##### 1. 修改 `Caddyfile`：
+
+```caddy
+{$DOMAIN_NAME:localhost} {
+    # Observability 路由代理
+    reverse_proxy /grafana* grafana:3000
+    reverse_proxy /kibana* kibana:5601
+    reverse_proxy /prometheus* prometheus:9090
+
+    # API 預設代理
+    reverse_proxy backend-api:4100
+}
+```
+
+##### 2. 修改 `docker-compose.yml` 中各服務的 subpath 設定：
+
+- **Prometheus** (於 `command` 中加入並更新 `healthcheck`)：
+  ```yaml
+  command:
+    - '--config.file=/etc/prometheus/prometheus.yml'
+    - '--storage.tsdb.path=/prometheus'
+    - '--storage.tsdb.retention.time=${PROMETHEUS_RETENTION:-15d}'
+    - '--web.enable-lifecycle'
+    - '--web.external-url=/prometheus/' # 新增此行
+  healthcheck:
+    test:
+      [
+        'CMD-SHELL',
+        'promtool query instant http://127.0.0.1:9090/prometheus up >/dev/null 2>&1 || exit 1',
+      ]
+  ```
+- **Grafana** (於 `environment` 中加入)：
+  ```yaml
+  environment:
+    GF_SERVER_ROOT_URL: '%(protocol)s://%(domain)s:%(port)s/grafana/'
+    GF_SERVER_SERVE_FROM_SUB_PATH: 'true'
+  ```
+- **Kibana** (於 `environment` 中已於 Step 2 帶入)：
+  ```yaml
+  environment:
+    - SERVER_BASEPATH=/kibana
+    - SERVER_REWRITEBASEPATH=true
+  ```
+
+---
+
+### 7.2 日誌追蹤與檢索手法 (Tracing via Kibana)
+
+當 ELK 部署完成後，Kibana 將成為統一的日誌檢索點。你可以利用日誌中的 Correlation ID 進行鏈路分析：
+
+1.  **建立 Data View**：
+    進入 Kibana (`http://localhost/kibana/` 或 `http://localhost:5601`) $\rightarrow$ Discover $\rightarrow$ 建立 `filebeat-*` Data View (以 `@timestamp` 為時間欄位)。
+2.  **追蹤單次請求**：
+    在搜尋欄輸入 `message : "YOUR_REQUEST_ID"`，即可橫跨 `backend-api` 與 `judge-worker` 過濾出該次請求的所有相關 JSON 日誌。
+3.  **分析判題流程**：
+    輸入 `message : "YOUR_SUBMISSION_ID"` 追蹤特定提交案從建立到沙盒評測完成的生命週期。
 
 ## 8. Tracing And Profiling
 
